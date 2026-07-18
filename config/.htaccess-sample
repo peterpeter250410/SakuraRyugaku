@@ -1,0 +1,100 @@
+# ============================================
+# WordPress 基础重写规则
+# ============================================
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+
+# ============================================
+# 安全加固
+# ============================================
+
+# 禁止访问 wp-config.php
+<Files wp-config.php>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# 禁止访问 .htaccess 自身
+<Files .htaccess>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# 禁止访问 xmlrpc.php
+<Files xmlrpc.php>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# 禁止目录浏览
+Options -Indexes
+
+# 保护 wp-includes 目录
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^wp-admin/includes/ - [F,L]
+RewriteRule !^wp-includes/ - [S=3]
+RewriteRule ^wp-includes/[^/]+\.php$ - [F,L]
+RewriteRule ^wp-includes/js/tinymce/langs/.+\.php - [F,L]
+RewriteRule ^wp-includes/theme-compat/ - [F,L]
+</IfModule>
+
+# 阻止对 PHP 错误日志的直接访问
+<Files error_log>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# 阻止对 readme.html 和 license.txt 的访问
+<FilesMatch "^(readme\.html|license\.txt)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 禁止 wp-content/uploads 目录执行 PHP
+<IfModule mod_rewrite.c>
+RewriteRule ^wp-content/uploads/.*\.php$ - [F,L]
+</IfModule>
+
+# ============================================
+# 性能优化
+# ============================================
+
+# 启用 GZIP 压缩
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# 浏览器缓存
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 year"
+</IfModule>

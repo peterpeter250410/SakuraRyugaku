@@ -1,0 +1,224 @@
+/*
+Theme Name: Study Abroad Theme
+Theme URI: https://example.com/
+Description: 日本留学中介平台主题。落地页转化导向，PC + H5 响应式，多语言就绪，SEO 与埋点集成。市场验证阶段专用。
+Author: Study Abroad Team
+Version: 0.1.0
+Requires at least: 6.0
+Requires PHP: 7.4
+License: GPL-2.0-or-later
+Text Domain: sa-theme
+*/
+
+/* =========================================================
+   设计变量
+   ========================================================= */
+:root {
+	--sa-primary: #d4372c;      /* 日式朱红，信任 + 行动感 */
+	--sa-primary-dark: #a82a22;
+	--sa-accent: #1f6feb;       /* 强调蓝 */
+	--sa-ink: #1a1a2e;
+	--sa-text: #33333a;
+	--sa-muted: #6b7280;
+	--sa-bg: #ffffff;
+	--sa-bg-soft: #f7f8fa;
+	--sa-border: #e5e7eb;
+	--sa-success: #16a34a;
+	--sa-radius: 12px;
+	--sa-shadow: 0 8px 30px rgba(0,0,0,.08);
+	--sa-max: 1180px;
+	--sa-font: "Noto Sans JP","Noto Sans SC","Hiragino Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+	margin: 0;
+	font-family: var(--sa-font);
+	color: var(--sa-text);
+	background: var(--sa-bg);
+	line-height: 1.7;
+	-webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--sa-accent); text-decoration: none; }
+
+.sa-container { max-width: var(--sa-max); margin: 0 auto; padding: 0 20px; }
+
+/* =========================================================
+   Header
+   ========================================================= */
+.sa-header {
+	position: sticky; top: 0; z-index: 100;
+	background: rgba(255,255,255,.92);
+	backdrop-filter: saturate(180%) blur(10px);
+	border-bottom: 1px solid var(--sa-border);
+}
+.sa-header__inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.sa-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; color: var(--sa-ink); }
+.sa-logo__mark { color: var(--sa-primary); }
+.sa-nav ul { display: flex; gap: 24px; list-style: none; margin: 0; padding: 0; }
+.sa-nav a { color: var(--sa-text); font-size: 15px; }
+.sa-nav a:hover { color: var(--sa-primary); }
+.sa-header__cta { display: flex; align-items: center; gap: 12px; }
+
+/* 语言切换 */
+.sa-lang { position: relative; }
+.sa-lang__btn { background: none; border: 1px solid var(--sa-border); border-radius: 20px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+.sa-lang__menu { position: absolute; right: 0; top: 110%; background: #fff; border: 1px solid var(--sa-border); border-radius: 8px; box-shadow: var(--sa-shadow); list-style: none; margin: 0; padding: 6px; min-width: 120px; display: none; }
+.sa-lang:hover .sa-lang__menu { display: block; }
+.sa-lang__menu li a { display: block; padding: 8px 12px; border-radius: 6px; color: var(--sa-text); font-size: 14px; }
+.sa-lang__menu li a:hover { background: var(--sa-bg-soft); }
+
+/* =========================================================
+   Buttons
+   ========================================================= */
+.sa-btn {
+	display: inline-flex; align-items: center; justify-content: center;
+	padding: 12px 24px; border-radius: 30px; font-weight: 600; font-size: 15px;
+	cursor: pointer; border: none; transition: transform .15s ease, box-shadow .15s ease;
+}
+.sa-btn--primary { background: var(--sa-primary); color: #fff; box-shadow: 0 6px 18px rgba(212,55,44,.3); }
+.sa-btn--primary:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(212,55,44,.4); }
+.sa-btn--ghost { background: transparent; color: var(--sa-ink); border: 1px solid var(--sa-border); }
+.sa-btn--block { width: 100%; }
+.sa-btn--lg { padding: 16px 32px; font-size: 17px; }
+
+/* =========================================================
+   Hero（落地页首屏）
+   ========================================================= */
+.sa-hero {
+	position: relative;
+	background: linear-gradient(135deg, #fff5f4 0%, #eef4ff 100%);
+	overflow: hidden;
+}
+.sa-hero__inner { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; padding: 64px 20px; }
+.sa-hero__badge { display: inline-block; background: rgba(212,55,44,.1); color: var(--sa-primary); font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 20px; margin-bottom: 20px; }
+.sa-hero__title { font-size: 44px; line-height: 1.25; color: var(--sa-ink); margin: 0 0 20px; font-weight: 800; }
+.sa-hero__title em { color: var(--sa-primary); font-style: normal; }
+.sa-hero__sub { font-size: 18px; color: var(--sa-muted); margin: 0 0 28px; }
+.sa-hero__points { list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-wrap: wrap; gap: 12px 24px; }
+.sa-hero__points li { font-size: 15px; color: var(--sa-text); position: relative; padding-left: 26px; }
+.sa-hero__points li::before { content: "✓"; position: absolute; left: 0; color: var(--sa-success); font-weight: 700; }
+
+/* =========================================================
+   落地页表单卡
+   ========================================================= */
+.sa-form-card {
+	background: #fff; border-radius: var(--sa-radius); box-shadow: var(--sa-shadow);
+	padding: 28px; border: 1px solid var(--sa-border);
+}
+.sa-form-card__title { font-size: 22px; font-weight: 700; margin: 0 0 4px; color: var(--sa-ink); }
+.sa-form-card__sub { font-size: 14px; color: var(--sa-muted); margin: 0 0 20px; }
+.sa-field { margin-bottom: 16px; }
+.sa-field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--sa-text); }
+.sa-field input, .sa-field select {
+	width: 100%; padding: 12px 14px; border: 1px solid var(--sa-border); border-radius: 8px;
+	font-size: 15px; font-family: inherit; background: #fff;
+}
+.sa-field input:focus, .sa-field select:focus { outline: none; border-color: var(--sa-primary); box-shadow: 0 0 0 3px rgba(212,55,44,.12); }
+.sa-field--row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sa-consent { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--sa-muted); margin-bottom: 16px; }
+.sa-consent input { margin-top: 3px; }
+.sa-honeypot { position: absolute; left: -9999px; opacity: 0; height: 0; overflow: hidden; }
+.sa-form-msg { margin-top: 12px; font-size: 14px; }
+.sa-form-msg--ok { color: var(--sa-success); }
+.sa-form-msg--err { color: var(--sa-primary); }
+
+/* =========================================================
+   Sections
+   ========================================================= */
+.sa-section { padding: 72px 0; }
+.sa-section--soft { background: var(--sa-bg-soft); }
+.sa-section__head { text-align: center; max-width: 720px; margin: 0 auto 48px; }
+.sa-section__tag { color: var(--sa-primary); font-weight: 600; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+.sa-section__title { font-size: 34px; font-weight: 800; color: var(--sa-ink); margin: 8px 0 12px; }
+.sa-section__desc { color: var(--sa-muted); font-size: 16px; }
+
+.sa-grid { display: grid; gap: 24px; }
+.sa-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.sa-grid--4 { grid-template-columns: repeat(4, 1fr); }
+
+.sa-card { background: #fff; border: 1px solid var(--sa-border); border-radius: var(--sa-radius); padding: 28px; transition: box-shadow .2s ease, transform .2s ease; }
+.sa-card:hover { box-shadow: var(--sa-shadow); transform: translateY(-3px); }
+.sa-card__icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(212,55,44,.1); color: var(--sa-primary); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; margin-bottom: 16px; }
+.sa-card__title { font-size: 18px; font-weight: 700; color: var(--sa-ink); margin: 0 0 8px; }
+.sa-card__text { font-size: 15px; color: var(--sa-muted); margin: 0; }
+
+/* 流程 */
+.sa-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; counter-reset: step; }
+.sa-step { text-align: center; position: relative; }
+.sa-step__num { width: 52px; height: 52px; border-radius: 50%; background: var(--sa-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; margin: 0 auto 16px; }
+.sa-step__title { font-weight: 700; color: var(--sa-ink); margin: 0 0 6px; }
+.sa-step__text { font-size: 14px; color: var(--sa-muted); }
+
+/* FAQ */
+.sa-faq { max-width: 820px; margin: 0 auto; }
+.sa-faq__item { border-bottom: 1px solid var(--sa-border); padding: 20px 0; }
+.sa-faq__q { font-weight: 700; color: var(--sa-ink); margin: 0 0 8px; font-size: 17px; }
+.sa-faq__a { color: var(--sa-muted); margin: 0; font-size: 15px; }
+
+/* CTA band */
+.sa-cta-band { background: linear-gradient(135deg, var(--sa-primary) 0%, var(--sa-primary-dark) 100%); color: #fff; text-align: center; padding: 64px 20px; }
+.sa-cta-band h2 { font-size: 30px; margin: 0 0 12px; font-weight: 800; }
+.sa-cta-band p { opacity: .9; margin: 0 0 24px; }
+.sa-cta-band .sa-btn--primary { background: #fff; color: var(--sa-primary); box-shadow: none; }
+
+/* trust logos */
+.sa-logos { display: flex; flex-wrap: wrap; gap: 16px 40px; align-items: center; justify-content: center; opacity: .7; }
+.sa-logos span { font-weight: 700; color: var(--sa-muted); font-size: 18px; }
+
+/* =========================================================
+   Footer
+   ========================================================= */
+.sa-footer { background: var(--sa-ink); color: #cbd5e1; padding: 48px 0 24px; }
+.sa-footer__top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 32px; margin-bottom: 32px; }
+.sa-footer__brand { max-width: 320px; }
+.sa-footer__brand .sa-logo { color: #fff; }
+.sa-footer a { color: #cbd5e1; }
+.sa-footer a:hover { color: #fff; }
+.sa-footer__col h4 { color: #fff; font-size: 15px; margin: 0 0 12px; }
+.sa-footer__col ul { list-style: none; padding: 0; margin: 0; }
+.sa-footer__col li { margin-bottom: 8px; font-size: 14px; }
+.sa-footer__bottom { border-top: 1px solid rgba(255,255,255,.1); padding-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 13px; color: #94a3b8; }
+
+/* =========================================================
+   移动端固定 CTA 条（H5）
+   ========================================================= */
+.sa-mobile-cta { display: none; }
+
+/* 移动菜单按钮 */
+.sa-menu-btn { display: none; background: none; border: none; cursor: pointer; flex-direction: column; gap: 4px; padding: 8px; }
+.sa-menu-btn span { width: 22px; height: 2px; background: var(--sa-ink); display: block; }
+
+/* =========================================================
+   响应式 H5
+   ========================================================= */
+@media (max-width: 900px) {
+	.sa-hero__inner { grid-template-columns: 1fr; padding: 40px 20px; }
+	.sa-hero__title { font-size: 32px; }
+	.sa-grid--3, .sa-grid--4, .sa-steps { grid-template-columns: 1fr 1fr; }
+	.sa-nav { display: none; }
+	.sa-menu-btn { display: flex; }
+}
+
+@media (max-width: 600px) {
+	.sa-hero__title { font-size: 27px; }
+	.sa-section { padding: 48px 0; }
+	.sa-section__title { font-size: 26px; }
+	.sa-grid--3, .sa-grid--4, .sa-steps { grid-template-columns: 1fr; }
+	.sa-field--row { grid-template-columns: 1fr; }
+	.sa-footer__top { flex-direction: column; }
+
+	/* H5 底部固定 CTA */
+	.sa-mobile-cta {
+		display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+		background: #fff; border-top: 1px solid var(--sa-border); padding: 10px 16px;
+		gap: 10px; box-shadow: 0 -4px 20px rgba(0,0,0,.08);
+	}
+	.sa-mobile-cta .sa-btn { flex: 1; }
+	body { padding-bottom: 72px; }
+}

@@ -1,0 +1,56 @@
+# ============================================
+# WordPress Core
+# wp-admin/ wp-includes/ and root php files are tracked
+# ============================================
+
+# ============================================
+# wp-content partial tracking
+# ============================================
+/wp-content/uploads/*
+!/wp-content/uploads/.gitkeep
+
+/wp-content/upgrade/
+/wp-content/cache/
+/wp-content/backups/
+/wp-content/blogs.dir/
+
+# Third-party plugins (track via docs/plugins.md)
+/wp-content/plugins/*
+!/wp-content/plugins/.gitkeep
+# Custom plugins (whitelist for version control)
+!/wp-content/plugins/study-abroad-core/
+!/wp-content/plugins/study-abroad-core/**
+
+# Default themes (keep only custom themes)
+/wp-content/themes/twenty*/
+
+# ============================================
+# Sensitive files
+# ============================================
+wp-config.php
+.htaccess
+*.sql
+*.sql.gz
+*.log
+.env
+.env.*
+
+# ============================================
+# OS and IDE
+# ============================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Playwright MCP browser snapshots (test artifacts)
+.playwright-mcp/
+
+# ============================================
+# BT Panel generated files
+# ============================================
+.user.ini
+.well-known/
