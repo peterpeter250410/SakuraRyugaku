@@ -114,6 +114,15 @@
 		send('lp_view', { lp_variant: lp.getAttribute('data-sa-lp') || '' });
 	}
 
+	// 感谢页/转化确认视图（页面含 [data-sa-thanks] 时）
+	var thanks = document.querySelector('[data-sa-thanks]');
+	if (thanks) {
+		send('thanks_view', {});
+		if (cfg.ga4 && typeof window.gtag === 'function') {
+			window.gtag('event', 'conversion', { send_to: 'lead_form' });
+		}
+	}
+
 	// 表单曝光（IntersectionObserver）
 	var form = document.querySelector('[data-sa-form]');
 	if (form && 'IntersectionObserver' in window) {

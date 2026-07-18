@@ -310,4 +310,39 @@ MVP 需闭环以下最小功能集：
 
 ---
 
+## 实现进度（市场验证第一梯队）
+
+> 记录落地页与 SEO 侧已落地的代码，便于对照功能编号追踪。文件路径均相对仓库根。
+
+| 功能编号 | 状态 | 落地文件 |
+|---------|------|---------|
+| L-01~05 落地页 Hero + 意向表单 | ✅ 已实现 | `wp-content/themes/study-abroad-theme/front-page.php` |
+| L-02/03 卖点区 + 服务流程 | ✅ 已实现 | `front-page.php` |
+| L-06 信任背书区（中性表述，避免夸大宣传） | ✅ 已实现 | `front-page.php` |
+| L-07 FAQ 区（含 FAQPage Schema） | ✅ 已实现 | `front-page.php` + `functions.php: sa_output_faq_schema()` |
+| L-08 悬浮/多处 CTA + H5 底部固定条 | ✅ 已实现 | `header.php` / `footer.php` |
+| L-11/12 H5 响应式 + 性能（纯 CSS 首屏，无阻塞图片） | ✅ 已实现 | `style.css` |
+| L-13 感谢页 / 转化确认（noindex） | ✅ 已实现 | `page-thanks.php`（slug=thanks） |
+| A-02 服务介绍页 | ✅ 已实现 | `page-services.php`（Template Name: サービス紹介ページ） |
+| A-03 关于我们页 | ✅ 已实现 | `page-about.php`（Template Name: 会社紹介ページ） |
+| A-04 联系我们页 | ✅ 已实现 | `page-contact.php`（Template Name: お問い合わせページ） |
+| A-07 FAQ 独立页 | ✅ 已实现 | `page-faq.php`（Template Name: よくある質問ページ） |
+| M-01 SEO 基础（title/meta/canonical/robots/OG） | ✅ 已实现 | `functions.php` |
+| M-02 结构化数据（Organization/WebSite/FAQPage/BreadcrumbList） | ✅ 已实现 | `functions.php` |
+| M-03 多语言 hreflang | ✅ 已实现 | `functions.php` |
+| M-06/08/09/10 GA4 桥接 + 自建埋点 + 转化事件 + UTM | ✅ 已实现 | `wp-content/plugins/study-abroad-core/assets/js/tracker.js` + `main.js` |
+
+**上线时需在 WordPress 后台创建以下页面并绑定模板 / slug**（模板已就绪，内容由运营维护）：
+
+| 页面 | slug | 绑定方式 |
+|------|------|---------|
+| 感谢页 | `thanks` | slug 命中 `page-thanks.php`（无需选模板） |
+| 服务介绍 | `services` | 页面属性 → 模板「サービス紹介ページ」 |
+| 关于我们 | `about` | 页面属性 → 模板「会社紹介ページ」 |
+| 联系我们 | `contact` | 页面属性 → 模板「お問い合わせページ」 |
+| よくある質問 | `faq` | 页面属性 → 模板「よくある質問ページ」 |
+| プライバシーポリシー | `privacy` | 通用 `page.php`（自动 noindex） |
+
+---
+
 _功能编号在后续技术设计与开发任务中作为追踪标识使用。_

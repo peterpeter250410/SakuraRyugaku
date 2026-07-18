@@ -197,10 +197,15 @@ get_header();
 	<div class="sa-container">
 		<div class="sa-section__head">
 			<span class="sa-section__tag">Trusted</span>
-			<h2 class="sa-section__title"><?php esc_html_e( '提携校・実績', 'sa-theme' ); ?></h2>
+			<h2 class="sa-section__title"><?php esc_html_e( '対応する進学先', 'sa-theme' ); ?></h2>
+			<p class="sa-section__desc"><?php esc_html_e( '語学学校から大学院まで、幅広い進学先に対応。提携校は順次拡大中です。', 'sa-theme' ); ?></p>
 		</div>
 		<div class="sa-logos">
-			<span>早稲田</span><span>東京大学</span><span>大阪大学</span><span>京都大学</span><span>語学学校</span><span>専門学校</span>
+			<span><?php esc_html_e( '語学学校', 'sa-theme' ); ?></span>
+			<span><?php esc_html_e( '専門学校', 'sa-theme' ); ?></span>
+			<span><?php esc_html_e( '大学（学部）', 'sa-theme' ); ?></span>
+			<span><?php esc_html_e( '大学院', 'sa-theme' ); ?></span>
+			<span><?php esc_html_e( '短期大学', 'sa-theme' ); ?></span>
 		</div>
 	</div>
 </section>

@@ -51,6 +51,7 @@ add_action( 'wp_enqueue_scripts', function () {
 	wp_localize_script( 'sa-theme', 'SA_LP', array(
 		'leadEndpoint' => esc_url_raw( rest_url( 'sa/v1/lead' ) ),
 		'nonce'        => wp_create_nonce( 'wp_rest' ),
+		'thanksUrl'    => esc_url_raw( home_url( '/thanks/' ) ),
 		'i18n'         => array(
 			'submitting' => __( '提交中…', 'sa-theme' ),
 			'success'    => __( '提交成功！我们会尽快与您联系。', 'sa-theme' ),
@@ -130,8 +131,8 @@ add_action( 'wp_head', function () {
 	$canonical = is_singular() ? get_permalink() : home_url( add_query_arg( array() ) );
 	echo '<link rel="canonical" href="' . esc_url( $canonical ) . '">' . "\n";
 
-	// robots：隐私/同意类页面 noindex（按 slug 约定）
-	if ( is_page( array( 'privacy', 'privacy-policy', 'consent' ) ) ) {
+	// robots：隐私/同意类与感谢页 noindex（按 slug 约定）
+	if ( is_page( array( 'privacy', 'privacy-policy', 'consent', 'thanks', 'thank-you' ) ) ) {
 		echo '<meta name="robots" content="noindex,follow">' . "\n";
 	}
 
@@ -159,10 +160,37 @@ add_action( 'wp_head', function () {
 		'url'      => home_url( '/' ),
 	);
 	echo '<script type="application/ld+json">' . wp_json_encode( $org ) . '</script>' . "\n";
+
+	// JSON-LD WebSite（利于品牌检索结果，含站内搜索动作）
+	$site = array(
+		'@context'        => 'https://schema.org',
+		'@type'           => 'WebSite',
+		'name'            => get_bloginfo( 'name' ),
+		'url'             => home_url( '/' ),
+		'inLanguage'      => str_replace( '_', '-', sa_current_locale() ),
+		'potentialAction' => array(
+			'@type'       => 'SearchAction',
+			'target'      => home_url( '/?s={search_term_string}' ),
+			'query-input' => 'required name=search_term_string',
+		),
+	);
+	echo '<script type="application/ld+json">' . wp_json_encode( $site ) . '</script>' . "\n";
 }, 1 );
+
+/**
+ * 允许模板层覆盖 meta description（在模板顶部设置 $GLOBALS['sa_meta_desc']）。
+ * 与 sa_set_meta_description() 配合，站点页各自给出独立描述以利 SEO。
+ */
+function sa_set_meta_description( $desc ) {
+	$GLOBALS['sa_meta_desc'] = wp_strip_all_tags( (string) $desc );
+}
 
 /** 计算 meta description */
 function sa_meta_description() {
+	// 模板层显式覆盖优先（站点页各自独立描述）。
+	if ( ! empty( $GLOBALS['sa_meta_desc'] ) ) {
+		return $GLOBALS['sa_meta_desc'];
+	}
 	if ( is_singular() ) {
 		$post = get_queried_object();
 		if ( $post && ! empty( $post->post_excerpt ) ) {
@@ -215,10 +243,59 @@ add_filter( 'robots_txt', function ( $output, $public ) {
 	$lines[] = 'Allow: /wp-admin/admin-ajax.php';
 	$lines[] = 'Disallow: /wp-login.php';
 	$lines[] = 'Disallow: /privacy/';
+	$lines[] = 'Disallow: /thanks/';
 	$lines[] = '';
 	$lines[] = 'Sitemap: ' . esc_url_raw( home_url( '/wp-sitemap.xml' ) );
 	return implode( "\n", $lines ) . "\n";
 }, 10, 2 );
+
+/* -------------------------------------------------------------------------
+ * 面包屑（可访问性 + BreadcrumbList 结构化数据）
+ * 用法：sa_breadcrumb( array( array( 'ホーム', home_url('/') ), array( '当前页', '' ) ) );
+ * 末项为当前页（url 传空字符串）。
+ * ---------------------------------------------------------------------- */
+function sa_breadcrumb( array $items ) {
+	if ( empty( $items ) ) {
+		return;
+	}
+
+	// 可视面包屑
+	echo '<nav class="sa-breadcrumb" aria-label="' . esc_attr__( 'パンくずリスト', 'sa-theme' ) . '">';
+	echo '<ol>';
+	$last = count( $items ) - 1;
+	foreach ( $items as $i => $item ) {
+		list( $label, $url ) = array( $item[0], isset( $item[1] ) ? $item[1] : '' );
+		echo '<li>';
+		if ( $i === $last || '' === $url ) {
+			echo '<span aria-current="page">' . esc_html( $label ) . '</span>';
+		} else {
+			echo '<a href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a>';
+		}
+		echo '</li>';
+	}
+	echo '</ol>';
+	echo '</nav>';
+
+	// BreadcrumbList JSON-LD
+	$list = array();
+	foreach ( $items as $i => $item ) {
+		$entry = array(
+			'@type'    => 'ListItem',
+			'position' => $i + 1,
+			'name'     => $item[0],
+		);
+		if ( ! empty( $item[1] ) ) {
+			$entry['item'] = $item[1];
+		}
+		$list[] = $entry;
+	}
+	$schema = array(
+		'@context'        => 'https://schema.org',
+		'@type'           => 'BreadcrumbList',
+		'itemListElement' => $list,
+	);
+	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>';
+}
 
 /* -------------------------------------------------------------------------
  * 首页使用落地页模板

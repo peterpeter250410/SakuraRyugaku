@@ -79,6 +79,10 @@
 						if (typeof window.saTrack === 'function') {
 							window.saTrack('form_submit', { explicit: true, lead_id: res.data.lead_id || 0 });
 						}
+						// 跳转感谢页（转化确认落地，延迟以确保埋点已发出）
+						if (cfg.thanksUrl) {
+							setTimeout(function () { window.location.assign(cfg.thanksUrl); }, 800);
+						}
 					} else {
 						var m = (res.data && res.data.message) ? res.data.message : cfg.i18n.error;
 						showMsg(m, 'err');

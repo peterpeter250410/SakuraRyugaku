@@ -22,10 +22,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div class="sa-footer__col">
 				<h4><?php esc_html_e( 'ナビゲーション', 'sa-theme' ); ?></h4>
 				<ul>
-					<li><a href="#services"><?php esc_html_e( 'サービス', 'sa-theme' ); ?></a></li>
-					<li><a href="#flow"><?php esc_html_e( '流れ', 'sa-theme' ); ?></a></li>
-					<li><a href="#faq"><?php esc_html_e( 'よくある質問', 'sa-theme' ); ?></a></li>
-					<li><a href="#lead-form"><?php esc_html_e( '無料相談', 'sa-theme' ); ?></a></li>
+					<li><a href="<?php echo esc_url( home_url( '/services/' ) ); ?>"><?php esc_html_e( 'サービス紹介', 'sa-theme' ); ?></a></li>
+					<li><a href="<?php echo esc_url( home_url( '/about/' ) ); ?>"><?php esc_html_e( '私たちについて', 'sa-theme' ); ?></a></li>
+					<li><a href="<?php echo esc_url( home_url( '/faq/' ) ); ?>"><?php esc_html_e( 'よくある質問', 'sa-theme' ); ?></a></li>
+					<li><a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'お問い合わせ', 'sa-theme' ); ?></a></li>
 				</ul>
 			</div>
 			<div class="sa-footer__col">

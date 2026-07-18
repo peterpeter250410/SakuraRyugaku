@@ -227,7 +227,6 @@ IntakeData (学生信息)
 | `scripts/i18n-*.php` / `i18n-*.sh` | 作为多语言处理工具链参考/复用 |
 | `scripts/security-check.sh` | 上线前安全审计 |
 | `config/wp-config-sample.php` / `.htaccess-sample` | 生产配置模板 |
-| `mockup/`（EIKOU 会展） | **不复用**，仅作前端技术参考，业务无关 |
 
 ---
 
