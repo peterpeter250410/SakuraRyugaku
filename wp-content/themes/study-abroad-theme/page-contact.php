@@ -33,7 +33,7 @@ get_template_part(
 		<div class="sa-grid sa-grid--3">
 			<div class="sa-card">
 				<h2 class="sa-card__title"><?php esc_html_e( 'メール', 'sa-theme' ); ?></h2>
-				<p class="sa-card__text"><a href="mailto:info@sakuraryugaku.com">info@sakuraryugaku.com</a></p>
+				<p class="sa-card__text"><a href="mailto:info@studyinjp.com">info@studyinjp.com</a></p>
 			</div>
 			<div class="sa-card">
 				<h2 class="sa-card__title"><?php esc_html_e( 'メッセージアプリ', 'sa-theme' ); ?></h2>

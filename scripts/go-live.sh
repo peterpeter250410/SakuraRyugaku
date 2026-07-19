@@ -15,7 +15,7 @@
 #   - 本脚本是「幂等编排层」，可在每次发布/回归时重复运行。
 #
 # 用法：
-#   bash scripts/go-live.sh https://sakuraryugaku.com
+#   bash scripts/go-live.sh https://studyinjp.com
 #   不传 URL 时跳过在线 preflight（仅做本地初始化与安全审计）。
 #
 # 选项（环境变量）：

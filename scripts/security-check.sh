@@ -91,16 +91,30 @@ for FILE in readme.html license.txt wp-config-sample.php; do
 done
 
 # 7. PHP files in uploads
+# 说明：uploads 内的空 index.php（内容仅 "Silence is golden" 防目录列举）是
+#       WordPress/本插件的标准防护文件，非恶意，跳过；仅对含真实代码的 PHP 告警。
 echo ""
 echo "[Check 7] PHP files in uploads directory"
 if [ -d "${SITE_ROOT}/wp-content/uploads" ]; then
-    PHP_COUNT=$(find "${SITE_ROOT}/wp-content/uploads" -name "*.php" 2>/dev/null | wc -l)
-    if [ "$PHP_COUNT" -gt 0 ]; then
-        echo "  [FAIL] Found ${PHP_COUNT} PHP file(s) in uploads (possible malware)"
-        find "${SITE_ROOT}/wp-content/uploads" -name "*.php" 2>/dev/null
+    SUSPICIOUS=0
+    while IFS= read -r PHPFILE; do
+        [ -z "$PHPFILE" ] && continue
+        # 白名单：仅含 "Silence is golden" 的空 index.php 防护文件
+        if [ "$(basename "$PHPFILE")" = "index.php" ] && \
+           grep -qi "Silence is golden" "$PHPFILE" 2>/dev/null && \
+           [ "$(grep -cvE '^\s*(<\?php)?\s*(//.*)?\s*$' "$PHPFILE" 2>/dev/null)" = "0" ]; then
+            continue
+        fi
+        echo "  [FAIL] Suspicious PHP in uploads: ${PHPFILE}"
+        SUSPICIOUS=$((SUSPICIOUS + 1))
+    done <<EOF
+$(find "${SITE_ROOT}/wp-content/uploads" -name "*.php" 2>/dev/null)
+EOF
+    if [ "$SUSPICIOUS" -gt 0 ]; then
+        echo "  [FAIL] Found ${SUSPICIOUS} suspicious PHP file(s) in uploads (possible malware)"
         ISSUES=$((ISSUES + 1))
     else
-        echo "  [PASS] No PHP files in uploads"
+        echo "  [PASS] No suspicious PHP files in uploads（防护用空 index.php 已放行）"
     fi
 else
     echo "  [PASS] uploads directory not found"

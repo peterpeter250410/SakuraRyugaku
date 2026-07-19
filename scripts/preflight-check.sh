@@ -5,7 +5,7 @@
 # 对照 docs/study-abroad/SEO-DEPLOYMENT.md 的 Go-Live Checklist，
 # 抓取真实站点验证 SEO 与页面就绪状态。
 #
-# 用法：bash scripts/preflight-check.sh https://sakuraryugaku.com
+# 用法：bash scripts/preflight-check.sh https://studyinjp.com
 #   不传 URL 时默认 http://localhost
 #
 # 依赖：curl。检查项失败计入 ISSUES，非致命项计入 WARN。

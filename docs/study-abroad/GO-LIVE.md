@@ -32,7 +32,7 @@
 | 项 | 要求 | 备注 |
 |----|------|------|
 | 服务器 | Linux（PHP 8.1+ / MySQL 5.7+ 或 MariaDB 10.4+）| 内存 ≥ 1GB |
-| 域名 | 已解析到服务器 IP | 例：`sakuraryugaku.com` |
+| 域名 | 已解析到服务器 IP | 例：`studyinjp.com` |
 | HTTPS | 已签发有效证书（Let's Encrypt 等）| 生产必须 HTTPS |
 | Web 服务器 | Nginx 或 Apache（支持伪静态） | 固定链接依赖 rewrite |
 | WP-CLI | 已安装 `wp` 命令 | https://wp-cli.org/ |
@@ -94,11 +94,11 @@ FLUSH PRIVILEGES;
 
 ```bash
 wp core install \
-  --url="https://sakuraryugaku.com" \
+  --url="https://studyinjp.com" \
   --title="桜留学 SakuraRyugaku" \
   --admin_user="你的管理员名" \
   --admin_password="强密码" \
-  --admin_email="admin@sakuraryugaku.com"
+  --admin_email="admin@studyinjp.com"
 ```
 
 ### 2.5 复制 .htaccess（Apache）
@@ -116,7 +116,7 @@ cp config/.htaccess-sample .htaccess   # 若存在该模板
 首次部署完成后（②～⑤ 就绪），执行编排脚本：
 
 ```bash
-bash scripts/go-live.sh https://sakuraryugaku.com
+bash scripts/go-live.sh https://studyinjp.com
 ```
 
 脚本按序执行四个阶段：
@@ -131,8 +131,8 @@ bash scripts/go-live.sh https://sakuraryugaku.com
 ### 3.1 可选开关（环境变量）
 
 ```bash
-SKIP_SETUP=1     bash scripts/go-live.sh https://sakuraryugaku.com  # 只检查不改内容
-SKIP_SECURITY=1  bash scripts/go-live.sh https://sakuraryugaku.com  # 跳过安全审计
+SKIP_SETUP=1     bash scripts/go-live.sh https://studyinjp.com  # 只检查不改内容
+SKIP_SECURITY=1  bash scripts/go-live.sh https://studyinjp.com  # 跳过安全审计
 SKIP_PREFLIGHT=1 bash scripts/go-live.sh                            # 只做本地初始化
 ```
 
@@ -143,7 +143,7 @@ SKIP_PREFLIGHT=1 bash scripts/go-live.sh                            # 只做本�
 ```bash
 bash scripts/wp-cli-setup.sh                                  # 仅内容初始化
 bash scripts/security-check.sh                                # 仅安全审计
-bash scripts/preflight-check.sh https://sakuraryugaku.com     # 仅 SEO/页面检查
+bash scripts/preflight-check.sh https://studyinjp.com     # 仅 SEO/页面检查
 ```
 
 ---
@@ -177,7 +177,7 @@ bash scripts/preflight-check.sh https://sakuraryugaku.com     # 仅 SEO/页面�
 
 1. 到 https://search.google.com/search-console 添加资源（域名或 URL 前缀）。
 2. 验证所有权（DNS TXT 或 HTML 文件）。
-3. 提交站点地图：`https://sakuraryugaku.com/wp-sitemap.xml`。
+3. 提交站点地图：`https://studyinjp.com/wp-sitemap.xml`。
 4. 用「网址检查」对首页与各站点页请求编入索引。
 
 ### 5.2 GA4 / 埋点回流（必做）
@@ -215,7 +215,7 @@ bash scripts/backup.sh    # DB + wp-content + config 备份
 改完主题/插件代码后，无需重复首次部署，只需：
 
 ```bash
-bash scripts/go-live.sh https://sakuraryugaku.com
+bash scripts/go-live.sh https://studyinjp.com
 ```
 
 `wp-cli-setup.sh` 幂等（已存在页面跳过、菜单先清后建），可安全重跑；随后自动过一遍安全与 SEO 检查。全部 `✅` 即可对外。

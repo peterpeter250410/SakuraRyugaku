@@ -1,6 +1,6 @@
 # SakuraRyugaku — 日本留学中介平台
 
-> 品牌：**桜留学 / SakuraRyugaku**　主域：`sakuraryugaku.com`（日本主域 `sakuraryugaku.jp` 后补）
+> 品牌：**桜留学 / SakuraRyugaku**　主域：`studyinjp.com`（不带 www 为规范域名）
 > 技术栈：WordPress（自定义主题 + 自定义插件）　支持终端：PC + H5
 
 面向赴日留学生的中介平台。学生填写意向信息 → 系统自动匹配院校 → 选校 → 加密上传申请资料 → 顾问后台跟进。
@@ -37,8 +37,8 @@
 
 ```bash
 # 1. 克隆到站点目录
-git clone <本仓库地址> /www/wwwroot/sakuraryugaku.com
-cd /www/wwwroot/sakuraryugaku.com
+git clone <本仓库地址> /www/wwwroot/studyinjp.com
+cd /www/wwwroot/studyinjp.com
 
 # 2. 下载 WordPress 核心
 bash scripts/deploy.sh
@@ -62,7 +62,7 @@ bash scripts/security-check.sh
 
 ## 上线要点（市场验证阶段）
 
-- 域名 `sakuraryugaku.com` 免备案，配境外/港台服务器可快速上线。
+- 域名 `studyinjp.com` 免备案，配境外/港台服务器可快速上线。
 - SEO：提交 sitemap 至 Google Search Console；面向中国可提交百度搜索资源平台。
 - 埋点：GA4 + Search Console + 自建埋点（后台数据看板查看 UV/PV/线索/转化率）。
 - 详见 `docs/study-abroad/SEO-DEPLOYMENT.md` 与 `ANALYTICS.md`。
