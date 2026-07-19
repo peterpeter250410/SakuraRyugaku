@@ -33,7 +33,7 @@ mkdir -p "${IMG_DIR}"
 # hero 宽幅横图；slide 为 4:3 展示图。
 HERO_URL="https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?auto=format&fit=crop&w=1920&h=1080&q=80"
 SLIDE1_URL="https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=1200&h=900&q=80"
-SLIDE2_URL="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&h=900&q=80"
+SLIDE2_URL="https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=1200&h=900&q=80"
 SLIDE3_URL="https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=1200&h=900&q=80"
 
 download() {
@@ -58,10 +58,33 @@ download "${SLIDE1_URL}" "${IMG_DIR}/slide-1.jpg" || RC=1
 download "${SLIDE2_URL}" "${IMG_DIR}/slide-2.jpg" || RC=1
 download "${SLIDE3_URL}" "${IMG_DIR}/slide-3.jpg" || RC=1
 
+# 兜底：任意一张 slide 下载失败时，用已成功的 slide 占位，保证轮播永远齐全。
+# （Unsplash 直链可能不定期失效；占位后首页立即可用，可后续手动替换。）
+fallback_slide() {
+	local target="$1"
+	[ -s "${target}" ] && return 0   # 已存在且非空则跳过
+	local src=""
+	for cand in "${IMG_DIR}/slide-1.jpg" "${IMG_DIR}/slide-3.jpg" "${IMG_DIR}/hero-bg.jpg"; do
+		[ -s "${cand}" ] && { src="${cand}"; break; }
+	done
+	if [ -n "${src}" ]; then
+		cp "${src}" "${target}"
+		echo "  ↔ 占位：${target##*/} ← ${src##*/}（下载失败，已用现有图占位）"
+	fi
+}
+fallback_slide "${IMG_DIR}/slide-1.jpg"
+fallback_slide "${IMG_DIR}/slide-2.jpg"
+fallback_slide "${IMG_DIR}/slide-3.jpg"
+
 echo "------------------------------------------------------------"
 if [ "${RC}" -eq 0 ]; then
 	echo "全部图片下载完成。刷新首页即可看到 hero 背景与轮播。"
 else
-	echo "部分图片下载失败，请检查网络或手动放置对应文件。"
+	echo "部分图片下载失败，已用现有图占位；如需替换，手动放置同名文件即可。"
+fi
+# 只要 hero 与三张 slide 都就位（下载或占位），即视为成功。
+if [ -s "${IMG_DIR}/hero-bg.jpg" ] && [ -s "${IMG_DIR}/slide-1.jpg" ] \
+	&& [ -s "${IMG_DIR}/slide-2.jpg" ] && [ -s "${IMG_DIR}/slide-3.jpg" ]; then
+	exit 0
 fi
 exit "${RC}"
