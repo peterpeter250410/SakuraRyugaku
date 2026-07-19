@@ -3,6 +3,7 @@
 # SakuraRyugaku — 一键上线编排（Go-Live Orchestrator）
 # ------------------------------------------------------------
 # 串联既有脚本，按顺序完成上线前的自动化步骤：
+#   [0] 代码更新（git pull 或从 CODE_SRC rsync；非 git 且无 CODE_SRC 则跳过）
 #   [1] 环境自检（wp-config / WP-CLI / WordPress 安装状态）
 #   [2] 内容与站点初始化（wp-cli-setup.sh：主题/插件/页面/菜单）
 #   [3] 安全审计（security-check.sh）
@@ -19,6 +20,8 @@
 #   不传 URL 时跳过在线 preflight（仅做本地初始化与安全审计）。
 #
 # 选项（环境变量）：
+#   SKIP_UPDATE=1     跳过 [0] 代码更新
+#   CODE_SRC=/path    非 git 部署时，从该源目录 rsync 同步代码
 #   SKIP_SETUP=1      跳过 wp-cli-setup.sh（仅检查，不改内容）
 #   SKIP_SECURITY=1   跳过 security-check.sh
 #   SKIP_PREFLIGHT=1  跳过 preflight-check.sh
@@ -44,6 +47,46 @@ echo "############################################################"
 WP="wp --path=${SITE_ROOT}"
 if [ "$(id -u 2>/dev/null || echo 1000)" = "0" ]; then
     WP="${WP} --allow-root"
+fi
+
+# ------------------------------------------------------------
+# [0] 代码更新（自动适配）
+#   - git 仓库           → git pull 拉取最新代码
+#   - 指定了 CODE_SRC    → 从该目录 rsync 同步代码（非 git 部署用）
+#   - 两者都无           → 跳过（假定代码已是最新）
+#   开关：SKIP_UPDATE=1 强制跳过本阶段
+# ------------------------------------------------------------
+echo ""
+echo "==== [0] 代码更新 ===="
+if [ "${SKIP_UPDATE:-0}" = "1" ]; then
+    echo "  [SKIP] SKIP_UPDATE=1，跳过代码更新"
+elif git -C "${SITE_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "  [git] 检测到 git 仓库，执行 git pull ..."
+    git config --global --add safe.directory "${SITE_ROOT}" 2>/dev/null || true
+    if git -C "${SITE_ROOT}" pull --ff-only; then
+        echo "  [OK] 代码已更新到最新"
+    else
+        echo "  [WARN] git pull 未成功（可能有本地改动或需鉴权），沿用现有代码继续"
+    fi
+elif [ -n "${CODE_SRC:-}" ]; then
+    # 从源目录同步代码（排除运行期/敏感文件），非 git 部署使用
+    if command -v rsync >/dev/null 2>&1; then
+        echo "  [rsync] 从 ${CODE_SRC} 同步代码到 ${SITE_ROOT} ..."
+        rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='wp-config.php' \
+            --exclude='.htaccess' \
+            --exclude='wp-content/uploads/' \
+            --exclude='wp-content/cache/' \
+            "${CODE_SRC%/}/" "${SITE_ROOT}/" \
+            && echo "  [OK] 代码已同步" \
+            || { echo "  [WARN] rsync 同步失败，沿用现有代码继续"; }
+    else
+        echo "  [WARN] 未安装 rsync，无法从 CODE_SRC 同步，沿用现有代码"
+    fi
+else
+    echo "  [SKIP] 非 git 仓库且未指定 CODE_SRC，跳过代码更新（假定代码已最新）"
+    echo "         如需自动拉取：将站点转为 git 部署，或用 CODE_SRC=/path/to/repo 指定源目录"
 fi
 
 # ------------------------------------------------------------
