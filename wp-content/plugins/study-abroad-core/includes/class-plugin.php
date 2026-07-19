@@ -58,12 +58,18 @@ final class SA_Plugin {
 		require_once $dir . 'documents/class-doc-repo.php';
 		require_once $dir . 'documents/class-doc-access.php';
 
+		// 学生建号 / 免密链接
+		require_once $dir . 'students/class-student-onboard.php';
+
 		// 通知
 		require_once $dir . 'notify/class-notifier.php';
 
 		// REST API
 		require_once $dir . 'rest/class-rest-leads.php';
 		require_once $dir . 'rest/class-rest-analytics.php';
+		require_once $dir . 'rest/class-rest-diagnose.php';
+		require_once $dir . 'rest/class-rest-claim.php';
+		require_once $dir . 'rest/class-rest-upload.php';
 
 		// 后台
 		if ( is_admin() ) {
@@ -82,9 +88,15 @@ final class SA_Plugin {
 
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 
+		// 数据库升级（git 部署无激活钩子，改由 admin_init 比对版本触发）
+		add_action( 'admin_init', array( 'SA_Activator', 'maybe_upgrade' ) );
+
 		// REST 路由
 		add_action( 'rest_api_init', array( 'SA_Rest_Leads', 'register_routes' ) );
 		add_action( 'rest_api_init', array( 'SA_Rest_Analytics', 'register_routes' ) );
+		add_action( 'rest_api_init', array( 'SA_Rest_Diagnose', 'register_routes' ) );
+		add_action( 'rest_api_init', array( 'SA_Rest_Claim', 'register_routes' ) );
+		add_action( 'rest_api_init', array( 'SA_Rest_Upload', 'register_routes' ) );
 
 		// 受控文件下载端点（鉴权后解密输出）
 		add_action( 'init', array( 'SA_Doc_Access', 'maybe_handle_download' ) );

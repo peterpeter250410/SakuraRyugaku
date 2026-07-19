@@ -120,6 +120,7 @@ class SA_School_Repo {
 			'language_req'     => isset( $data['language_req'] ) ? sanitize_text_field( $data['language_req'] ) : '',
 			'min_education'    => isset( $data['min_education'] ) ? sanitize_text_field( $data['min_education'] ) : '',
 			'description_i18n' => self::encode_json_field( isset( $data['description_i18n'] ) ? $data['description_i18n'] : null ),
+			'required_docs'    => self::encode_json_field( isset( $data['required_docs'] ) ? $data['required_docs'] : null ),
 			'status'           => isset( $data['status'] ) ? sanitize_key( $data['status'] ) : 'active',
 			'sort_order'       => isset( $data['sort_order'] ) ? (int) $data['sort_order'] : 0,
 			'created_at'       => $now,
@@ -129,10 +130,150 @@ class SA_School_Repo {
 		$ok = $wpdb->insert(
 			SA_DB::table( 'schools' ),
 			$row,
-			array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s' )
+			array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s' )
 		);
 
 		return $ok ? (int) $wpdb->insert_id : false;
+	}
+
+	/**
+	 * 默认资料清单：当某院校未在后台自定义时的兜底要求。
+	 *
+	 * 每项：key（doc_type，用于上传校验）、label（前端显示）、
+	 * type（image|pdf|office|text）、required（是否必填）。
+	 *
+	 * @return array
+	 */
+	public static function default_required_docs() {
+		return array(
+			array( 'key' => 'passport', 'label' => 'パスポート写し', 'type' => 'image', 'required' => 1 ),
+			array( 'key' => 'photo', 'label' => '証明写真', 'type' => 'image', 'required' => 1 ),
+			array( 'key' => 'transcript', 'label' => '成績証明書', 'type' => 'pdf', 'required' => 1 ),
+			array( 'key' => 'diploma', 'label' => '卒業証明書', 'type' => 'pdf', 'required' => 1 ),
+			array( 'key' => 'jlpt', 'label' => '日本語能力証明', 'type' => 'pdf', 'required' => 0 ),
+			array( 'key' => 'statement', 'label' => '志望理由（テキスト記入可）', 'type' => 'text', 'required' => 0 ),
+		);
+	}
+
+	/**
+	 * 更新一条院校记录（仅更新传入字段）。
+	 *
+	 * @param int   $id   院校 ID。
+	 * @param array $data 待更新字段（子集）。
+	 * @return bool
+	 */
+	public static function update_school( $id, array $data ) {
+		global $wpdb;
+
+		$id = absint( $id );
+		if ( ! $id ) {
+			return false;
+		}
+
+		$row     = array();
+		$formats = array();
+
+		$text_fields = array( 'name', 'school_type', 'region', 'city', 'language_req', 'min_education' );
+		foreach ( $text_fields as $f ) {
+			if ( isset( $data[ $f ] ) ) {
+				$row[ $f ]   = sanitize_text_field( $data[ $f ] );
+				$formats[]   = '%s';
+			}
+		}
+
+		if ( isset( $data['status'] ) ) {
+			$row['status'] = sanitize_key( $data['status'] );
+			$formats[]     = '%s';
+		}
+		if ( isset( $data['sort_order'] ) ) {
+			$row['sort_order'] = (int) $data['sort_order'];
+			$formats[]         = '%d';
+		}
+		foreach ( array( 'name_i18n', 'description_i18n', 'required_docs' ) as $jf ) {
+			if ( array_key_exists( $jf, $data ) ) {
+				$row[ $jf ] = self::encode_json_field( $data[ $jf ] );
+				$formats[]  = '%s';
+			}
+		}
+
+		if ( empty( $row ) ) {
+			return false;
+		}
+
+		$row['updated_at'] = SA_DB::now();
+		$formats[]         = '%s';
+
+		$ok = $wpdb->update(
+			SA_DB::table( 'schools' ),
+			$row,
+			array( 'id' => $id ),
+			$formats,
+			array( '%d' )
+		);
+
+		return false !== $ok;
+	}
+
+	/**
+	 * 取某院校的资料清单（解码 required_docs，缺省回落默认清单）。
+	 *
+	 * @param int $school_id 院校 ID。
+	 * @return array 资料项数组（每项含 key/label/type/required）。
+	 */
+	public static function get_required_docs( $school_id ) {
+		$school = self::get_school( $school_id );
+		if ( ! $school || empty( $school['required_docs'] ) ) {
+			return self::default_required_docs();
+		}
+
+		$decoded = json_decode( $school['required_docs'], true );
+		if ( ! is_array( $decoded ) || empty( $decoded ) ) {
+			return self::default_required_docs();
+		}
+
+		// 规范化每一项，防止后台存入脏数据。
+		$clean = array();
+		foreach ( $decoded as $item ) {
+			if ( empty( $item['key'] ) ) {
+				continue;
+			}
+			$clean[] = array(
+				'key'      => sanitize_key( $item['key'] ),
+				'label'    => isset( $item['label'] ) ? sanitize_text_field( $item['label'] ) : $item['key'],
+				'type'     => isset( $item['type'] ) && in_array( $item['type'], array( 'image', 'pdf', 'office', 'text' ), true ) ? $item['type'] : 'pdf',
+				'required' => ! empty( $item['required'] ) ? 1 : 0,
+			);
+		}
+
+		return empty( $clean ) ? self::default_required_docs() : $clean;
+	}
+
+	/**
+	 * 取院校列表（后台管理用）。
+	 *
+	 * @param string|null $status 按状态过滤（null 为全部）。
+	 * @return array
+	 */
+	public static function all_schools( $status = null ) {
+		global $wpdb;
+		$table = SA_DB::table( 'schools' );
+
+		if ( null === $status ) {
+			$rows = $wpdb->get_results(
+				"SELECT * FROM {$table} ORDER BY sort_order ASC, id ASC",
+				ARRAY_A
+			);
+		} else {
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT * FROM {$table} WHERE status = %s ORDER BY sort_order ASC, id ASC",
+					sanitize_key( $status )
+				),
+				ARRAY_A
+			);
+		}
+
+		return is_array( $rows ) ? $rows : array();
 	}
 
 	/**

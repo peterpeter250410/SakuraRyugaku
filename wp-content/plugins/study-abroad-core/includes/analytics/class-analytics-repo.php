@@ -22,6 +22,8 @@ class SA_Analytics_Repo {
 		'form_submit',
 		'cta_click',
 		'scroll_depth',
+		'diagnose',
+		'select_school',
 	);
 
 	/**

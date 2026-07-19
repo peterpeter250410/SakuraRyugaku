@@ -14,11 +14,14 @@
 
 	var cfg = window.SA_LP;
 
-	// -------- 落地页表单 --------
+	// -------- 落地页表单：AI 诊断 + 即时结果 + 并行留资 --------
 	var form = document.querySelector('.sa-lead-form');
 	if (form) {
 		var msg = form.querySelector('.sa-form-msg');
 		var btn = form.querySelector('button[type="submit"]');
+		var resultBox = document.querySelector('[data-sa-diagnose-result]');
+		// 缓存最近一次表单数据，供选校时复用。
+		var lastPayload = null;
 
 		form.addEventListener('submit', function (e) {
 			e.preventDefault();
@@ -47,6 +50,7 @@
 				name: name,
 				contact_type: (form.querySelector('[name="contact_type"]') || {}).value || 'email',
 				contact_value: contact,
+				budget_range: br,
 				budget_min: budgetMin,
 				budget_max: budgetMax,
 				intended_major: (form.querySelector('[name="intended_major"]') || {}).value || '',
@@ -60,11 +64,26 @@
 				utm_medium: utm('utm_medium'),
 				utm_campaign: utm('utm_campaign')
 			};
+			lastPayload = payload;
 
 			btn.disabled = true;
-			showMsg(cfg.i18n.submitting, '');
+			showMsg(cfg.i18n.diagnosing, '');
 
+			// 1) 并行留资：保证填了就有线索，不因诊断失败而丢失。
 			fetch(cfg.leadEndpoint, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
+				body: JSON.stringify(payload)
+			}).then(function (r) {
+				return r.json().then(function (d) { return { ok: r.ok, data: d }; });
+			}).then(function (res) {
+				if (res.ok && res.data && res.data.ok && typeof window.saTrack === 'function') {
+					window.saTrack('form_submit', { explicit: true, lead_id: res.data.lead_id || 0 });
+				}
+			}).catch(function () { /* 留资失败不阻断诊断展示 */ });
+
+			// 2) 诊断：拿 Top N 同页渲染。
+			fetch(cfg.diagnoseEndpoint, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
 				body: JSON.stringify(payload)
@@ -73,16 +92,11 @@
 				.then(function (res) {
 					btn.disabled = false;
 					if (res.ok && res.data && res.data.ok) {
-						form.reset();
-						showMsg(cfg.i18n.success, 'ok');
-						// 显式转化埋点（GA4 conversion）
+						showMsg('', '');
 						if (typeof window.saTrack === 'function') {
-							window.saTrack('form_submit', { explicit: true, lead_id: res.data.lead_id || 0 });
+							window.saTrack('diagnose', { count: (res.data.results || []).length });
 						}
-						// 跳转感谢页（转化确认落地，延迟以确保埋点已发出）
-						if (cfg.thanksUrl) {
-							setTimeout(function () { window.location.assign(cfg.thanksUrl); }, 800);
-						}
+						renderResults(res.data.results || []);
 					} else {
 						var m = (res.data && res.data.message) ? res.data.message : cfg.i18n.error;
 						showMsg(m, 'err');
@@ -94,11 +108,237 @@
 				});
 		});
 
+		function renderResults(results) {
+			if (!resultBox) { return; }
+			resultBox.innerHTML = '';
+			resultBox.hidden = false;
+
+			if (!results.length) {
+				resultBox.innerHTML = '<p class="sa-diag-empty"></p>';
+				resultBox.querySelector('.sa-diag-empty').textContent = cfg.i18n.noResult;
+				return;
+			}
+
+			var title = document.createElement('h3');
+			title.className = 'sa-diag-title';
+			title.textContent = 'AI診断結果 · TOP' + results.length;
+			resultBox.appendChild(title);
+
+			results.forEach(function (item) {
+				resultBox.appendChild(buildCard(item));
+			});
+			resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		}
+
+		function buildCard(item) {
+			var card = document.createElement('div');
+			card.className = 'sa-diag-card';
+
+			var pct = parseInt(item.percent, 10) || 0;
+
+			var head = document.createElement('div');
+			head.className = 'sa-diag-card__head';
+			var h = document.createElement('div');
+			h.className = 'sa-diag-card__name';
+			h.textContent = item.school_name + ' · ' + item.program_name;
+			var badge = document.createElement('span');
+			badge.className = 'sa-diag-card__pct';
+			badge.textContent = cfg.i18n.matchLabel + ' ' + pct + '%';
+			head.appendChild(h);
+			head.appendChild(badge);
+			card.appendChild(head);
+
+			var meta = document.createElement('div');
+			meta.className = 'sa-diag-card__meta';
+			meta.textContent = (item.region || '') + '　' + (item.tuition_label || '');
+			card.appendChild(meta);
+
+			// 进度条
+			var bar = document.createElement('div');
+			bar.className = 'sa-diag-bar';
+			var fill = document.createElement('span');
+			fill.style.width = pct + '%';
+			bar.appendChild(fill);
+			card.appendChild(bar);
+
+			var selectBtn = document.createElement('button');
+			selectBtn.type = 'button';
+			selectBtn.className = 'sa-btn sa-btn--primary sa-diag-card__btn';
+			selectBtn.textContent = cfg.i18n.selectSchool;
+			selectBtn.setAttribute('data-school-id', item.school_id);
+			selectBtn.setAttribute('data-program-id', item.program_id);
+			selectBtn.addEventListener('click', function () {
+				selectSchool(item.school_id, item.program_id, selectBtn);
+			});
+			card.appendChild(selectBtn);
+
+			return card;
+		}
+
+		function selectSchool(schoolId, programId, buttonEl) {
+			if (!lastPayload) { return; }
+			buttonEl.disabled = true;
+			var original = buttonEl.textContent;
+			buttonEl.textContent = cfg.i18n.selecting;
+
+			var body = {};
+			Object.keys(lastPayload).forEach(function (k) { body[k] = lastPayload[k]; });
+			body.school_id = schoolId;
+			body.program_id = programId;
+
+			fetch(cfg.claimEndpoint, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
+				body: JSON.stringify(body)
+			})
+				.then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+				.then(function (res) {
+					if (res.ok && res.data && res.data.ok && res.data.redirect) {
+						if (typeof window.saTrack === 'function') {
+							window.saTrack('select_school', { school_id: schoolId, program_id: programId });
+						}
+						window.location.assign(res.data.redirect);
+					} else {
+						buttonEl.disabled = false;
+						buttonEl.textContent = original;
+						var m = (res.data && res.data.message) ? res.data.message : cfg.i18n.error;
+						showMsg(m, 'err');
+					}
+				})
+				.catch(function () {
+					buttonEl.disabled = false;
+					buttonEl.textContent = original;
+					showMsg(cfg.i18n.error, 'err');
+				});
+		}
+
 		function showMsg(text, type) {
 			if (!msg) return;
 			msg.textContent = text;
 			msg.className = 'sa-form-msg' + (type ? ' sa-form-msg--' + type : '');
 		}
+	}
+
+	// -------- 资料上传页（page-upload.php）逐项提交 --------
+	initUploadPage();
+
+	function initUploadPage() {
+		var uploadForm = document.querySelector('[data-sa-upload-form]');
+		if (!uploadForm) { return; }
+
+		var items = uploadForm.querySelectorAll('[data-sa-upload-item]');
+		Array.prototype.forEach.call(items, function (item) {
+			var submitBtn = item.querySelector('[data-sa-upload-submit]');
+			if (!submitBtn) { return; }
+			submitBtn.addEventListener('click', function () {
+				submitUploadItem(item, submitBtn);
+			});
+		});
+	}
+
+	function submitUploadItem(item, submitBtn) {
+		var statusEl = item.querySelector('[data-sa-upload-status]');
+		var docType = item.getAttribute('data-doc-type');
+		var docKind = item.getAttribute('data-doc-kind');
+		var selectionId = item.getAttribute('data-selection-id');
+		var userId = item.getAttribute('data-user-id');
+
+		var fd = new FormData();
+		fd.append('doc_type', docType);
+		fd.append('selection_id', selectionId);
+		fd.append('user_id', userId);
+
+		if (docKind === 'text') {
+			var ta = item.querySelector('textarea');
+			var text = ta ? ta.value : '';
+			if (!text.trim()) { setStatus(statusEl, cfg.i18n.required, 'err'); return; }
+			fd.append('text', text);
+		} else {
+			var fileInput = item.querySelector('input[type="file"]');
+			if (!fileInput || !fileInput.files || !fileInput.files.length) {
+				setStatus(statusEl, cfg.i18n.required, 'err');
+				return;
+			}
+			fd.append('file', fileInput.files[0]);
+		}
+
+		submitBtn.disabled = true;
+		setStatus(statusEl, cfg.i18n.submitting, '');
+
+		fetch(cfg.uploadEndpoint, {
+			method: 'POST',
+			headers: { 'X-WP-Nonce': cfg.nonce },
+			body: fd
+		})
+			.then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+			.then(function (res) {
+				submitBtn.disabled = false;
+				if (res.ok && res.data && res.data.ok) {
+					setStatus(statusEl, cfg.i18n.uploadOk, 'ok');
+					item.classList.add('is-uploaded');
+				} else {
+					var m = (res.data && res.data.message) ? res.data.message : cfg.i18n.uploadErr;
+					setStatus(statusEl, m, 'err');
+				}
+			})
+			.catch(function () {
+				submitBtn.disabled = false;
+				setStatus(statusEl, cfg.i18n.uploadErr, 'err');
+			});
+	}
+
+	function setStatus(el, text, type) {
+		if (!el) { return; }
+		el.textContent = text;
+		el.className = 'sa-upload-status' + (type ? ' sa-upload-status--' + type : '');
+	}
+
+	// -------- 首页轮播（原生，无依赖） --------
+	initCarousel();
+
+	function initCarousel() {
+		var root = document.querySelector('[data-sa-carousel]');
+		if (!root) { return; }
+		var track = root.querySelector('.sa-carousel__track');
+		var slides = root.querySelectorAll('.sa-carousel__slide');
+		var prev = root.querySelector('.sa-carousel__prev');
+		var next = root.querySelector('.sa-carousel__next');
+		var dotsWrap = root.querySelector('.sa-carousel__dots');
+		if (!track || slides.length === 0) { return; }
+
+		var index = 0;
+		var timer = null;
+
+		var dots = [];
+		if (dotsWrap) {
+			Array.prototype.forEach.call(slides, function (s, i) {
+				var dot = document.createElement('button');
+				dot.type = 'button';
+				dot.className = 'sa-carousel__dot';
+				dot.setAttribute('aria-label', 'slide ' + (i + 1));
+				dot.addEventListener('click', function () { go(i); restart(); });
+				dotsWrap.appendChild(dot);
+				dots.push(dot);
+			});
+		}
+
+		function go(i) {
+			index = (i + slides.length) % slides.length;
+			track.style.transform = 'translateX(' + (-index * 100) + '%)';
+			dots.forEach(function (d, di) {
+				d.className = 'sa-carousel__dot' + (di === index ? ' is-active' : '');
+			});
+		}
+		function nextSlide() { go(index + 1); }
+		function prevSlide() { go(index - 1); }
+		function start() { timer = window.setInterval(nextSlide, 5000); }
+		function restart() { if (timer) { window.clearInterval(timer); } start(); }
+
+		if (next) { next.addEventListener('click', function () { nextSlide(); restart(); }); }
+		if (prev) { prev.addEventListener('click', function () { prevSlide(); restart(); }); }
+
+		go(0);
+		start();
 	}
 
 	function utm(name) {

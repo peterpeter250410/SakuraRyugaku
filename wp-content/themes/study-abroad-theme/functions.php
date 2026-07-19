@@ -49,14 +49,24 @@ add_action( 'wp_enqueue_scripts', function () {
 
 	// 向前端暴露落地页表单端点（若核心插件启用）。
 	wp_localize_script( 'sa-theme', 'SA_LP', array(
-		'leadEndpoint' => esc_url_raw( rest_url( 'sa/v1/lead' ) ),
-		'nonce'        => wp_create_nonce( 'wp_rest' ),
-		'thanksUrl'    => esc_url_raw( home_url( '/thanks/' ) ),
-		'i18n'         => array(
-			'submitting' => __( '提交中…', 'sa-theme' ),
-			'success'    => __( '提交成功！我们会尽快与您联系。', 'sa-theme' ),
-			'error'      => __( '提交失败，请稍后重试。', 'sa-theme' ),
-			'required'   => __( '请填写姓名与联系方式并同意隐私政策。', 'sa-theme' ),
+		'leadEndpoint'     => esc_url_raw( rest_url( 'sa/v1/lead' ) ),
+		'diagnoseEndpoint' => esc_url_raw( rest_url( 'sa/v1/diagnose' ) ),
+		'claimEndpoint'    => esc_url_raw( rest_url( 'sa/v1/claim' ) ),
+		'uploadEndpoint'   => esc_url_raw( rest_url( 'sa/v1/upload-doc' ) ),
+		'nonce'            => wp_create_nonce( 'wp_rest' ),
+		'thanksUrl'        => esc_url_raw( home_url( '/thanks/' ) ),
+		'i18n'             => array(
+			'submitting'    => __( '提交中…', 'sa-theme' ),
+			'success'       => __( '提交成功！我们会尽快与您联系。', 'sa-theme' ),
+			'error'         => __( '提交失败，请稍后重试。', 'sa-theme' ),
+			'required'      => __( '请填写姓名与联系方式并同意隐私政策。', 'sa-theme' ),
+			'diagnosing'    => __( 'AI診断中…', 'sa-theme' ),
+			'noResult'      => __( '条件に合う学校が見つかりませんでした。条件を変えて再度お試しください。', 'sa-theme' ),
+			'matchLabel'    => __( 'マッチ度', 'sa-theme' ),
+			'selectSchool'  => __( 'この学校を選んで書類を提出', 'sa-theme' ),
+			'selecting'     => __( '手続き中…', 'sa-theme' ),
+			'uploadOk'      => __( '提出しました。', 'sa-theme' ),
+			'uploadErr'     => __( '提出に失敗しました。もう一度お試しください。', 'sa-theme' ),
 		),
 	) );
 }, 20 );
@@ -131,8 +141,8 @@ add_action( 'wp_head', function () {
 	$canonical = is_singular() ? get_permalink() : home_url( add_query_arg( array() ) );
 	echo '<link rel="canonical" href="' . esc_url( $canonical ) . '">' . "\n";
 
-	// robots：隐私/同意类与感谢页 noindex（按 slug 约定）
-	if ( is_page( array( 'privacy', 'privacy-policy', 'consent', 'thanks', 'thank-you' ) ) ) {
+	// robots：隐私/同意类、感谢页与资料上传页 noindex（按 slug 约定）
+	if ( is_page( array( 'privacy', 'privacy-policy', 'consent', 'thanks', 'thank-you', 'upload' ) ) ) {
 		echo '<meta name="robots" content="noindex,follow">' . "\n";
 	}
 
@@ -244,6 +254,7 @@ add_filter( 'robots_txt', function ( $output, $public ) {
 	$lines[] = 'Disallow: /wp-login.php';
 	$lines[] = 'Disallow: /privacy/';
 	$lines[] = 'Disallow: /thanks/';
+	$lines[] = 'Disallow: /upload/';
 	$lines[] = '';
 	$lines[] = 'Sitemap: ' . esc_url_raw( home_url( '/wp-sitemap.xml' ) );
 	return implode( "\n", $lines ) . "\n";

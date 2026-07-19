@@ -63,8 +63,8 @@ get_header();
 
 		<!-- 核心转化表单 -->
 		<div class="sa-form-card" id="lead-form">
-			<h2 class="sa-form-card__title"><?php esc_html_e( '無料で学校診断を受ける', 'sa-theme' ); ?></h2>
-			<p class="sa-form-card__sub"><?php esc_html_e( '30秒で入力完了。しつこい勧誘はありません。', 'sa-theme' ); ?></p>
+			<h2 class="sa-form-card__title"><?php esc_html_e( '無料AI診断で学校マッチング', 'sa-theme' ); ?></h2>
+			<p class="sa-form-card__sub"><?php esc_html_e( '30秒で入力完了。AIがその場で最適な学校を診断します。', 'sa-theme' ); ?></p>
 
 			<form class="sa-lead-form" data-sa-form="landing-hero" novalidate>
 				<div class="sa-field">
@@ -124,11 +124,14 @@ get_header();
 				</label>
 
 				<button type="submit" class="sa-btn sa-btn--primary sa-btn--block sa-btn--lg" data-sa-cta="form-submit">
-					<?php esc_html_e( '無料で診断を受ける', 'sa-theme' ); ?>
+					<?php esc_html_e( '無料でAI診断を受ける', 'sa-theme' ); ?>
 				</button>
 
 				<div class="sa-form-msg" role="status" aria-live="polite"></div>
 			</form>
+
+			<!-- AI 诊断结果即时展示区（同页弹出，不跳转） -->
+			<div class="sa-diagnose-result" data-sa-diagnose-result hidden></div>
 		</div>
 	</div>
 </section>
@@ -200,6 +203,32 @@ get_header();
 			<h2 class="sa-section__title"><?php esc_html_e( '対応する進学先', 'sa-theme' ); ?></h2>
 			<p class="sa-section__desc"><?php esc_html_e( '語学学校から大学院まで、幅広い進学先に対応。提携校は順次拡大中です。', 'sa-theme' ); ?></p>
 		</div>
+
+		<!-- キャンパス・留学生活のイメージ（原生轮播，无依赖） -->
+		<?php
+		$sa_slides = array(
+			array( 'file' => 'slide-1.jpg', 'alt' => __( '日本のキャンパス', 'sa-theme' ) ),
+			array( 'file' => 'slide-2.jpg', 'alt' => __( '留学生の学び', 'sa-theme' ) ),
+			array( 'file' => 'slide-3.jpg', 'alt' => __( '日本での留学生活', 'sa-theme' ) ),
+		);
+		$sa_img_base = get_template_directory_uri() . '/assets/images/';
+		?>
+		<div class="sa-carousel" data-sa-carousel aria-label="<?php esc_attr_e( '留学イメージ', 'sa-theme' ); ?>">
+			<div class="sa-carousel__viewport">
+				<div class="sa-carousel__track">
+					<?php foreach ( $sa_slides as $slide ) : ?>
+						<div class="sa-carousel__slide">
+							<img src="<?php echo esc_url( $sa_img_base . $slide['file'] ); ?>"
+								alt="<?php echo esc_attr( $slide['alt'] ); ?>" loading="lazy">
+						</div>
+					<?php endforeach; ?>
+				</div>
+			</div>
+			<button type="button" class="sa-carousel__prev" aria-label="<?php esc_attr_e( '前へ', 'sa-theme' ); ?>">‹</button>
+			<button type="button" class="sa-carousel__next" aria-label="<?php esc_attr_e( '次へ', 'sa-theme' ); ?>">›</button>
+			<div class="sa-carousel__dots" aria-hidden="true"></div>
+		</div>
+
 		<div class="sa-logos">
 			<span><?php esc_html_e( '語学学校', 'sa-theme' ); ?></span>
 			<span><?php esc_html_e( '専門学校', 'sa-theme' ); ?></span>
@@ -239,7 +268,7 @@ if ( function_exists( 'sa_output_faq_schema' ) ) {
 	<div class="sa-container">
 		<h2><?php esc_html_e( 'まずは無料で、あなたに合う学校を見つけよう', 'sa-theme' ); ?></h2>
 		<p><?php esc_html_e( '入力は30秒。しつこい勧誘はありません。', 'sa-theme' ); ?></p>
-		<a href="#lead-form" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="cta-band"><?php esc_html_e( '無料で学校診断を受ける', 'sa-theme' ); ?></a>
+		<a href="#lead-form" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="cta-band"><?php esc_html_e( '無料でAI診断を受ける', 'sa-theme' ); ?></a>
 	</div>
 </section>
 

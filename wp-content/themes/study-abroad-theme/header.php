@@ -37,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					'theme_location' => 'primary',
 					'container'      => false,
 					'items_wrap'     => '<ul>%3$s</ul>',
-					'depth'          => 1,
+					'depth'          => 2,
 				) );
 			} else {
 				echo '<ul>';

@@ -3,7 +3,7 @@
  * Plugin Name:       Study Abroad Core
  * Plugin URI:        https://example.com/
  * Description:       日本留学中介平台核心业务插件：落地页留资、院校库、自动匹配、加密资料、后台管理、数据埋点。
- * Version:           0.1.0
+ * Version:           0.2.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Study Abroad Team
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // ---------------------------------------------------------------------------
 // 常量
 // ---------------------------------------------------------------------------
-define( 'SA_CORE_VERSION', '0.1.0' );
+define( 'SA_CORE_VERSION', '0.2.0' );
 define( 'SA_CORE_FILE', __FILE__ );
 define( 'SA_CORE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SA_CORE_URL', plugin_dir_url( __FILE__ ) );

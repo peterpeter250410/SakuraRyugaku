@@ -27,6 +27,63 @@ class SA_Activator {
 	}
 
 	/**
+	 * 运行期升级检查（挂 admin_init）。
+	 *
+	 * 插件仅在「激活」时跑 activate()，而代码通过 git pull 更新时不会重新激活，
+	 * 因此需要一个运行期迁移入口：比对已存库版本与当前 SA_CORE_VERSION，
+	 * 不一致则幂等重跑建表（dbDelta 会对已存在表执行 ADD COLUMN）并补齐数据。
+	 *
+	 * 幂等、可重复：dbDelta / seed_* 均自带存在性判断。
+	 */
+	public static function maybe_upgrade() {
+		$installed = get_option( 'sa_core_db_version', '' );
+
+		if ( SA_CORE_VERSION === $installed ) {
+			return; // 已是最新，跳过。
+		}
+
+		// 幂等重建表结构（对已存在表 dbDelta 只补新列/新索引）。
+		self::create_tables();
+
+		// 老库兜底：dbDelta 偶发不加列时，显式 ADD COLUMN。
+		self::ensure_schools_required_docs();
+
+		// 补齐可能缺失的规则/角色/目录（各自幂等）。
+		self::seed_match_rules();
+		self::register_roles();
+		self::prepare_secure_dir();
+
+		update_option( 'sa_core_db_version', SA_CORE_VERSION );
+
+		// 结构变更后刷新固定链接（如新增页面 slug 依赖）。
+		flush_rewrite_rules();
+	}
+
+	/**
+	 * 兜底确保 schools 表存在 required_docs 列（应对个别 MySQL 下 dbDelta 未加列）。
+	 */
+	private static function ensure_schools_required_docs() {
+		global $wpdb;
+
+		$table = $wpdb->prefix . SA_TABLE_PREFIX . 'schools';
+
+		// 表不存在则无需处理（create_tables 已负责创建）。
+		$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
+		if ( $exists !== $table ) {
+			return;
+		}
+
+		$column = $wpdb->get_results(
+			$wpdb->prepare( "SHOW COLUMNS FROM `{$table}` LIKE %s", 'required_docs' )
+		);
+
+		if ( empty( $column ) ) {
+			// 列名与表名来自常量拼接，非用户输入，安全。
+			$wpdb->query( "ALTER TABLE `{$table}` ADD COLUMN required_docs LONGTEXT NULL AFTER description_i18n" );
+		}
+	}
+
+	/**
 	 * 创建全部业务表。使用 dbDelta 以支持后续升级。
 	 */
 	private static function create_tables() {
@@ -91,6 +148,7 @@ class SA_Activator {
 			language_req VARCHAR(32) DEFAULT '',
 			min_education VARCHAR(64) DEFAULT '',
 			description_i18n LONGTEXT NULL,
+			required_docs LONGTEXT NULL,
 			status VARCHAR(16) DEFAULT 'active',
 			sort_order INT DEFAULT 0,
 			created_at DATETIME NULL,

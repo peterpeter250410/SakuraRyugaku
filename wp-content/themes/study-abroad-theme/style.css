@@ -60,9 +60,24 @@ a { color: var(--sa-accent); text-decoration: none; }
 .sa-header__inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
 .sa-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; color: var(--sa-ink); }
 .sa-logo__mark { color: var(--sa-primary); }
-.sa-nav ul { display: flex; gap: 24px; list-style: none; margin: 0; padding: 0; }
-.sa-nav a { color: var(--sa-text); font-size: 15px; }
+.sa-nav > ul { display: flex; gap: 24px; list-style: none; margin: 0; padding: 0; }
+.sa-nav li { position: relative; }
+.sa-nav a { color: var(--sa-text); font-size: 15px; white-space: nowrap; display: block; }
 .sa-nav a:hover { color: var(--sa-primary); }
+
+/* 二级菜单（下拉） */
+.sa-nav .sub-menu {
+	position: absolute; left: 0; top: 100%;
+	background: #fff; border: 1px solid var(--sa-border); border-radius: 8px;
+	box-shadow: var(--sa-shadow); list-style: none; margin: 0; padding: 6px;
+	min-width: 180px; display: none; flex-direction: column; gap: 0; z-index: 120;
+}
+.sa-nav li:hover > .sub-menu { display: block; }
+.sa-nav .sub-menu li { margin: 0; }
+.sa-nav .sub-menu a { padding: 8px 12px; border-radius: 6px; white-space: nowrap; }
+.sa-nav .sub-menu a:hover { background: var(--sa-bg-soft); }
+/* 有子菜单的父项加箭头提示 */
+.sa-nav .menu-item-has-children > a::after { content: "▾"; margin-left: 4px; font-size: 11px; opacity: .6; }
 .sa-header__cta { display: flex; align-items: center; gap: 12px; }
 
 /* 语言切换 */
@@ -86,13 +101,18 @@ a { color: var(--sa-accent); text-decoration: none; }
 .sa-btn--ghost { background: transparent; color: var(--sa-ink); border: 1px solid var(--sa-border); }
 .sa-btn--block { width: 100%; }
 .sa-btn--lg { padding: 16px 32px; font-size: 17px; }
+.sa-btn--sm { padding: 8px 18px; font-size: 14px; }
 
 /* =========================================================
    Hero（落地页首屏）
    ========================================================= */
 .sa-hero {
 	position: relative;
-	background: linear-gradient(135deg, #fff5f4 0%, #eef4ff 100%);
+	/* 渐变遮罩叠加背景图；图片加载失败时渐变兜底，保证文字对比度 */
+	background:
+		linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
+		url("assets/images/hero-bg.jpg") center/cover no-repeat;
+	background-color: #fff5f4;
 	overflow: hidden;
 }
 .sa-hero__inner { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; padding: 64px 20px; }
@@ -263,3 +283,73 @@ a { color: var(--sa-accent); text-decoration: none; }
 	.sa-mobile-cta .sa-btn { flex: 1; }
 	body { padding-bottom: 72px; }
 }
+
+/* =========================================================
+   AI 诊断结果（同页即时弹出）
+   ========================================================= */
+.sa-diagnose-result { margin-top: 20px; border-top: 1px dashed var(--sa-border); padding-top: 20px; }
+.sa-diag-title { font-size: 16px; font-weight: 800; color: var(--sa-ink); margin: 0 0 14px; letter-spacing: .5px; }
+.sa-diag-empty { color: var(--sa-muted); font-size: 14px; margin: 0; }
+.sa-diag-card {
+	background: #fff; border: 1px solid var(--sa-border); border-radius: 10px;
+	padding: 16px; margin-bottom: 12px; transition: box-shadow .2s ease;
+}
+.sa-diag-card:hover { box-shadow: var(--sa-shadow); }
+.sa-diag-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.sa-diag-card__name { font-weight: 700; color: var(--sa-ink); font-size: 15px; }
+.sa-diag-card__pct {
+	flex: none; background: rgba(212,55,44,.1); color: var(--sa-primary);
+	font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 14px; white-space: nowrap;
+}
+.sa-diag-card__meta { font-size: 13px; color: var(--sa-muted); margin: 6px 0 10px; }
+.sa-diag-bar { height: 6px; background: var(--sa-bg-soft); border-radius: 4px; overflow: hidden; margin-bottom: 12px; }
+.sa-diag-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--sa-primary), var(--sa-primary-dark)); border-radius: 4px; transition: width .5s ease; }
+.sa-diag-card__btn { width: 100%; font-size: 14px; padding: 10px 16px; }
+
+/* =========================================================
+   轮播（信任背书区）
+   ========================================================= */
+.sa-carousel { position: relative; max-width: 960px; margin: 0 auto; border-radius: var(--sa-radius); overflow: hidden; box-shadow: var(--sa-shadow); }
+.sa-carousel__viewport { overflow: hidden; }
+.sa-carousel__track { display: flex; transition: transform .5s ease; }
+.sa-carousel__slide { flex: 0 0 100%; }
+.sa-carousel__slide img { width: 100%; height: 380px; object-fit: cover; display: block; }
+.sa-carousel__prev, .sa-carousel__next {
+	position: absolute; top: 50%; transform: translateY(-50%);
+	background: rgba(255,255,255,.85); border: none; width: 40px; height: 40px; border-radius: 50%;
+	cursor: pointer; font-size: 20px; color: var(--sa-ink); display: flex; align-items: center; justify-content: center;
+	box-shadow: 0 2px 10px rgba(0,0,0,.15);
+}
+.sa-carousel__prev { left: 12px; }
+.sa-carousel__next { right: 12px; }
+.sa-carousel__dots { position: absolute; bottom: 12px; left: 0; right: 0; display: flex; gap: 8px; justify-content: center; }
+.sa-carousel__dot { width: 9px; height: 9px; border-radius: 50%; border: none; background: rgba(255,255,255,.6); cursor: pointer; padding: 0; }
+.sa-carousel__dot.is-active { background: #fff; }
+@media (max-width: 600px) {
+	.sa-carousel__slide img { height: 220px; }
+}
+
+/* =========================================================
+   资料上传页
+   ========================================================= */
+.sa-upload-wrap { max-width: 760px; margin: 0 auto; padding: 40px 0; }
+.sa-upload-intro { color: var(--sa-muted); margin: 0 0 24px; }
+.sa-upload-school { font-size: 18px; font-weight: 700; color: var(--sa-ink); margin: 24px 0 12px; }
+.sa-upload-item {
+	background: #fff; border: 1px solid var(--sa-border); border-radius: 10px;
+	padding: 16px; margin-bottom: 12px;
+}
+.sa-upload-item.is-uploaded { border-color: var(--sa-success); }
+.sa-upload-item__label { font-weight: 600; color: var(--sa-ink); margin: 0 0 8px; font-size: 15px; }
+.sa-upload-item__req { color: var(--sa-primary); margin-left: 4px; }
+.sa-upload-item input[type="file"], .sa-upload-item textarea {
+	width: 100%; padding: 10px 12px; border: 1px solid var(--sa-border); border-radius: 8px;
+	font-family: inherit; font-size: 14px; margin-bottom: 10px; background: #fff;
+}
+.sa-upload-item textarea { min-height: 100px; resize: vertical; }
+.sa-upload-status { font-size: 13px; margin-left: 10px; }
+.sa-upload-status--ok { color: var(--sa-success); }
+.sa-upload-status--err { color: var(--sa-primary); }
+.sa-upload-expired { text-align: center; padding: 60px 20px; }
+.sa-upload-expired h1 { font-size: 24px; color: var(--sa-ink); margin: 0 0 12px; }
+.sa-upload-expired p { color: var(--sa-muted); margin: 0 0 24px; }
