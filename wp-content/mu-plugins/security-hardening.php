@@ -19,14 +19,34 @@ if (!defined('ABSPATH')) {
 remove_action('wp_head', 'wp_generator');
 add_filter('the_generator', '__return_empty_string');
 
-// 从脚本和样式中移除版本号参数
+// 从脚本和样式中移除「暴露 WP 版本号」的 ver 参数。
+// 注意：仅剥离 ver 恰等于 WP 核心版本号的情况（真正的版本探测点）；
+// 主题/插件用 filemtime 等自定义 ver 做缓存刷新，必须保留，
+// 否则浏览器永远拿旧缓存（JS/CSS 改动不生效）。
 add_filter('style_loader_src', 'wpbase_remove_version_query', 10, 2);
 add_filter('script_loader_src', 'wpbase_remove_version_query', 10, 2);
 
 function wpbase_remove_version_query($src, $handle) {
-    if (strpos($src, 'ver=')) {
+    if (false === strpos($src, 'ver=')) {
+        return $src;
+    }
+
+    $parts = wp_parse_url($src);
+    if (empty($parts['query'])) {
+        return $src;
+    }
+
+    parse_str($parts['query'], $query_args);
+    if (! isset($query_args['ver'])) {
+        return $src;
+    }
+
+    // 仅当 ver 等于 WP 核心版本号时剥离（隐藏核心版本，防探测）。
+    global $wp_version;
+    if ((string) $query_args['ver'] === (string) $wp_version) {
         $src = remove_query_arg('ver', $src);
     }
+
     return $src;
 }
 
