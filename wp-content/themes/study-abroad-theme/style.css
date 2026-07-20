@@ -102,6 +102,15 @@ a { color: var(--sa-accent); text-decoration: none; }
 .sa-btn--block { width: 100%; }
 .sa-btn--lg { padding: 16px 32px; font-size: 17px; }
 .sa-btn--sm { padding: 8px 18px; font-size: 14px; }
+.sa-btn:disabled,
+.sa-btn[disabled] {
+	background: #c4c8cf !important;
+	color: #fff !important;
+	box-shadow: none !important;
+	cursor: not-allowed !important;
+	transform: none !important;
+	opacity: .85;
+}
 
 /* =========================================================
    Hero（落地页首屏）

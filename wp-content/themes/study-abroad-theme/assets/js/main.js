@@ -273,7 +273,8 @@
 			.then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
 			.then(function (res) {
 				if (res.ok && res.data && res.data.ok) {
-					// 成功后保持按钮禁用，防止重复提交。
+					// 成功后保持按钮禁用并置灰，改文案，防止重复提交。
+					submitBtn.textContent = cfg.i18n.uploadedLabel || '提出済み';
 					setStatus(statusEl, cfg.i18n.uploadOk, 'ok');
 					item.classList.add('is-uploaded');
 					maybeRedirectComplete();
