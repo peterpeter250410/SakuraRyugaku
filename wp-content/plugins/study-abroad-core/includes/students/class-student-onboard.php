@@ -213,7 +213,16 @@ class SA_Student_Onboard {
 		}
 
 		wp_set_current_user( $user_id );
+
+		// 在本次请求内回填 logged-in cookie，使随后渲染页面时
+		// wp_create_nonce('wp_rest') 使用新登录身份计算，避免上传请求
+		// 出现「Cookie 检查失败」（nonce 与真实 cookie 身份不匹配）。
+		$backfill = static function ( $logged_in_cookie ) {
+			$_COOKIE[ LOGGED_IN_COOKIE ] = $logged_in_cookie;
+		};
+		add_action( 'set_logged_in_cookie', $backfill );
 		wp_set_auth_cookie( $user_id, false, is_ssl() );
+		remove_action( 'set_logged_in_cookie', $backfill );
 
 		return true;
 	}
