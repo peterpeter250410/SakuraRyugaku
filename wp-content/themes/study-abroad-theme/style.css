@@ -316,14 +316,13 @@ a { color: var(--sa-accent); text-decoration: none; }
 	/* 汉堡按钮显示 */
 	.sa-menu-btn { display: flex; }
 
-	/* Drawer 变为右侧全屏抽屉 */
+	/* Drawer 变为全屏抽屉 */
 	.sa-drawer {
-		position: fixed; top: 0; right: 0; bottom: 0;
+		position: fixed; top: 0; right: 0; left: 0; bottom: 0;
 		height: 100vh; height: 100dvh;
-		width: min(84vw, 340px);
+		width: 100%;
 		flex-direction: column; align-items: stretch; gap: 0;
 		background: #fff; z-index: 200;
-		box-shadow: -12px 0 40px rgba(0,0,0,.18);
 		transform: translateX(100%);
 		transition: transform .32s cubic-bezier(.4,0,.2,1);
 		overflow-y: auto;
