@@ -235,6 +235,31 @@
 				if (!input.files || !input.files.length) { return; }
 				autoUploadFile(item, input);
 			});
+
+			// 拖拽高亮 + 拖入即上传。
+			var zone = input.closest('[data-sa-dropzone]');
+			if (!zone) { return; }
+			['dragenter', 'dragover'].forEach(function (ev) {
+				zone.addEventListener(ev, function (e) {
+					e.preventDefault();
+					if (input.disabled) { return; }
+					zone.classList.add('is-dragover');
+				});
+			});
+			['dragleave', 'drop'].forEach(function (ev) {
+				zone.addEventListener(ev, function (e) {
+					e.preventDefault();
+					zone.classList.remove('is-dragover');
+				});
+			});
+			zone.addEventListener('drop', function (e) {
+				if (input.disabled) { return; }
+				var dtFiles = e.dataTransfer && e.dataTransfer.files;
+				if (!dtFiles || !dtFiles.length) { return; }
+				input.files = dtFiles;
+				var item = input.closest('[data-sa-upload-item]');
+				if (item) { autoUploadFile(item, input); }
+			});
 		});
 
 		// 页尾总提交按钮。
@@ -249,12 +274,15 @@
 		refreshFinalButton();
 	}
 
-	// 附件自动上传：成功后后方显示「提出済み」，失败原地可重选。
+	// 附件自动上传：成功后 dropzone 变绿 + 显示文件名，失败原地可重选。
 	function autoUploadFile(item, input) {
 		var statusEl = item.querySelector('[data-sa-upload-status]');
+		var zone = item.querySelector('[data-sa-dropzone]');
+		var titleEl = item.querySelector('[data-sa-dropzone-title]');
 		var docType = item.getAttribute('data-doc-type');
 		var selectionId = item.getAttribute('data-selection-id');
 		var userId = item.getAttribute('data-user-id');
+		var fileName = input.files[0] ? input.files[0].name : '';
 
 		var fd = new FormData();
 		fd.append('doc_type', docType);
@@ -264,6 +292,8 @@
 
 		input.disabled = true;
 		item.classList.remove('is-uploaded');
+		if (zone) { zone.classList.remove('is-uploaded'); zone.classList.add('is-loading'); }
+		if (titleEl && fileName) { titleEl.textContent = fileName; }
 		setStatus(statusEl, cfg.i18n.submitting, '');
 
 		fetch(cfg.uploadEndpoint, {
@@ -273,21 +303,27 @@
 		})
 			.then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
 			.then(function (res) {
+				if (zone) { zone.classList.remove('is-loading'); }
 				if (res.ok && res.data && res.data.ok) {
 					setStatus(statusEl, cfg.i18n.uploadedLabel || '提出済み', 'ok');
 					item.classList.add('is-uploaded');
+					if (zone) { zone.classList.add('is-uploaded'); }
+					if (titleEl && fileName) { titleEl.textContent = fileName; }
 					refreshFinalButton();
 				} else {
-					// 失败：解禁输入允许重选。
+					// 失败：解禁输入允许重选，dropzone 复位。
 					input.disabled = false;
 					input.value = '';
+					if (titleEl) { titleEl.textContent = cfg.i18n.reselect || 'ファイルを選択'; }
 					var m = (res.data && res.data.message) ? res.data.message : cfg.i18n.uploadErr;
 					setStatus(statusEl, m, 'err');
 				}
 			})
 			.catch(function () {
+				if (zone) { zone.classList.remove('is-loading'); }
 				input.disabled = false;
 				input.value = '';
+				if (titleEl) { titleEl.textContent = cfg.i18n.reselect || 'ファイルを選択'; }
 				setStatus(statusEl, cfg.i18n.uploadErr, 'err');
 			});
 	}

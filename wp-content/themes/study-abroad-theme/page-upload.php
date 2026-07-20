@@ -97,11 +97,22 @@ get_header();
 		ARRAY_A
 	);
 
+	// 当前有效 selection 白名单：仅回显属于当前展示学校的文档，
+	// 杜绝换校后历史文档（旧 selection）串显「提出済み」。
+	$valid_sel_ids = array();
+	foreach ( (array) $selections as $sel ) {
+		$valid_sel_ids[ (int) $sel['selection_id'] ] = true;
+	}
+
 	// 已上传文档索引：key = selection_id . '|' . doc_type → status，用于回显。
 	$uploaded = array();
 	if ( class_exists( 'SA_Doc_Repo' ) ) {
 		foreach ( (array) SA_Doc_Repo::list_by_user( $sa_upload_uid ) as $doc ) {
 			$sel_id = isset( $doc['selection_id'] ) ? (int) $doc['selection_id'] : 0;
+			// 跳过不属于当前展示学校的历史文档。
+			if ( ! isset( $valid_sel_ids[ $sel_id ] ) ) {
+				continue;
+			}
 			$dtype  = isset( $doc['doc_type'] ) ? (string) $doc['doc_type'] : '';
 			$uploaded[ $sel_id . '|' . $dtype ] = isset( $doc['status'] ) ? (string) $doc['status'] : 'uploaded';
 		}
@@ -191,9 +202,22 @@ get_header();
 							<?php endif; ?>
 						</label>
 
-						<input type="file" id="<?php echo esc_attr( $field_id ); ?>" class="sa-upload-item__file"
-							accept="<?php echo esc_attr( $accept ); ?>" data-sa-upload-file
-							<?php echo $done ? 'disabled' : ''; ?>>
+						<label class="sa-dropzone<?php echo $done ? ' is-uploaded' : ''; ?>" for="<?php echo esc_attr( $field_id ); ?>" data-sa-dropzone>
+							<span class="sa-dropzone__icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+									<polyline points="17 8 12 3 7 8"></polyline>
+									<line x1="12" y1="3" x2="12" y2="15"></line>
+								</svg>
+							</span>
+							<span class="sa-dropzone__text">
+								<span class="sa-dropzone__title" data-sa-dropzone-title><?php esc_html_e( 'ファイルを選択', 'sa-theme' ); ?></span>
+								<span class="sa-dropzone__hint"><?php esc_html_e( 'クリックまたはドラッグ＆ドロップ', 'sa-theme' ); ?></span>
+							</span>
+							<input type="file" id="<?php echo esc_attr( $field_id ); ?>" class="sa-upload-item__file"
+								accept="<?php echo esc_attr( $accept ); ?>" data-sa-upload-file
+								<?php echo $done ? 'disabled' : ''; ?>>
+						</label>
 
 						<div class="sa-upload-item__actions">
 							<span class="sa-upload-status<?php echo $done ? ' sa-upload-status--ok' : ''; ?>" data-sa-upload-status>

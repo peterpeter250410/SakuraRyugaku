@@ -72,6 +72,7 @@ add_action( 'wp_enqueue_scripts', function () {
 			'uploadOk'      => __( '提出しました。', 'sa-theme' ),
 			'uploadErr'     => __( '提出に失敗しました。もう一度お試しください。', 'sa-theme' ),
 			'uploadedLabel' => __( '提出済み', 'sa-theme' ),
+			'reselect'      => __( 'ファイルを選択', 'sa-theme' ),
 		),
 	) );
 }, 20 );

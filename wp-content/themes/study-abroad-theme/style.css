@@ -351,15 +351,49 @@ a { color: var(--sa-accent); text-decoration: none; }
 .sa-upload-item.is-uploaded { border-color: var(--sa-success); }
 .sa-upload-item__label { font-weight: 600; color: var(--sa-ink); margin: 0 0 8px; font-size: 15px; }
 .sa-upload-item__req { color: var(--sa-primary); margin-left: 4px; }
-.sa-upload-item input[type="file"], .sa-upload-item textarea,
+.sa-upload-item textarea,
 .sa-upload-final textarea {
 	width: 100%; padding: 10px 12px; border: 1px solid var(--sa-border); border-radius: 8px;
 	font-family: inherit; font-size: 14px; margin-bottom: 10px; background: #fff;
 	box-sizing: border-box; color: var(--sa-ink);
+	min-height: 100px; resize: vertical;
 }
-.sa-upload-item textarea,
-.sa-upload-final textarea { min-height: 100px; resize: vertical; }
-.sa-upload-item__actions { min-height: 20px; }
+
+/* 自定义附件上传区（隐藏原生 input，样式化 dropzone） */
+.sa-dropzone {
+	display: flex; align-items: center; gap: 14px;
+	padding: 16px 18px; border: 1.5px dashed var(--sa-border); border-radius: 10px;
+	background: #fafbfc; cursor: pointer; transition: border-color .18s, background .18s, box-shadow .18s;
+	position: relative;
+}
+.sa-dropzone:hover { border-color: var(--sa-primary); background: #fff; }
+.sa-dropzone.is-dragover { border-color: var(--sa-primary); background: #fff5f4; box-shadow: 0 0 0 3px rgba(212,55,44,.08); }
+.sa-dropzone input[type="file"] {
+	position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden;
+	clip: rect(0 0 0 0); white-space: nowrap; border: 0; padding: 0; margin: 0;
+}
+.sa-dropzone__icon {
+	flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%;
+	display: flex; align-items: center; justify-content: center;
+	background: rgba(212,55,44,.08); color: var(--sa-primary); transition: background .18s, color .18s;
+}
+.sa-dropzone:hover .sa-dropzone__icon { background: var(--sa-primary); color: #fff; }
+.sa-dropzone__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sa-dropzone__title {
+	font-weight: 600; color: var(--sa-ink); font-size: 14px;
+	white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+.sa-dropzone__hint { font-size: 12px; color: var(--sa-muted); }
+/* 上传中 / 已完成状态 */
+.sa-dropzone.is-loading { pointer-events: none; opacity: .75; }
+.sa-dropzone.is-uploaded {
+	border-style: solid; border-color: var(--sa-success);
+	background: rgba(46,160,67,.06); cursor: default;
+}
+.sa-dropzone.is-uploaded .sa-dropzone__icon { background: var(--sa-success); color: #fff; }
+.sa-dropzone.is-uploaded:hover { border-color: var(--sa-success); background: rgba(46,160,67,.06); }
+.sa-dropzone.is-uploaded:hover .sa-dropzone__icon { background: var(--sa-success); color: #fff; }
+.sa-upload-item__actions { min-height: 20px; margin-top: 8px; }
 .sa-upload-status { font-size: 13px; margin-left: 10px; }
 .sa-upload-status--ok { color: var(--sa-success); font-weight: 600; }
 .sa-upload-status--err { color: var(--sa-primary); }
