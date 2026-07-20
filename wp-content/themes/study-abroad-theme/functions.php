@@ -35,7 +35,9 @@ add_action( 'after_setup_theme', function () {
  * 资源加载
  * ---------------------------------------------------------------------- */
 add_action( 'wp_enqueue_scripts', function () {
-	wp_enqueue_style( 'sa-theme', get_stylesheet_uri(), array(), SA_THEME_VERSION );
+	$sa_css_path = get_stylesheet_directory() . '/style.css';
+	$sa_css_ver  = file_exists( $sa_css_path ) ? (string) filemtime( $sa_css_path ) : SA_THEME_VERSION;
+	wp_enqueue_style( 'sa-theme', get_stylesheet_uri(), array(), $sa_css_ver );
 
 	// Google Fonts（日文 + 简体中文字形）
 	wp_enqueue_style(
@@ -45,7 +47,9 @@ add_action( 'wp_enqueue_scripts', function () {
 		null
 	);
 
-	wp_enqueue_script( 'sa-theme', get_template_directory_uri() . '/assets/js/main.js', array(), SA_THEME_VERSION, true );
+	$sa_js_path = get_template_directory() . '/assets/js/main.js';
+	$sa_js_ver  = file_exists( $sa_js_path ) ? (string) filemtime( $sa_js_path ) : SA_THEME_VERSION;
+	wp_enqueue_script( 'sa-theme', get_template_directory_uri() . '/assets/js/main.js', array(), $sa_js_ver, true );
 
 	// 向前端暴露落地页表单端点（若核心插件启用）。
 	wp_localize_script( 'sa-theme', 'SA_LP', array(
