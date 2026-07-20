@@ -356,9 +356,16 @@ a { color: var(--sa-accent); text-decoration: none; }
 	font-family: inherit; font-size: 14px; margin-bottom: 10px; background: #fff;
 }
 .sa-upload-item textarea { min-height: 100px; resize: vertical; }
+.sa-upload-item__actions { min-height: 20px; }
 .sa-upload-status { font-size: 13px; margin-left: 10px; }
-.sa-upload-status--ok { color: var(--sa-success); }
+.sa-upload-status--ok { color: var(--sa-success); font-weight: 600; }
 .sa-upload-status--err { color: var(--sa-primary); }
+.sa-upload-final {
+	background: #fff; border: 1px solid var(--sa-border); border-radius: 10px;
+	padding: 20px; margin-top: 24px;
+}
+.sa-upload-final__hint { color: var(--sa-muted); font-size: 13px; margin: 0 0 14px; }
+.sa-upload-final .sa-btn { width: 100%; }
 .sa-upload-expired { text-align: center; padding: 60px 20px; }
 .sa-upload-expired h1 { font-size: 24px; color: var(--sa-ink); margin: 0 0 12px; }
 .sa-upload-expired p { color: var(--sa-muted); margin: 0 0 24px; }

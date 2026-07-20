@@ -135,6 +135,7 @@ get_header();
 
 		<div data-sa-upload-form>
 		<?php
+		$sa_text_items = array(); // 收集文本项（如志望理由），页尾统一作为「最终提交」。
 		foreach ( $selections as $sel ) :
 			$selection_id = (int) $sel['selection_id'];
 			$school_id    = (int) $sel['school_id'];
@@ -158,6 +159,22 @@ get_header();
 					$required = ! empty( $doc['required'] );
 					$done     = isset( $uploaded[ $selection_id . '|' . $doc_type ] );
 					$field_id = 'sa-doc-' . $selection_id . '-' . $doc_type;
+
+					// 文本项延后到页尾「最终提交」区，这里跳过。
+					if ( 'text' === $doc_kind ) {
+						$sa_text_items[] = array(
+							'selection_id' => $selection_id,
+							'doc_type'     => $doc_type,
+							'label'        => $label,
+							'field_id'     => $field_id,
+							'done'         => $done,
+							'value'        => $done && isset( $uploaded[ $selection_id . '|' . $doc_type . '|text' ] )
+								? $uploaded[ $selection_id . '|' . $doc_type . '|text' ] : '',
+						);
+						continue;
+					}
+
+					$accept = isset( $accept_map[ $doc_kind ] ) ? $accept_map[ $doc_kind ] : '';
 					?>
 					<div class="sa-upload-item<?php echo $done ? ' is-uploaded' : ''; ?>"
 						data-sa-upload-item
@@ -174,20 +191,11 @@ get_header();
 							<?php endif; ?>
 						</label>
 
-						<?php if ( 'text' === $doc_kind ) : ?>
-							<textarea id="<?php echo esc_attr( $field_id ); ?>" class="sa-upload-item__textarea" rows="4"
-								placeholder="<?php esc_attr_e( 'こちらにご記入ください', 'sa-theme' ); ?>"></textarea>
-						<?php else :
-							$accept = isset( $accept_map[ $doc_kind ] ) ? $accept_map[ $doc_kind ] : '';
-							?>
-							<input type="file" id="<?php echo esc_attr( $field_id ); ?>" class="sa-upload-item__file"
-								accept="<?php echo esc_attr( $accept ); ?>">
-						<?php endif; ?>
+						<input type="file" id="<?php echo esc_attr( $field_id ); ?>" class="sa-upload-item__file"
+							accept="<?php echo esc_attr( $accept ); ?>" data-sa-upload-file
+							<?php echo $done ? 'disabled' : ''; ?>>
 
 						<div class="sa-upload-item__actions">
-							<button type="button" class="sa-btn sa-btn--primary sa-btn--sm" data-sa-upload-submit>
-								<?php echo $done ? esc_html__( '再提出', 'sa-theme' ) : esc_html__( '提出する', 'sa-theme' ); ?>
-							</button>
 							<span class="sa-upload-status<?php echo $done ? ' sa-upload-status--ok' : ''; ?>" data-sa-upload-status>
 								<?php echo $done ? esc_html__( '提出済み', 'sa-theme' ) : ''; ?>
 							</span>
@@ -197,6 +205,37 @@ get_header();
 				</div>
 			</section>
 		<?php endforeach; ?>
+
+			<?php
+			// -------- 页尾「最终提交」区：可选文本项 + 总提交按钮 --------
+			// 默认置灰；main.js 在全部必交附件上传成功后启用；点击后（含文本）跳转成功页。
+			$sa_first_text = ! empty( $sa_text_items ) ? $sa_text_items[0] : null;
+			?>
+			<section class="sa-upload-final" data-sa-upload-final
+				<?php if ( $sa_first_text ) : ?>
+					data-selection-id="<?php echo esc_attr( $sa_first_text['selection_id'] ); ?>"
+					data-doc-type="<?php echo esc_attr( $sa_first_text['doc_type'] ); ?>"
+					data-user-id="<?php echo esc_attr( $sa_upload_uid ); ?>"
+				<?php endif; ?>>
+
+				<?php if ( $sa_first_text ) : ?>
+					<label class="sa-upload-item__label" for="<?php echo esc_attr( $sa_first_text['field_id'] ); ?>">
+						<?php echo esc_html( $sa_first_text['label'] ); ?>
+					</label>
+					<textarea id="<?php echo esc_attr( $sa_first_text['field_id'] ); ?>"
+						class="sa-upload-item__textarea" rows="4" data-sa-upload-text
+						placeholder="<?php esc_attr_e( 'こちらにご記入ください', 'sa-theme' ); ?>"><?php echo esc_textarea( $sa_first_text['value'] ); ?></textarea>
+				<?php endif; ?>
+
+				<p class="sa-upload-final__hint" data-sa-upload-hint>
+					<?php esc_html_e( '必須書類（*）をすべてアップロードすると、下のボタンで提出を完了できます。', 'sa-theme' ); ?>
+				</p>
+
+				<button type="button" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-upload-final-submit disabled>
+					<?php esc_html_e( '提出する', 'sa-theme' ); ?>
+				</button>
+				<span class="sa-upload-status" data-sa-upload-final-status></span>
+			</section>
 		</div>
 
 	<?php endif; ?>

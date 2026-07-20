@@ -219,27 +219,40 @@
 		}
 	}
 
-	// -------- 资料上传页（page-upload.php）逐项提交 --------
+	// -------- 资料上传页（page-upload.php）：选文件即自动上传 + 页尾总提交 --------
 	initUploadPage();
 
 	function initUploadPage() {
 		var uploadForm = document.querySelector('[data-sa-upload-form]');
 		if (!uploadForm) { return; }
 
-		var items = uploadForm.querySelectorAll('[data-sa-upload-item]');
-		Array.prototype.forEach.call(items, function (item) {
-			var submitBtn = item.querySelector('[data-sa-upload-submit]');
-			if (!submitBtn) { return; }
-			submitBtn.addEventListener('click', function () {
-				submitUploadItem(item, submitBtn);
+		// 附件项：选择文件即自动上传（无单项按钮）。
+		var fileInputs = uploadForm.querySelectorAll('[data-sa-upload-file]');
+		Array.prototype.forEach.call(fileInputs, function (input) {
+			input.addEventListener('change', function () {
+				var item = input.closest('[data-sa-upload-item]');
+				if (!item) { return; }
+				if (!input.files || !input.files.length) { return; }
+				autoUploadFile(item, input);
 			});
 		});
+
+		// 页尾总提交按钮。
+		var finalBtn = uploadForm.querySelector('[data-sa-upload-final-submit]');
+		if (finalBtn) {
+			finalBtn.addEventListener('click', function () {
+				submitFinal(uploadForm, finalBtn);
+			});
+		}
+
+		// 首次进入（含已回显的已传项）刷新总按钮可用性。
+		refreshFinalButton();
 	}
 
-	function submitUploadItem(item, submitBtn) {
+	// 附件自动上传：成功后后方显示「提出済み」，失败原地可重选。
+	function autoUploadFile(item, input) {
 		var statusEl = item.querySelector('[data-sa-upload-status]');
 		var docType = item.getAttribute('data-doc-type');
-		var docKind = item.getAttribute('data-doc-kind');
 		var selectionId = item.getAttribute('data-selection-id');
 		var userId = item.getAttribute('data-user-id');
 
@@ -247,22 +260,10 @@
 		fd.append('doc_type', docType);
 		fd.append('selection_id', selectionId);
 		fd.append('user_id', userId);
+		fd.append('file', input.files[0]);
 
-		if (docKind === 'text') {
-			var ta = item.querySelector('textarea');
-			var text = ta ? ta.value : '';
-			if (!text.trim()) { setStatus(statusEl, cfg.i18n.required, 'err'); return; }
-			fd.append('text', text);
-		} else {
-			var fileInput = item.querySelector('input[type="file"]');
-			if (!fileInput || !fileInput.files || !fileInput.files.length) {
-				setStatus(statusEl, cfg.i18n.required, 'err');
-				return;
-			}
-			fd.append('file', fileInput.files[0]);
-		}
-
-		submitBtn.disabled = true;
+		input.disabled = true;
+		item.classList.remove('is-uploaded');
 		setStatus(statusEl, cfg.i18n.submitting, '');
 
 		fetch(cfg.uploadEndpoint, {
@@ -273,39 +274,84 @@
 			.then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
 			.then(function (res) {
 				if (res.ok && res.data && res.data.ok) {
-					// 成功后保持按钮禁用并置灰，改文案，防止重复提交。
-					submitBtn.textContent = cfg.i18n.uploadedLabel || '提出済み';
-					setStatus(statusEl, cfg.i18n.uploadOk, 'ok');
+					setStatus(statusEl, cfg.i18n.uploadedLabel || '提出済み', 'ok');
 					item.classList.add('is-uploaded');
-					maybeRedirectComplete();
+					refreshFinalButton();
 				} else {
-					submitBtn.disabled = false;
+					// 失败：解禁输入允许重选。
+					input.disabled = false;
+					input.value = '';
 					var m = (res.data && res.data.message) ? res.data.message : cfg.i18n.uploadErr;
 					setStatus(statusEl, m, 'err');
 				}
 			})
 			.catch(function () {
-				submitBtn.disabled = false;
+				input.disabled = false;
+				input.value = '';
 				setStatus(statusEl, cfg.i18n.uploadErr, 'err');
 			});
+	}
+
+	// 所有必交附件是否均已上传。
+	function allRequiredDone() {
+		var required = document.querySelectorAll('[data-sa-upload-item][data-required="1"]');
+		if (!required.length) { return true; }
+		return Array.prototype.every.call(required, function (el) {
+			return el.classList.contains('is-uploaded');
+		});
+	}
+
+	// 按必交项完成情况启用/禁用页尾总提交按钮。
+	function refreshFinalButton() {
+		var finalBtn = document.querySelector('[data-sa-upload-final-submit]');
+		if (!finalBtn) { return; }
+		finalBtn.disabled = !allRequiredDone();
+	}
+
+	// 点击总提交：若有文本则先提交文本，再跳转成功页。
+	function submitFinal(uploadForm, finalBtn) {
+		if (finalBtn.disabled) { return; }
+		if (!allRequiredDone()) { refreshFinalButton(); return; }
+
+		finalBtn.disabled = true;
+
+		var finalWrap = uploadForm.querySelector('[data-sa-upload-final]');
+		var textEl = finalWrap ? finalWrap.querySelector('[data-sa-upload-text]') : null;
+		var statusEl = uploadForm.querySelector('[data-sa-upload-final-status]');
+		var text = textEl ? textEl.value.trim() : '';
+
+		var go = function () {
+			window.location.href = cfg.thanksUrl || '/thanks/';
+		};
+
+		// 无文本项或未填写：直接跳转。
+		if (!textEl || !text || !finalWrap) { go(); return; }
+
+		var fd = new FormData();
+		fd.append('doc_type', finalWrap.getAttribute('data-doc-type'));
+		fd.append('selection_id', finalWrap.getAttribute('data-selection-id'));
+		fd.append('user_id', finalWrap.getAttribute('data-user-id'));
+		fd.append('text', text);
+
+		setStatus(statusEl, cfg.i18n.submitting, '');
+
+		fetch(cfg.uploadEndpoint, {
+			method: 'POST',
+			headers: { 'X-WP-Nonce': cfg.nonce },
+			body: fd
+		})
+			.then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+			.then(function (res) {
+				// 文本为可选补充，成功失败都跳转（失败不阻断，附件已完成）。
+				go();
+			})
+			.catch(function () { go(); });
 	}
 
 	function setStatus(el, text, type) {
 		if (!el) { return; }
 		el.textContent = text;
 		el.className = 'sa-upload-status' + (type ? ' sa-upload-status--' + type : '');
-	}
-
-	// 所有必交项均已上传后，跳转到提交完成页（/thanks/）。
-	function maybeRedirectComplete() {
-		var required = document.querySelectorAll('[data-sa-upload-item][data-required="1"]');
-		if (!required.length) { return; }
-		var allDone = Array.prototype.every.call(required, function (el) {
-			return el.classList.contains('is-uploaded');
-		});
-		if (!allDone) { return; }
-		var url = cfg.thanksUrl || '/thanks/';
-		window.location.href = url;
 	}
 
 	// -------- 首页轮播（原生，无依赖） --------
