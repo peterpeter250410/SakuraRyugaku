@@ -161,6 +161,7 @@ get_header();
 						data-sa-upload-item
 						data-doc-type="<?php echo esc_attr( $doc_type ); ?>"
 						data-doc-kind="<?php echo esc_attr( $doc_kind ); ?>"
+						data-required="<?php echo $required ? '1' : '0'; ?>"
 						data-selection-id="<?php echo esc_attr( $selection_id ); ?>"
 						data-user-id="<?php echo esc_attr( $sa_upload_uid ); ?>">
 
@@ -194,6 +195,17 @@ get_header();
 				</div>
 			</section>
 		<?php endforeach; ?>
+
+			<div class="sa-upload-complete" data-sa-upload-complete hidden>
+				<div class="sa-upload-complete__icon" aria-hidden="true">&#10003;</div>
+				<h2 class="sa-upload-complete__title"><?php esc_html_e( '書類のご提出が完了しました', 'sa-theme' ); ?></h2>
+				<p class="sa-upload-complete__lead">
+					<?php esc_html_e( '必要書類をすべてお預かりしました。担当者が内容を確認のうえ、追ってご連絡いたします。', 'sa-theme' ); ?>
+				</p>
+				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="sa-btn sa-btn--primary">
+					<?php esc_html_e( 'トップページへ戻る', 'sa-theme' ); ?>
+				</a>
+			</div>
 		</div>
 
 	<?php endif; ?>

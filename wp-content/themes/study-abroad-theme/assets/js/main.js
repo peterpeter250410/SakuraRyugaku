@@ -276,6 +276,7 @@
 				if (res.ok && res.data && res.data.ok) {
 					setStatus(statusEl, cfg.i18n.uploadOk, 'ok');
 					item.classList.add('is-uploaded');
+					maybeShowComplete();
 				} else {
 					var m = (res.data && res.data.message) ? res.data.message : cfg.i18n.uploadErr;
 					setStatus(statusEl, m, 'err');
@@ -291,6 +292,20 @@
 		if (!el) { return; }
 		el.textContent = text;
 		el.className = 'sa-upload-status' + (type ? ' sa-upload-status--' + type : '');
+	}
+
+	// 所有必交项均已上传后，展示提交完成横幅。
+	function maybeShowComplete() {
+		var banner = document.querySelector('[data-sa-upload-complete]');
+		if (!banner) { return; }
+		var required = document.querySelectorAll('[data-sa-upload-item][data-required="1"]');
+		if (!required.length) { return; }
+		var allDone = Array.prototype.every.call(required, function (el) {
+			return el.classList.contains('is-uploaded');
+		});
+		if (!allDone) { return; }
+		banner.hidden = false;
+		banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
 	}
 
 	// -------- 首页轮播（原生，无依赖） --------
