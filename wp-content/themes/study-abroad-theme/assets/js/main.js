@@ -272,12 +272,13 @@
 		})
 			.then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
 			.then(function (res) {
-				submitBtn.disabled = false;
 				if (res.ok && res.data && res.data.ok) {
+					// 成功后保持按钮禁用，防止重复提交。
 					setStatus(statusEl, cfg.i18n.uploadOk, 'ok');
 					item.classList.add('is-uploaded');
-					maybeShowComplete();
+					maybeRedirectComplete();
 				} else {
+					submitBtn.disabled = false;
 					var m = (res.data && res.data.message) ? res.data.message : cfg.i18n.uploadErr;
 					setStatus(statusEl, m, 'err');
 				}
@@ -294,18 +295,16 @@
 		el.className = 'sa-upload-status' + (type ? ' sa-upload-status--' + type : '');
 	}
 
-	// 所有必交项均已上传后，展示提交完成横幅。
-	function maybeShowComplete() {
-		var banner = document.querySelector('[data-sa-upload-complete]');
-		if (!banner) { return; }
+	// 所有必交项均已上传后，跳转到提交完成页（/thanks/）。
+	function maybeRedirectComplete() {
 		var required = document.querySelectorAll('[data-sa-upload-item][data-required="1"]');
 		if (!required.length) { return; }
 		var allDone = Array.prototype.every.call(required, function (el) {
 			return el.classList.contains('is-uploaded');
 		});
 		if (!allDone) { return; }
-		banner.hidden = false;
-		banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		var url = cfg.thanksUrl || '/thanks/';
+		window.location.href = url;
 	}
 
 	// -------- 首页轮播（原生，无依赖） --------
