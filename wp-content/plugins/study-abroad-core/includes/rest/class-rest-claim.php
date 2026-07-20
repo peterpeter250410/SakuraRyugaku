@@ -172,7 +172,11 @@ class SA_Rest_Claim {
 	}
 
 	/**
-	 * 插入选校记录（唯一键 uniq_choice 防重复），返回 selection_id。
+	 * 插入选校记录：一个用户仅保留最新选的一所。
+	 *
+	 * 业务约定：每个学生名下只对应「最近一次选择」的院校/专业。
+	 * 若已选同一 (school, program) 则复用既有记录；否则删除该用户旧的
+	 * 选校记录后再插入新记录，保证上传页只展示最新一所。
 	 *
 	 * @param int $user_id    用户 ID。
 	 * @param int $school_id  院校 ID。
@@ -184,7 +188,7 @@ class SA_Rest_Claim {
 		$table = SA_DB::table( 'selections' );
 		$now   = SA_DB::now();
 
-		// 已存在则返回既有 id。
+		// 已选同一院校/专业则复用既有记录（避免重复建号丢失文档关联）。
 		$existing = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT id FROM {$table} WHERE user_id = %d AND school_id = %d AND program_id = %d",
@@ -194,8 +198,24 @@ class SA_Rest_Claim {
 			)
 		);
 		if ( $existing ) {
+			// 复用前先清理该用户其它旧选校，保证只留最新一所。
+			$wpdb->query(
+				$wpdb->prepare(
+					"DELETE FROM {$table} WHERE user_id = %d AND id <> %d",
+					absint( $user_id ),
+					absint( $existing )
+				)
+			);
 			return (int) $existing;
 		}
+
+		// 选了新学校：删除该用户全部旧选校，只保留即将插入的这一所。
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$table} WHERE user_id = %d",
+				absint( $user_id )
+			)
+		);
 
 		$wpdb->insert(
 			$table,

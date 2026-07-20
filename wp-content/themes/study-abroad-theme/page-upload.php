@@ -75,7 +75,8 @@ get_header();
 
 <?php else :
 
-	// 取该用户的选校记录（join schools 取校名 + 资料清单）。
+	// 取该用户「最新选的一所」院校（join schools 取校名 + 资料清单）。
+	// 业务约定：一个用户仅对应最近一次选校，故 LIMIT 1 作为兜底。
 	global $wpdb;
 	$sel_table    = SA_DB::table( 'selections' );
 	$school_table = SA_DB::table( 'schools' );
@@ -89,7 +90,8 @@ get_header();
 			   LEFT JOIN {$school_table} sc ON sc.id = s.school_id
 			   LEFT JOIN {$prog_table} p ON p.id = s.program_id
 			  WHERE s.user_id = %d
-			  ORDER BY s.created_at DESC",
+			  ORDER BY s.created_at DESC
+			  LIMIT 1",
 			absint( $sa_upload_uid )
 		),
 		ARRAY_A
