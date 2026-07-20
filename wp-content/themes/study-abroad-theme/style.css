@@ -32,7 +32,10 @@ Text Domain: sa-theme
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+/* 抽屉收起时位于视口右侧外，禁止其撑出横向滚动条。
+   body 用 overflow-x:clip（不会像 hidden 那样破坏 position:sticky 头部） */
+html { scroll-behavior: smooth; overflow-x: hidden; }
+body { overflow-x: clip; }
 
 body {
 	margin: 0;
@@ -361,16 +364,20 @@ a { color: var(--sa-accent); text-decoration: none; }
 	.sa-drawer__foot .sa-lang__menu { position: static; display: block; box-shadow: none; border: none; padding: 6px 0 0; }
 	.sa-drawer__foot .sa-btn--primary { width: 100%; padding: 14px; }
 
-	/* 遮罩 */
+	/* 遮罩（hidden 属性时不显示、不拦截点击） */
 	.sa-drawer__overlay {
-		display: block; position: fixed; inset: 0; z-index: 190;
+		position: fixed; inset: 0; z-index: 190;
 		background: rgba(20,20,35,.5); opacity: 0; transition: opacity .3s ease;
 	}
+	.sa-drawer__overlay:not([hidden]) { display: block; }
 	.sa-drawer__overlay.is-open { opacity: 1; }
 
 	/* 抽屉打开时锁滚动 */
 	body.sa-drawer-open { overflow: hidden; }
 }
+
+/* 全局：隐藏属性优先，防止遮罩在关闭态拦截点击 */
+.sa-drawer__overlay[hidden] { display: none !important; }
 
 @media (max-width: 600px) {
 	.sa-hero__title { font-size: 27px; }
