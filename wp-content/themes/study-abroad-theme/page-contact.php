@@ -63,7 +63,7 @@ get_template_part(
 	<div class="sa-container">
 		<h2><?php esc_html_e( 'フォームから無料相談を申し込む', 'sa-theme' ); ?></h2>
 		<p><?php esc_html_e( 'お名前と連絡先をご入力いただくだけ。担当より順次ご連絡します。', 'sa-theme' ); ?></p>
-		<a href="<?php echo esc_url( home_url( '/#lead-form' ) ); ?>" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="contact-cta"><?php esc_html_e( '無料相談フォームへ', 'sa-theme' ); ?></a>
+		<a href="<?php echo esc_url( sa_home_url( '/#lead-form' ) ); ?>" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="contact-cta"><?php esc_html_e( '無料相談フォームへ', 'sa-theme' ); ?></a>
 	</div>
 </section>
 

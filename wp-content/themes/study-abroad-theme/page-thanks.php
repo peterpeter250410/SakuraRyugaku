@@ -51,10 +51,10 @@ get_header();
 		</div>
 
 		<div class="sa-thanks__actions">
-			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="thanks-home">
+			<a href="<?php echo esc_url( sa_home_url( '/' ) ); ?>" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="thanks-home">
 				<?php esc_html_e( 'トップへ戻る', 'sa-theme' ); ?>
 			</a>
-			<a href="<?php echo esc_url( home_url( '/faq/' ) ); ?>" class="sa-btn sa-btn--ghost sa-btn--lg" data-sa-cta="thanks-faq">
+			<a href="<?php echo esc_url( sa_home_url( '/faq/' ) ); ?>" class="sa-btn sa-btn--ghost sa-btn--lg" data-sa-cta="thanks-faq">
 				<?php esc_html_e( 'よくある質問を見る', 'sa-theme' ); ?>
 			</a>
 		</div>

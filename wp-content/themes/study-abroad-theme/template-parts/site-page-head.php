@@ -24,7 +24,7 @@ $sa_head_crumb = isset( $args['crumb'] ) && '' !== $args['crumb'] ? $args['crumb
 		if ( function_exists( 'sa_breadcrumb' ) ) {
 			sa_breadcrumb(
 				array(
-					array( __( 'ホーム', 'sa-theme' ), home_url( '/' ) ),
+					array( __( 'ホーム', 'sa-theme' ), sa_home_url( '/' ) ),
 					array( $sa_head_crumb, '' ),
 				)
 			);

@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <header class="sa-header">
 	<div class="sa-container sa-header__inner">
-		<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="sa-logo">
+		<a href="<?php echo esc_url( sa_home_url( '/' ) ); ?>" class="sa-logo">
 			<span class="sa-logo__mark">●</span>
 			<span><?php bloginfo( 'name' ); ?></span>
 		</a>
@@ -34,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<div class="sa-drawer" data-sa-drawer>
 			<div class="sa-drawer__head">
-				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="sa-logo">
+				<a href="<?php echo esc_url( sa_home_url( '/' ) ); ?>" class="sa-logo">
 					<span class="sa-logo__mark">●</span>
 					<span><?php bloginfo( 'name' ); ?></span>
 				</a>
@@ -62,19 +62,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 			<div class="sa-drawer__foot">
 				<div class="sa-lang">
-					<button class="sa-lang__btn" type="button" aria-haspopup="true">
-						<?php
-						$locales = sa_locales();
-						$cur     = sa_current_locale();
-						echo esc_html( isset( $locales[ $cur ]['label'] ) ? $locales[ $cur ]['label'] : $cur );
-						?> ▾
+					<?php
+					$sa_locales_all = sa_locales();
+					$sa_cur_locale  = sa_current_locale();
+					?>
+					<button class="sa-lang__btn" type="button" aria-haspopup="true" aria-expanded="false">
+						<?php echo esc_html( isset( $sa_locales_all[ $sa_cur_locale ]['label'] ) ? $sa_locales_all[ $sa_cur_locale ]['label'] : $sa_cur_locale ); ?> ▾
 					</button>
 					<ul class="sa-lang__menu">
 						<?php
-						$home = home_url( '/' );
-						foreach ( sa_locales() as $key => $loc ) {
-							$url = '' === $loc['prefix'] ? $home : trailingslashit( $home . $loc['prefix'] );
-							echo '<li><a href="' . esc_url( $url ) . '">' . esc_html( $loc['label'] ) . '</a></li>';
+						foreach ( $sa_locales_all as $sa_key => $sa_loc ) {
+							// 切换语种时停留在当前页面的对应语种版本，而不是一律跳回首页。
+							// 把用户从内页甩回首页既伤转化，也让搜索引擎难以建立页面级语种对应关系。
+							$sa_lang_url = sa_current_url_in( $sa_key );
+							$sa_is_cur   = ( $sa_key === $sa_cur_locale );
+
+							printf(
+								'<li><a href="%1$s" hreflang="%2$s" lang="%2$s"%3$s>%4$s</a></li>',
+								esc_url( $sa_lang_url ),
+								esc_attr( sa_locale_field( $sa_key, 'hreflang', $sa_key ) ),
+								$sa_is_cur ? ' aria-current="true"' : '',
+								esc_html( $sa_loc['label'] )
+							);
 						}
 						?>
 					</ul>

@@ -95,7 +95,7 @@ if ( function_exists( 'sa_output_faq_schema' ) ) {
 	<div class="sa-container">
 		<h2><?php esc_html_e( '疑問が解消したら、次の一歩へ', 'sa-theme' ); ?></h2>
 		<p><?php esc_html_e( '無料の学校マッチングで、あなたに合う学校を見つけましょう。', 'sa-theme' ); ?></p>
-		<a href="<?php echo esc_url( home_url( '/#lead-form' ) ); ?>" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="faq-cta"><?php esc_html_e( '無料で学校診断を受ける', 'sa-theme' ); ?></a>
+		<a href="<?php echo esc_url( sa_home_url( '/#lead-form' ) ); ?>" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="faq-cta"><?php esc_html_e( '無料で学校診断を受ける', 'sa-theme' ); ?></a>
 	</div>
 </section>
 
