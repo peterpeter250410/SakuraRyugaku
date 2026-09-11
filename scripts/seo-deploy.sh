@@ -187,21 +187,36 @@ if command -v curl >/dev/null 2>&1; then
         fi
     done
 
-    # 确认翻译真的生效：中文页应出现中文文案
+    # 确认翻译真的生效。
+    # 探测串必须是「只可能来自语言包」的文案：模板里硬编码的英文装饰性标签
+    # （如 <span class="sa-section__tag">FAQ</span>）会让 grep "FAQ" 必然命中，
+    # 从而在翻译完全没生效时给出假绿灯。
+    TRANS_BAD=0
+
     ZH_HTML=$(curl -sS -L --max-time 25 "${SITE_URL}/zh/" 2>/dev/null)
-    if echo "$ZH_HTML" | grep -q "免费"; then
+    if echo "$ZH_HTML" | grep -q "为什么选择我们\|免费院校匹配\|意向专业"; then
         c_grn "  中文站文案已生效"
     else
-        c_red "  中文站未出现中文文案 —— 语言包可能未加载"
+        c_red "  中文站未出现中文文案 —— 语言包未加载"
+        TRANS_BAD=1
         FAILED=1
     fi
 
     EN_HTML=$(curl -sS -L --max-time 25 "${SITE_URL}/en/" 2>/dev/null)
-    if echo "$EN_HTML" | grep -qi "Study in Japan\|Free school\|FAQ"; then
+    if echo "$EN_HTML" | grep -q "Why students choose us\|Free school matching\|Intended major"; then
         c_grn "  英文站文案已生效"
     else
-        c_red "  英文站未出现英文文案 —— 语言包可能未加载"
+        c_red "  英文站未出现英文文案 —— 语言包未加载"
+        TRANS_BAD=1
         FAILED=1
+    fi
+
+    if [ "$TRANS_BAD" = "1" ]; then
+        echo
+        c_ylw "  语种路由已通（页面可访问、lang 属性正确），但语言包未加载。"
+        c_ylw "  运行诊断探针查看 WordPress 侧的真实状态："
+        echo "    curl -s '${SITE_URL}/zh/?sa_locale_debug=1' | grep -A24 'SA-LOCALE-DEBUG'"
+        echo
     fi
 else
     c_ylw "  未找到 curl，跳过在线校验"

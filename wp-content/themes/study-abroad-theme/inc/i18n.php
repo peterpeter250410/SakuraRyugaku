@@ -408,6 +408,65 @@ add_filter(
 );
 
 /* -------------------------------------------------------------------------
+ * 语种诊断探针
+ *
+ * 访问任意页面并附加 ?sa_locale_debug=1，会在 HTML 中输出一段注释，
+ * 说明语种识别与语言包加载的真实状态。
+ *
+ * 用途：区分两类完全不同的故障 ——
+ *   (a) URL 语种识别失败      → sa_current_locale 不对
+ *   (b) 语言包未加载          → sa_current_locale 对，但 get_locale 或
+ *                               is_textdomain_loaded 不对
+ * 只输出诊断信息，不含任何敏感数据。
+ * ---------------------------------------------------------------------- */
+
+add_action(
+	'wp_head',
+	function () {
+		if ( empty( $_GET['sa_locale_debug'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+
+		$cur       = sa_current_locale();
+		$wp_locale = sa_locale_field( $cur, 'wp_locale', '' );
+		$mo        = get_template_directory() . '/languages/sa-theme-' . $wp_locale . '.mo';
+		$l10n_php  = get_template_directory() . '/languages/sa-theme-' . $wp_locale . '.l10n.php';
+
+		// 取一条确定存在于语言包中的字符串做实测。
+		$probe_src = '日本留学を、<em>最適な一校</em>から始めよう';
+		$probe_out = __( '日本留学を、<em>最適な一校</em>から始めよう', 'sa-theme' );
+
+		$lines = array(
+			'SA-LOCALE-DEBUG',
+			'WordPress 版本            : ' . get_bloginfo( 'version' ),
+			'站点语言 (WPLANG)         : ' . get_option( 'WPLANG' ),
+			'--- 语种识别（本主题）---',
+			'sa_current_locale()       : ' . $cur,
+			'sa_request_path()         : ' . sa_request_path(),
+			'期望的 wp_locale          : ' . $wp_locale,
+			'--- WordPress 语言状态 ---',
+			'get_locale()              : ' . get_locale(),
+			'determine_locale()        : ' . ( function_exists( 'determine_locale' ) ? determine_locale() : 'n/a' ),
+			'is_textdomain_loaded()    : ' . ( is_textdomain_loaded( 'sa-theme' ) ? 'YES' : 'NO' ),
+			'--- 语言包文件 ---',
+			'mo 路径                   : ' . $mo,
+			'mo 存在                   : ' . ( file_exists( $mo ) ? 'YES' : 'NO' ),
+			'mo 可读                   : ' . ( is_readable( $mo ) ? 'YES' : 'NO' ),
+			'mo 大小                   : ' . ( file_exists( $mo ) ? filesize( $mo ) : 0 ),
+			'l10n.php 存在             : ' . ( file_exists( $l10n_php ) ? 'YES' : 'NO' ),
+			'l10n.php 可读             : ' . ( is_readable( $l10n_php ) ? 'YES' : 'NO' ),
+			'--- 实测翻译 ---',
+			'原文                      : ' . $probe_src,
+			'译文                      : ' . $probe_out,
+			'翻译是否生效              : ' . ( $probe_out !== $probe_src ? 'YES' : 'NO' ),
+		);
+
+		echo "\n<!--\n" . esc_html( implode( "\n", $lines ) ) . "\n-->\n";
+	},
+	999
+);
+
+/* -------------------------------------------------------------------------
  * 规范化跳转保护
  * ---------------------------------------------------------------------- */
 
