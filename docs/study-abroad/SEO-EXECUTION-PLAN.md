@@ -116,7 +116,9 @@ WordPress 照常渲染 about 页
 
 1. 在 GSC 重新提交 `wp-sitemap.xml`
 2. 对 `/`、`/zh/`、`/en/` 分别「请求编入索引」
-3. 查看 GSC →「国际定位」报告，确认 hreflang 零错误
+3. 确认 hreflang 无误（GSC 的「国际定位」报告已被 Google 下线，
+   改为在「编制索引 → 网页」中确认没有出现「重复网页，Google 选择的规范网址不同」，
+   并用第三方 hreflang 校验器复核）
 4. 跑 PageSpeed Insights，记录三语种首页的 CWV 基线
 5. 注册**必应站长工具**（可从 GSC 一键导入，成本极低，很多人漏掉）
 6. 中国市场：提交**百度搜索资源平台**
@@ -221,7 +223,7 @@ bash scripts/seo-links.sh https://studyinjp.com   # 生成检测链接清单
 | PageSpeed 移动端 | 性能 ≥ 75，SEO ≥ 95 |
 | LCP / CLS / INP | < 2.5s / < 0.1 / < 200ms |
 | 富媒体结果测试 | FAQPage + BreadcrumbList 无错误 |
-| GSC 国际定位 | 零 hreflang 错误 |
+| GSC 编制索引 → 网页 | 不出现「重复网页，Google 选择的规范网址不同」 |
 
 ---
 

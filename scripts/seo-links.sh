@@ -57,9 +57,13 @@ cat <<EOF
   英文首页: https://search.google.com/search-console/inspect?resource_id=$(enc "sc-domain:${HOST}")&id=$(enc "${SITE_URL}/en/")
   预期: 三个都显示「网址在 Google 上」或可「请求编入索引」
 
-【国际定位报告 —— 专门看 hreflang 错误】
-  控制台 → 旧版工具与报告 → 国际定位
-  预期: 无「没有返回标记的标签」「未知语言代码」这两类错误
+【hreflang 错误怎么看】
+  注意: GSC 的「国际定位」报告已被 Google 下线，控制台里已经没有这一项。
+  现在 hreflang 问题通过以下途径确认：
+    1. 网址检查 → 输入 /zh/ 或 /en/ → 看「网页抓取」是否正常、是否被编入索引
+    2. 编制索引 → 网页 → 看是否出现「重复网页，Google 选择的规范网址不同」
+       （这是 hreflang 失效最典型的症状：各语种被判定为同一页面的副本）
+    3. 第三方 hreflang 校验器（见下方第四节），比 GSC 更直观
 
 【site: 查询 —— 快速看收录量】
   全站  : https://www.google.com/search?q=$(enc "site:${HOST}")
