@@ -40,28 +40,13 @@ require_once get_template_directory() . '/inc/performance.php';
  * 主题支持
  * ---------------------------------------------------------------------- */
 
-/**
- * 语言包加载兜底。
- *
- * WordPress 6.7 起，翻译推荐在 init 之后加载；在更早的钩子上调用可能被推迟，
- * 转由「按需加载」机制处理，而后者依赖 style.css 中的 Domain Path 字段。
- * 此处在 init 阶段复查一次：若语言包仍未加载，显式再加载一遍。
- *
- * 这样无论 WordPress 版本走哪条路径，翻译都能生效。
- */
-add_action(
-	'init',
-	function () {
-		if ( ! is_textdomain_loaded( 'sa-theme' ) ) {
-			load_theme_textdomain( 'sa-theme', get_template_directory() . '/languages' );
-		}
-	},
-	1
-);
-
 add_action(
 	'after_setup_theme',
 	function () {
+		// 语言包的实际加载由 inc/i18n.php 的 sa_load_theme_translations() 负责
+		// （显式加载，不依赖「按需加载」机制，原因见该函数上方注释）。
+		// 此处仍调用一次，用于向 WordPress 登记主题语言包目录，
+		// 使子主题覆盖与其它依赖该注册表的机制正常工作。
 		load_theme_textdomain( 'sa-theme', get_template_directory() . '/languages' );
 
 		add_theme_support( 'title-tag' );

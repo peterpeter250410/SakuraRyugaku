@@ -408,6 +408,75 @@ add_filter(
 );
 
 /* -------------------------------------------------------------------------
+ * 语言包加载
+ *
+ * 不依赖 load_theme_textdomain()。
+ *
+ * WordPress 6.7 起改为「按需加载」：早于 init 的加载请求只登记路径，
+ * 不立即加载，留待第一次 __() 调用时由 _load_textdomain_just_in_time()
+ * 处理。在 WordPress 7.0 上实测该路径没有命中本主题的语言包 ——
+ * 表现为 locale 正确（get_locale / determine_locale 均为 zh_CN）、
+ * Domain Path 已声明、.mo 文件存在且可读，但 is_textdomain_loaded()
+ * 恒为 false，页面全部回退到源语言（日文）。
+ *
+ * 而直接调用 load_textdomain() 并显式传入文件路径与 locale 则一次成功。
+ * 因此这里走确定性的显式加载，不再依赖那层间接机制。
+ * ---------------------------------------------------------------------- */
+
+/**
+ * 显式加载主题语言包。
+ *
+ * 加载顺序遵循 WordPress 惯例：
+ *   1. wp-content/languages/themes/  —— 用户自定义覆盖优先
+ *   2. 主题自带 languages/
+ *
+ * @return bool 是否成功加载。
+ */
+function sa_load_theme_translations() {
+	static $attempted = array();
+
+	if ( is_textdomain_loaded( 'sa-theme' ) ) {
+		return true;
+	}
+
+	$locale = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
+
+	// 同一 locale 只尝试一次，避免在多个钩子上重复做文件检查。
+	if ( isset( $attempted[ $locale ] ) ) {
+		return $attempted[ $locale ];
+	}
+	$attempted[ $locale ] = false;
+
+	// 源语言（日语）没有语言包文件，属正常情况，不必尝试。
+	$default_wp_locale = sa_locale_field( sa_default_locale(), 'wp_locale', 'ja' );
+	if ( $locale === $default_wp_locale ) {
+		$attempted[ $locale ] = true;
+		return true;
+	}
+
+	$candidates = array(
+		WP_LANG_DIR . '/themes/sa-theme-' . $locale . '.mo',
+		get_template_directory() . '/languages/sa-theme-' . $locale . '.mo',
+	);
+
+	foreach ( $candidates as $mofile ) {
+		if ( is_readable( $mofile ) && load_textdomain( 'sa-theme', $mofile, $locale ) ) {
+			$attempted[ $locale ] = true;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+// 挂在多个时机上：任一时机成功即短路，后续调用直接返回。
+// after_setup_theme 是常规时机；init 与 template_redirect 作为兜底，
+// 确保模板开始渲染前语言包一定已就位。
+add_action( 'after_setup_theme', 'sa_load_theme_translations', 5 );
+add_action( 'init', 'sa_load_theme_translations', 0 );
+add_action( 'template_redirect', 'sa_load_theme_translations', 0 );
+
+/* -------------------------------------------------------------------------
  * 语种诊断探针
  *
  * 访问任意页面并附加 ?sa_locale_debug=1，会在 HTML 中输出一段注释，
