@@ -3,12 +3,21 @@ Theme Name: Study Abroad Theme
 Theme URI: https://example.com/
 Description: 日本留学中介平台主题。落地页转化导向，PC + H5 响应式，多语言就绪，SEO 与埋点集成。市场验证阶段专用。
 Author: Study Abroad Team
-Version: 0.1.0
+Version: 0.2.0
 Requires at least: 6.0
 Requires PHP: 7.4
 License: GPL-2.0-or-later
 Text Domain: sa-theme
+Domain Path: /languages
 */
+
+/*
+ * Domain Path 必须声明。
+ * WordPress 依据该字段定位主题语言包目录；缺失时会去主题根目录找
+ * sa-theme-{locale}.mo，而文件实际位于 languages/ 子目录，
+ * 结果是语言包永远加载不上 —— 表现为 locale 正确、文件存在可读，
+ * 但 is_textdomain_loaded() 始终为 false、页面全部回退到源语言。
+ */
 
 /* =========================================================
    设计变量

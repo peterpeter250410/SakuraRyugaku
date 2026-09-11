@@ -448,6 +448,10 @@ add_action(
 			'get_locale()              : ' . get_locale(),
 			'determine_locale()        : ' . ( function_exists( 'determine_locale' ) ? determine_locale() : 'n/a' ),
 			'is_textdomain_loaded()    : ' . ( is_textdomain_loaded( 'sa-theme' ) ? 'YES' : 'NO' ),
+			// Domain Path 缺失是语言包加载失败最常见的原因：
+			// WordPress 依据它定位主题语言包目录。
+			'主题 Text Domain          : ' . wp_get_theme()->get( 'TextDomain' ),
+			'主题 Domain Path          : ' . ( wp_get_theme()->get( 'DomainPath' ) ? wp_get_theme()->get( 'DomainPath' ) : '(未声明 ← 必须为 /languages)' ),
 			'--- 语言包文件 ---',
 			'mo 路径                   : ' . $mo,
 			'mo 存在                   : ' . ( file_exists( $mo ) ? 'YES' : 'NO' ),
@@ -460,6 +464,26 @@ add_action(
 			'译文                      : ' . $probe_out,
 			'翻译是否生效              : ' . ( $probe_out !== $probe_src ? 'YES' : 'NO' ),
 		);
+
+		// 若翻译仍未生效，就地做一次显式加载并复测，
+		// 用以区分「语言包文件本身有问题」与「加载时机/路径配置有问题」。
+		if ( $probe_out === $probe_src ) {
+			$forced = load_textdomain( 'sa-theme', $mo, $wp_locale );
+			$retry  = __( '日本留学を、<em>最適な一校</em>から始めよう', 'sa-theme' );
+
+			$lines[] = '--- 显式加载复测 ---';
+			$lines[] = 'load_textdomain() 返回    : ' . ( $forced ? 'true' : 'false' );
+			$lines[] = '复测译文                  : ' . $retry;
+			$lines[] = '复测是否生效              : ' . ( $retry !== $probe_src ? 'YES' : 'NO' );
+			$lines[] = '';
+			if ( $forced && $retry !== $probe_src ) {
+				$lines[] = '结论: 语言包文件正常，问题出在加载时机或 Domain Path 配置。';
+			} elseif ( ! $forced ) {
+				$lines[] = '结论: load_textdomain 加载失败，需检查 .mo 文件本身是否损坏。';
+			} else {
+				$lines[] = '结论: 文件已加载但取不到译文，需核对 msgid 与源码字符串是否完全一致。';
+			}
+		}
 
 		echo "\n<!--\n" . esc_html( implode( "\n", $lines ) ) . "\n-->\n";
 	},

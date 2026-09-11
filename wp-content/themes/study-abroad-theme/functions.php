@@ -40,6 +40,25 @@ require_once get_template_directory() . '/inc/performance.php';
  * 主题支持
  * ---------------------------------------------------------------------- */
 
+/**
+ * 语言包加载兜底。
+ *
+ * WordPress 6.7 起，翻译推荐在 init 之后加载；在更早的钩子上调用可能被推迟，
+ * 转由「按需加载」机制处理，而后者依赖 style.css 中的 Domain Path 字段。
+ * 此处在 init 阶段复查一次：若语言包仍未加载，显式再加载一遍。
+ *
+ * 这样无论 WordPress 版本走哪条路径，翻译都能生效。
+ */
+add_action(
+	'init',
+	function () {
+		if ( ! is_textdomain_loaded( 'sa-theme' ) ) {
+			load_theme_textdomain( 'sa-theme', get_template_directory() . '/languages' );
+		}
+	},
+	1
+);
+
 add_action(
 	'after_setup_theme',
 	function () {
