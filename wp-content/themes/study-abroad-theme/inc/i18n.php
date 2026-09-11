@@ -522,7 +522,9 @@ add_action(
 			'主题 Text Domain          : ' . wp_get_theme()->get( 'TextDomain' ),
 			'主题 Domain Path          : ' . ( wp_get_theme()->get( 'DomainPath' ) ? wp_get_theme()->get( 'DomainPath' ) : '(未声明 ← 必须为 /languages)' ),
 			'--- 语言包文件 ---',
-			'mo 路径                   : ' . $mo,
+			// 输出相对路径而非绝对路径：绝对路径会暴露服务器目录结构，
+			// 对排查毫无帮助，却给攻击者提供了可用信息。
+			'mo 路径                   : ' . ltrim( str_replace( ABSPATH, '', $mo ), '/' ),
 			'mo 存在                   : ' . ( file_exists( $mo ) ? 'YES' : 'NO' ),
 			'mo 可读                   : ' . ( is_readable( $mo ) ? 'YES' : 'NO' ),
 			'mo 大小                   : ' . ( file_exists( $mo ) ? filesize( $mo ) : 0 ),

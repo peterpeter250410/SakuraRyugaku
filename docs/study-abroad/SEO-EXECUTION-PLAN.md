@@ -225,6 +225,72 @@ bash scripts/seo-links.sh https://studyinjp.com   # 生成检测链接清单
 
 ---
 
+## 5.4 上线实战：三个真实故障与定位过程
+
+以下三个问题在生产环境（PHP 7.4 / MySQL 5.7 / nginx 1.30 / WordPress 7.0 / 宝塔面板）
+实际发生过。记录在此，避免重复踩坑。
+
+### 故障一：所有子路径 404（`/zh/`、`/en/`、`/faq/`、`wp-sitemap.xml`）
+
+**表象**：首页正常，其余全部 404，看起来像多语言功能没做好。
+
+**真正的判别方法**：看 `wp-sitemap.xml`。它是 WordPress 核心功能，与主题无关。
+它一旦 404 而首页正常，说明**伪静态整体失效**，与多语言毫无关系。
+
+**根因**：宝塔面板的站点伪静态规则未设置为 `wordpress`，nginx 没有把
+未命中的路径转交 `index.php`。
+
+**修复**：
+1. `wp rewrite structure '/%postname%/'` 并 `wp rewrite flush --hard`
+2. 宝塔面板 → 网站 → 设置 → 伪静态 → 选 `wordpress`（必须在面板做，
+   手改 nginx conf 会被面板覆盖）
+
+`seo-audit.sh` 的 B1b 项已内置该判别逻辑，会直接给出结论与修复命令。
+
+### 故障二：locale 正确但翻译全部回退到日文
+
+**表象**：`/zh/` 返回 200、`lang="zh-Hans"` 正确、canonical 带 `/zh/` 前缀，
+但页面文案全是日文。
+
+**关键认识**：`lang` 属性由主题直接输出，**不经过 gettext**。
+它正确只能证明 URL 语种识别没问题，不能证明翻译生效。二者是不同机制。
+
+**定位**：用 `?sa_locale_debug=1` 探针，输出显示
+`get_locale()` 与 `determine_locale()` 均为 `zh_CN`、`.mo` 存在且可读、
+`Domain Path` 已声明，唯独 `is_textdomain_loaded()` 为 `NO`；
+而探针就地调用 `load_textdomain()` 并显式传路径与 locale 则一次成功。
+
+**根因**：两层，需依次排除。
+1. `style.css` 缺少 `Domain Path: /languages` 声明（WordPress 据此定位主题
+   语言包目录，缺失时会到主题根目录找，永远找不到）
+2. 补齐 Domain Path 后仍不生效 —— WordPress 6.7 起翻译改为「按需加载」：
+   早于 `init` 的加载请求只登记路径，留待首次 `__()` 时由
+   `_load_textdomain_just_in_time()` 处理。在 WordPress 7.0 上该路径
+   未能命中本主题语言包。
+
+**修复**：不依赖 `load_theme_textdomain()` 这层间接机制，改为
+`sa_load_theme_translations()` 直接调用 `load_textdomain()` 并显式传入
+文件路径与 locale，挂载于 `after_setup_theme` / `init` / `template_redirect`
+三个时机（见 `inc/i18n.php`）。
+
+### 故障三：面板重设权限挡住部署
+
+**表象**：`git merge --ff-only` 报「本地改动会被覆盖」，列出几十个文件，
+但实际一行代码都没改。
+
+**根因**：宝塔面板批量重设站点文件权限，而 `core.fileMode=true` 时
+git 把权限位变更当作文件修改。本次实测有 3677 个文件仅权限变更。
+
+**修复**：`git config core.fileMode false`。
+`seo-deploy.sh` 已内置检测：发现大量纯权限变更时自动关闭该选项。
+
+> 另：宝塔的 `php-fpm-74.service` 在 systemd 中可能显示为 failed，
+> 但站点运行正常 —— 面板用自己的 init 脚本管理 PHP。
+> 需要重启 PHP 时用 `/etc/init.d/php-fpm-74 restart` 或面板操作，
+> `systemctl restart php-fpm-74` 不起作用。
+
+---
+
 ## 6. 已知待办（非阻断）
 
 | 项目 | 影响 | 建议 |

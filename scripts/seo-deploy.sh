@@ -77,6 +77,20 @@ elif [ -d "${SITE_ROOT}/.git" ]; then
         fi
     fi
 
+    # 语言包产物（.mo / .l10n.php / .po / .pot）每次发布都会由本脚本重新生成，
+    # 服务器上的 gettext 与本地生成器在换行与排版上略有差异，于是这些文件
+    # 会永远处于「已修改」状态，并在下一次语言文件变更时挡住 --ff-only 合并。
+    # 它们是可重新生成的产物，仓库中的版本才是基准，因此发布前直接丢弃本地差异。
+    LANG_REL="wp-content/themes/study-abroad-theme/languages"
+    if [ -d "${SITE_ROOT}/${LANG_REL}" ]; then
+        LANG_DIRTY=$(git status --porcelain -- "${LANG_REL}" 2>/dev/null | grep '^ M' | wc -l | tr -d ' ')
+        if [ "${LANG_DIRTY:-0}" -gt 0 ]; then
+            git checkout -- "${LANG_REL}" 2>/dev/null \
+                && c_grn "  已重置 ${LANG_DIRTY} 个语言包产物文件（稍后会重新编译）" \
+                || c_ylw "  语言包产物重置失败，可能影响合并"
+        fi
+    fi
+
     # 发布前看看是否还有真实的未提交改动，避免 merge 中止后一头雾水。
     DIRTY=$(git status --porcelain 2>/dev/null | head -10)
     if [ -n "$DIRTY" ]; then
