@@ -38,6 +38,10 @@ function sa_locales() {
 	return apply_filters(
 		'sa_locales',
 		array(
+			// site_name：各语种的站点名称，用于 Logo 文字与 <title> 中的站点名部分。
+			// blogname 是数据库里的单一值，无法随语种变化，故在此按语种覆盖。
+			// 它会出现在每一个页面的 <title> 里，是重要的品牌与关键词位置，
+			// 需要改品牌名时改这里即可（留空则回退到数据库中的 blogname）。
 			'ja'    => array(
 				'label'     => '日本語',
 				'prefix'    => '',
@@ -45,6 +49,7 @@ function sa_locales() {
 				'dir'       => 'ltr',
 				'hreflang'  => 'ja',
 				'og_locale' => 'ja_JP',
+				'site_name' => '日本留学サポート',
 				'default'   => true,
 			),
 			'zh_CN' => array(
@@ -54,6 +59,7 @@ function sa_locales() {
 				'dir'       => 'ltr',
 				'hreflang'  => 'zh-Hans',
 				'og_locale' => 'zh_CN',
+				'site_name' => '日本留学官网',
 			),
 			'en_US' => array(
 				'label'     => 'English',
@@ -62,6 +68,7 @@ function sa_locales() {
 				'dir'       => 'ltr',
 				'hreflang'  => 'en',
 				'og_locale' => 'en_US',
+				'site_name' => 'Study in Japan',
 			),
 			// 后续扩展示例（需要时取消注释即可，路由/hreflang/sitemap 全部自动生效）：
 			// 'ko_KR' => array( 'label' => '한국어', 'prefix' => 'ko', 'wp_locale' => 'ko_KR', 'dir' => 'ltr', 'hreflang' => 'ko', 'og_locale' => 'ko_KR' ),
@@ -396,15 +403,124 @@ unset( $sa_link_filter );
 add_filter(
 	'wp_setup_nav_menu_item',
 	function ( $item ) {
-		if ( is_admin() || '' === sa_current_prefix() ) {
+		if ( is_admin() ) {
 			return $item;
 		}
-		if ( isset( $item->url ) && sa_is_internal_url( $item->url ) ) {
+
+		// 菜单项标题存在数据库里，不经过 gettext，需在此按语种替换。
+		if ( isset( $item->title ) ) {
+			$item->title = sa_translate_content_label( $item->title );
+		}
+		if ( isset( $item->attr_title ) ) {
+			$item->attr_title = sa_translate_content_label( $item->attr_title );
+		}
+
+		// 链接加语种前缀（默认语种无前缀，跳过）。
+		if ( '' !== sa_current_prefix() && isset( $item->url ) && sa_is_internal_url( $item->url ) ) {
 			$item->url = sa_url( $item->url );
 		}
+
 		return $item;
 	},
 	20
+);
+
+/* -------------------------------------------------------------------------
+ * 数据库内容的语种化
+ *
+ * 站点名称、导航菜单项、页面标题都存在数据库里，不经过 gettext，
+ * 因此语言包翻不到它们 —— 表现为：按钮、正文已经是中文/英文，
+ * 但 Logo 和导航栏仍是建站时录入的日文。
+ *
+ * 这里在输出阶段按当前语种替换。
+ * ---------------------------------------------------------------------- */
+
+/**
+ * 数据库文案 → 当前语种文案的映射表。
+ *
+ * 键是数据库中存的原文（建站时录入的日文），值必须是**字面量** __() 调用，
+ * 这样 gettext 才能提取，翻译才会进入语言包。
+ *
+ * 新增菜单项或页面后，把它的标题按同样格式加到这里即可。
+ *
+ * @return array<string,string>
+ */
+function sa_content_label_map() {
+	static $map = null;
+	if ( null !== $map ) {
+		return $map;
+	}
+
+	$map = array(
+		// 导航菜单项（见 scripts/wp-cli-setup.sh 中建立的 Primary / Footer 菜单）
+		'サービス紹介'         => __( 'サービス紹介', 'sa-theme' ),
+		'よくある質問'         => __( 'よくある質問', 'sa-theme' ),
+		'お問い合わせ'         => __( 'お問い合わせ', 'sa-theme' ),
+		'私たちについて'       => __( '私たちについて', 'sa-theme' ),
+		'会社概要'             => __( '会社概要', 'sa-theme' ),
+		'会社案内'             => __( '会社案内', 'sa-theme' ),
+		'ホーム'               => __( 'ホーム', 'sa-theme' ),
+		'無料相談'             => __( '無料相談', 'sa-theme' ),
+		'サービス'             => __( 'サービス', 'sa-theme' ),
+		'流れ'                 => __( '流れ', 'sa-theme' ),
+
+		// 页面标题
+		'プライバシーポリシー' => __( 'プライバシーポリシー', 'sa-theme' ),
+		'出願書類のご提出'     => __( '出願書類のご提出', 'sa-theme' ),
+
+		'お申し込みありがとうございます' => __( 'お申し込みありがとうございます', 'sa-theme' ),
+	);
+
+	/**
+	 * 过滤器 sa_content_label_map：追加自定义的数据库文案映射。
+	 */
+	$map = apply_filters( 'sa_content_label_map', $map );
+
+	return $map;
+}
+
+/**
+ * 按当前语种替换数据库文案。
+ *
+ * 映射表里没有的原样返回，因此新增内容不会被破坏，只是暂时不翻译。
+ *
+ * @param string $text 原文。
+ * @return string
+ */
+function sa_translate_content_label( $text ) {
+	if ( ! is_string( $text ) || '' === $text ) {
+		return $text;
+	}
+	if ( is_admin() ) {
+		return $text; // 后台保持原文，否则编辑菜单/页面时会看到被替换的标题。
+	}
+	$map = sa_content_label_map();
+	return isset( $map[ $text ] ) ? $map[ $text ] : $text;
+}
+
+// 页面与文章标题（含 <title> 标签中的单页标题）。
+add_filter( 'the_title', 'sa_translate_content_label', 20 );
+add_filter( 'single_post_title', 'sa_translate_content_label', 20 );
+
+/**
+ * 站点名称（Logo 文字与 <title> 中的站点名部分）。
+ *
+ * blogname 是数据库选项，一个站点只有一个值，无法随语种变化。
+ * 这里按语种覆盖；未配置 site_name 的语种回退到数据库中的值。
+ */
+add_filter(
+	'option_blogname',
+	function ( $value ) {
+		// 后台、REST、定时任务、CLI 一律保持数据库原值：
+		// 这些场景（尤其是留资邮件通知的发件人名）不参与前台语种路由，
+		// 若跟着变会造成站点名在不同渠道不一致。
+		if ( is_admin() || wp_doing_cron() || ( defined( 'WP_CLI' ) && WP_CLI )
+			|| ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+			return $value;
+		}
+		$name = sa_locale_field( sa_current_locale(), 'site_name', '' );
+		return $name ? $name : $value;
+	}
 );
 
 /* -------------------------------------------------------------------------

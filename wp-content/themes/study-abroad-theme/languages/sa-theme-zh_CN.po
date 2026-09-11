@@ -35,11 +35,13 @@ msgid "ナビゲーション"
 msgstr "导航"
 
 #: footer.php:25
+#: inc/i18n.php:456
 #: page-services.php:25
 msgid "サービス紹介"
 msgstr "服务介绍"
 
 #: footer.php:26
+#: inc/i18n.php:459
 #: page-about.php:25
 msgid "私たちについて"
 msgstr "关于我们"
@@ -47,12 +49,14 @@ msgstr "关于我们"
 #: footer.php:27
 #: front-page.php:283
 #: header.php:57
+#: inc/i18n.php:457
 #: page-faq.php:57
 msgid "よくある質問"
 msgstr "常见问题"
 
 #: footer.php:28
 #: footer.php:32
+#: inc/i18n.php:458
 #: page-contact.php:25
 msgid "お問い合わせ"
 msgstr "联系我们"
@@ -65,6 +69,7 @@ msgstr "邮箱"
 
 #: footer.php:42
 #: front-page.php:121
+#: inc/i18n.php:468
 msgid "プライバシーポリシー"
 msgstr "隐私政策"
 
@@ -117,6 +122,8 @@ msgstr "免费 · 最快当天出匹配结果"
 
 #. translators: 强调词用 <em> 包裹
 #: front-page.php:52
+#: inc/i18n.php:618
+#: inc/i18n.php:655
 msgid "日本留学を、<em>最適な一校</em>から始めよう"
 msgstr "日本留学，从<em>最适合你的那一所</em>开始"
 
@@ -351,12 +358,12 @@ msgstr "先免费试试，找到属于你的那所院校"
 msgid "入力は30秒。しつこい勧誘はありません。"
 msgstr "填写只需 30 秒，绝不骚扰推销。"
 
-#: functions.php:56
+#: functions.php:60
 #: header.php:44
 msgid "主导航"
 msgstr "主导航"
 
-#: functions.php:57
+#: functions.php:61
 msgid "页脚导航"
 msgstr "页脚导航"
 
@@ -369,16 +376,42 @@ msgid "閉じる"
 msgstr "关闭"
 
 #: header.php:55
+#: inc/i18n.php:464
 msgid "サービス"
 msgstr "服务"
 
 #: header.php:56
+#: inc/i18n.php:465
 msgid "流れ"
 msgstr "流程"
 
 #: header.php:92
+#: inc/i18n.php:463
 msgid "無料相談"
 msgstr "免费咨询"
+
+#: inc/i18n.php:460
+msgid "会社概要"
+msgstr "公司概况"
+
+#: inc/i18n.php:461
+msgid "会社案内"
+msgstr "公司介绍"
+
+#: inc/i18n.php:462
+#: template-parts/site-page-head.php:27
+msgid "ホーム"
+msgstr "首页"
+
+#: inc/i18n.php:469
+#: page-upload.php:130
+msgid "出願書類のご提出"
+msgstr "提交出愿材料"
+
+#: inc/i18n.php:471
+#: page-thanks.php:38
+msgid "お申し込みありがとうございます"
+msgstr "提交成功，感谢你的信任"
 
 #: inc/performance.php:114
 msgid "提交中…"
@@ -652,10 +685,6 @@ msgstr "提交成功，专属顾问会尽快与你联系。"
 msgid "完了"
 msgstr "完成"
 
-#: page-thanks.php:38
-msgid "お申し込みありがとうございます"
-msgstr "提交成功，感谢你的信任"
-
 #: page-thanks.php:40
 msgid "ご入力いただいた情報をもとに、担当アドバイザーより順次ご連絡いたします。今しばらくお待ちください。"
 msgstr "我们已收到你的信息，专属顾问会尽快联系你，请稍候。"
@@ -700,10 +729,6 @@ msgstr "该提交链接已过期或失效。请回首页重新进行 AI 匹配�
 msgid "トップへ戻って再診断する"
 msgstr "返回首页重新匹配"
 
-#: page-upload.php:130
-msgid "出願書類のご提出"
-msgstr "提交出愿材料"
-
 #: page-upload.php:132
 msgid "選択された学校ごとに、必要書類をアップロードしてください。ファイルは暗号化して安全に保管されます。"
 msgstr "请按所选院校分别上传所需材料。文件将加密保存。"
@@ -735,7 +760,3 @@ msgstr "带 * 的必需材料全部上传后，即可点击下方按钮完成提
 #: page-upload.php:259
 msgid "提出する"
 msgstr "提交"
-
-#: template-parts/site-page-head.php:27
-msgid "ホーム"
-msgstr "首页"

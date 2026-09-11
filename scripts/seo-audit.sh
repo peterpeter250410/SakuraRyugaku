@@ -347,6 +347,39 @@ else
     ok "英文页内容与日文页不同（翻译已生效）"
 fi
 
+# ---------- B4b. 数据库内容是否也已语种化 ----------
+# 站点名称、导航菜单项、页面标题都存在数据库里，不经过 gettext。
+# 只检查 H1 会漏掉这一整类问题：正文已翻译，但 Logo 和导航栏仍是建站时的日文。
+head2 "B4b. 数据库内容语种化（站点名称 / 导航菜单）"
+if [ "$ZH_CODE" = "200" ]; then
+    LEAK=""
+    for jp in "サービス紹介" "会社概要" "お問い合わせ" "よくある質問" "私たちについて"; do
+        if grep -q "$jp" "${TMP}/home_zh.html" 2>/dev/null; then
+            LEAK="${LEAK} ${jp}"
+        fi
+    done
+    if [ -n "$LEAK" ]; then
+        bad "中文页仍出现日文导航/标题：${LEAK}"
+        echo "         这些文案来自数据库（菜单项或页面标题），不经过语言包。"
+        echo "         需在 inc/i18n.php 的 sa_content_label_map() 中补映射。"
+    else
+        ok "中文页导航与标题已语种化"
+    fi
+
+    # 站点名称（出现在 <title> 中）
+    TITLE_ZH=$(tr '\n' ' ' < "${TMP}/home_zh.html" 2>/dev/null | grep -o '<title>[^<]*</title>' | head -1 | sed 's/<[^>]*>//g')
+    TITLE_JA=$(tr '\n' ' ' < "${TMP}/home.html" 2>/dev/null | grep -o '<title>[^<]*</title>' | head -1 | sed 's/<[^>]*>//g')
+    echo "    日文 title: ${TITLE_JA:0:70}"
+    echo "    中文 title: ${TITLE_ZH:0:70}"
+    if [ -n "$TITLE_ZH" ] && [ "$TITLE_ZH" = "$TITLE_JA" ]; then
+        bad "中文页 <title> 与日文页完全相同 —— 站点名称或标题未按语种区分"
+    elif [ -n "$TITLE_ZH" ]; then
+        ok "中文页 <title> 已与日文页区分"
+    fi
+else
+    info "中文页不可访问（${ZH_CODE}），跳过本项"
+fi
+
 # ---------- B6. lang 属性 ----------
 head2 "B5. html lang 属性"
 for pair in "home.html:/" "home_zh.html:/zh/" "home_en.html:/en/"; do

@@ -35,11 +35,13 @@ msgid "ナビゲーション"
 msgstr "Navigation"
 
 #: footer.php:25
+#: inc/i18n.php:456
 #: page-services.php:25
 msgid "サービス紹介"
 msgstr "Our Services"
 
 #: footer.php:26
+#: inc/i18n.php:459
 #: page-about.php:25
 msgid "私たちについて"
 msgstr "About Us"
@@ -47,12 +49,14 @@ msgstr "About Us"
 #: footer.php:27
 #: front-page.php:283
 #: header.php:57
+#: inc/i18n.php:457
 #: page-faq.php:57
 msgid "よくある質問"
 msgstr "FAQ"
 
 #: footer.php:28
 #: footer.php:32
+#: inc/i18n.php:458
 #: page-contact.php:25
 msgid "お問い合わせ"
 msgstr "Contact"
@@ -65,6 +69,7 @@ msgstr "Email"
 
 #: footer.php:42
 #: front-page.php:121
+#: inc/i18n.php:468
 msgid "プライバシーポリシー"
 msgstr "Privacy Policy"
 
@@ -117,6 +122,8 @@ msgstr "Free · Results as soon as today"
 
 #. translators: 强调词用 <em> 包裹
 #: front-page.php:52
+#: inc/i18n.php:618
+#: inc/i18n.php:655
 msgid "日本留学を、<em>最適な一校</em>から始めよう"
 msgstr "Study in Japan, starting with <em>the right school</em>"
 
@@ -351,12 +358,12 @@ msgstr "Find the school that fits — free to start"
 msgid "入力は30秒。しつこい勧誘はありません。"
 msgstr "Thirty seconds to fill in. No pushy sales calls."
 
-#: functions.php:56
+#: functions.php:60
 #: header.php:44
 msgid "主导航"
 msgstr "Primary menu"
 
-#: functions.php:57
+#: functions.php:61
 msgid "页脚导航"
 msgstr "Footer menu"
 
@@ -369,16 +376,42 @@ msgid "閉じる"
 msgstr "Close"
 
 #: header.php:55
+#: inc/i18n.php:464
 msgid "サービス"
 msgstr "Services"
 
 #: header.php:56
+#: inc/i18n.php:465
 msgid "流れ"
 msgstr "How it works"
 
 #: header.php:92
+#: inc/i18n.php:463
 msgid "無料相談"
 msgstr "Free consultation"
+
+#: inc/i18n.php:460
+msgid "会社概要"
+msgstr "Company Overview"
+
+#: inc/i18n.php:461
+msgid "会社案内"
+msgstr "Company Profile"
+
+#: inc/i18n.php:462
+#: template-parts/site-page-head.php:27
+msgid "ホーム"
+msgstr "Home"
+
+#: inc/i18n.php:469
+#: page-upload.php:130
+msgid "出願書類のご提出"
+msgstr "Submit your documents"
+
+#: inc/i18n.php:471
+#: page-thanks.php:38
+msgid "お申し込みありがとうございます"
+msgstr "Thank you for your submission"
 
 #: inc/performance.php:114
 msgid "提交中…"
@@ -652,10 +685,6 @@ msgstr "Thank you — an advisor will contact you shortly."
 msgid "完了"
 msgstr "Done"
 
-#: page-thanks.php:38
-msgid "お申し込みありがとうございます"
-msgstr "Thank you for your submission"
-
 #: page-thanks.php:40
 msgid "ご入力いただいた情報をもとに、担当アドバイザーより順次ご連絡いたします。今しばらくお待ちください。"
 msgstr "We have your details. An advisor will be in touch soon."
@@ -700,10 +729,6 @@ msgstr "This submission link has expired. Run the AI match again from the home p
 msgid "トップへ戻って再診断する"
 msgstr "Start over from the home page"
 
-#: page-upload.php:130
-msgid "出願書類のご提出"
-msgstr "Submit your documents"
-
 #: page-upload.php:132
 msgid "選択された学校ごとに、必要書類をアップロードしてください。ファイルは暗号化して安全に保管されます。"
 msgstr "Upload the required documents for each school you chose. Files are stored encrypted."
@@ -735,7 +760,3 @@ msgstr "Once every required (*) document is uploaded, submit using the button be
 #: page-upload.php:259
 msgid "提出する"
 msgstr "Submit"
-
-#: template-parts/site-page-head.php:27
-msgid "ホーム"
-msgstr "Home"
