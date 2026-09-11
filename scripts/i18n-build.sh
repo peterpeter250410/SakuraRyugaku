@@ -131,20 +131,30 @@ echo
 echo "------------------------------------------------------------"
 echo "未翻译条目统计（这些会回退显示日文）"
 echo "------------------------------------------------------------"
+# 用语法解析而非 grep 统计：msgmerge 会把长字符串折行，
+# 折行后译文首行恰好是 `msgstr ""`，grep 会把已翻译条目误判为未翻译。
 TOTAL_EMPTY=0
 for LC in ${LOCALES}; do
     PO="${LANG_DIR}/${DOMAIN}-${LC}.po"
     [ -f "$PO" ] || continue
-    EMPTY=$(grep -c '^msgstr ""$' "$PO" 2>/dev/null || echo 0)
-    EMPTY=$((EMPTY - 1))   # 减掉 header 那条
-    [ "$EMPTY" -lt 0 ] && EMPTY=0
+
+    STAT=$(php "${SITE_ROOT}/scripts/lib/po-stat.php" "$PO" --list 2>/dev/null)
+    EMPTY=$(echo "$STAT" | head -1 | awk '{print $1}')
+    TOTALN=$(echo "$STAT" | head -1 | awk '{print $2}')
+    FUZZY=$(echo "$STAT" | head -1 | awk '{print $3}')
+    EMPTY=${EMPTY:-0}
     TOTAL_EMPTY=$((TOTAL_EMPTY + EMPTY))
+
     if [ "$EMPTY" -eq 0 ]; then
-        c_grn "  ${LC}: 全部已翻译"
+        c_grn "  ${LC}: 全部已翻译（共 ${TOTALN} 条）"
     else
-        c_ylw "  ${LC}: ${EMPTY} 条待翻译"
+        c_ylw "  ${LC}: ${EMPTY}/${TOTALN} 条待翻译"
         echo "       待翻译内容："
-        grep -B1 '^msgstr ""$' "$PO" | grep '^msgid ' | grep -v '^msgid ""$' | head -20 | sed 's/^/         /'
+        echo "$STAT" | tail -n +2 | head -20 | sed 's/^/         /'
+    fi
+
+    if [ "${FUZZY:-0}" -gt 0 ]; then
+        c_ylw "  ${LC}: ${FUZZY} 条被标记为 fuzzy（msgmerge 的模糊匹配，建议人工复核）"
     fi
 done
 

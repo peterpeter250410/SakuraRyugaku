@@ -92,18 +92,22 @@ else
         fi
     done
 
-    # .po 未翻译条目统计
+    # .po 未翻译条目统计。
+    # 必须按语法解析：msgmerge 折行后译文首行是 `msgstr ""`，grep 会误判。
     for LC in zh_CN en_US; do
         PO="${LANG_DIR}/sa-theme-${LC}.po"
         if [ -f "$PO" ]; then
-            EMPTY=$(grep -c '^msgstr ""$' "$PO" 2>/dev/null || echo 0)
-            # 减去 header 的那一条
-            EMPTY=$((EMPTY - 1))
-            [ "$EMPTY" -lt 0 ] && EMPTY=0
-            if [ "$EMPTY" -eq 0 ]; then
-                ok "${LC}: 无未翻译条目"
+            if [ -f "${SITE_ROOT}/scripts/lib/po-stat.php" ] && command -v php >/dev/null 2>&1; then
+                STAT=$(php "${SITE_ROOT}/scripts/lib/po-stat.php" "$PO" 2>/dev/null | head -1)
+                EMPTY=$(echo "$STAT" | awk '{print $1}')
+                TOTALN=$(echo "$STAT" | awk '{print $2}')
+                if [ "${EMPTY:-0}" -eq 0 ]; then
+                    ok "${LC}: 无未翻译条目（共 ${TOTALN} 条）"
+                else
+                    warn "${LC}: 有 ${EMPTY}/${TOTALN} 条未翻译（会回退显示日文）"
+                fi
             else
-                warn "${LC}: 有 ${EMPTY} 条未翻译（会回退显示日文）"
+                warn "${LC}: 缺少 po-stat.php 或 php，跳过翻译完成度统计"
             fi
         fi
     done
