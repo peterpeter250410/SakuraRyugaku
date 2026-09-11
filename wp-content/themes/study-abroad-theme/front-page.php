@@ -118,7 +118,7 @@ get_header();
 						printf(
 							/* translators: %s: privacy policy link */
 							esc_html__( '%s に同意します。', 'sa-theme' ),
-							'<a href="' . esc_url( home_url( '/privacy/' ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'プライバシーポリシー', 'sa-theme' ) . '</a>'
+							'<a href="' . esc_url( sa_home_url( '/privacy/' ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'プライバシーポリシー', 'sa-theme' ) . '</a>'
 						);
 					?></span>
 				</label>
@@ -146,19 +146,21 @@ get_header();
 		</div>
 		<div class="sa-grid sa-grid--4">
 			<?php
+			// 注意：翻译函数必须接收字面量字符串，gettext 才能提取。
+			// 此前写作 esc_html__( $f[0], ... ) 传入变量，导致这些文案永远不会被翻译。
 			$features = array(
-				array( '無料マッチング', '予算と希望専攻から、最適な学校を自動でご提案。' ),
-				array( '多言語サポート', '母国語で安心して相談。多言語対応を順次拡大中。' ),
-				array( '出願書類サポート', '複雑な出願手続きを、専任スタッフがサポート。' ),
-				array( '安心の情報管理', '個人情報は暗号化して安全に管理します。' ),
+				array( __( '無料マッチング', 'sa-theme' ), __( '予算と希望専攻から、最適な学校を自動でご提案。', 'sa-theme' ) ),
+				array( __( '多言語サポート', 'sa-theme' ), __( '母国語で安心して相談。多言語対応を順次拡大中。', 'sa-theme' ) ),
+				array( __( '出願書類サポート', 'sa-theme' ), __( '複雑な出願手続きを、専任スタッフがサポート。', 'sa-theme' ) ),
+				array( __( '安心の情報管理', 'sa-theme' ), __( '個人情報は暗号化して安全に管理します。', 'sa-theme' ) ),
 			);
 			$i = 0;
 			foreach ( $features as $f ) {
 				$i++;
 				echo '<div class="sa-card">';
 				echo '<div class="sa-card__icon">0' . esc_html( $i ) . '</div>';
-				echo '<h3 class="sa-card__title">' . esc_html__( $f[0], 'sa-theme' ) . '</h3>'; // phpcs:ignore
-				echo '<p class="sa-card__text">' . esc_html__( $f[1], 'sa-theme' ) . '</p>'; // phpcs:ignore
+				echo '<h3 class="sa-card__title">' . esc_html( $f[0] ) . '</h3>';
+				echo '<p class="sa-card__text">' . esc_html( $f[1] ) . '</p>';
 				echo '</div>';
 			}
 			?>
@@ -176,18 +178,18 @@ get_header();
 		<div class="sa-steps">
 			<?php
 			$steps = array(
-				array( '情報入力', '予算・希望専攻など基本情報を入力。' ),
-				array( '無料マッチング', 'システムが最適な候補校をご提案。' ),
-				array( '学校を選ぶ', '気になる学校を選択して相談。' ),
-				array( '出願サポート', '書類準備から出願までサポート。' ),
+				array( __( '情報入力', 'sa-theme' ), __( '予算・希望専攻など基本情報を入力。', 'sa-theme' ) ),
+				array( __( '無料マッチング', 'sa-theme' ), __( 'システムが最適な候補校をご提案。', 'sa-theme' ) ),
+				array( __( '学校を選ぶ', 'sa-theme' ), __( '気になる学校を選択して相談。', 'sa-theme' ) ),
+				array( __( '出願サポート', 'sa-theme' ), __( '書類準備から出願までサポート。', 'sa-theme' ) ),
 			);
 			$n = 0;
 			foreach ( $steps as $s ) {
 				$n++;
 				echo '<div class="sa-step">';
 				echo '<div class="sa-step__num">' . esc_html( $n ) . '</div>';
-				echo '<div class="sa-step__title">' . esc_html__( $s[0], 'sa-theme' ) . '</div>'; // phpcs:ignore
-				echo '<div class="sa-step__text">' . esc_html__( $s[1], 'sa-theme' ) . '</div>'; // phpcs:ignore
+				echo '<div class="sa-step__title">' . esc_html( $s[0] ) . '</div>';
+				echo '<div class="sa-step__text">' . esc_html( $s[1] ) . '</div>';
 				echo '</div>';
 			}
 			?>
@@ -206,28 +208,62 @@ get_header();
 
 		<!-- キャンパス・留学生活のイメージ（原生轮播，无依赖） -->
 		<?php
+		// alt 文案具体化：描述图片内容而非泛指「イメージ」，利于图片搜索收录。
 		$sa_slides = array(
-			array( 'file' => 'slide-1.jpg', 'alt' => __( '日本のキャンパス', 'sa-theme' ) ),
-			array( 'file' => 'slide-2.jpg', 'alt' => __( '留学生の学び', 'sa-theme' ) ),
-			array( 'file' => 'slide-3.jpg', 'alt' => __( '日本での留学生活', 'sa-theme' ) ),
+			array( 'file' => 'slide-1.jpg', 'alt' => __( '日本の大学キャンパスと留学生', 'sa-theme' ) ),
+			array( 'file' => 'slide-2.jpg', 'alt' => __( '日本語学校で学ぶ留学生', 'sa-theme' ) ),
+			array( 'file' => 'slide-3.jpg', 'alt' => __( '日本での留学生活の様子', 'sa-theme' ) ),
 		);
+
+		$sa_img_dir  = get_template_directory() . '/assets/images/';
 		$sa_img_base = get_template_directory_uri() . '/assets/images/';
-		?>
+
+		// 只渲染真实存在的图片：缺图时输出 <img> 会产生 404 请求与破图，
+		// 既损害用户体验，也是负面的页面质量信号。
+		$sa_slides = array_values(
+			array_filter(
+				$sa_slides,
+				function ( $slide ) use ( $sa_img_dir ) {
+					return file_exists( $sa_img_dir . $slide['file'] );
+				}
+			)
+		);
+
+		if ( ! empty( $sa_slides ) ) :
+			?>
 		<div class="sa-carousel" data-sa-carousel aria-label="<?php esc_attr_e( '留学イメージ', 'sa-theme' ); ?>">
 			<div class="sa-carousel__viewport">
 				<div class="sa-carousel__track">
-					<?php foreach ( $sa_slides as $slide ) : ?>
+					<?php foreach ( $sa_slides as $sa_idx => $slide ) : ?>
 						<div class="sa-carousel__slide">
+							<?php
+							// 首帧属首屏内容：eager + 高优先级，避免拖慢 LCP；
+							// 其余帧懒加载。width/height 声明用于预留空间，抑制 CLS。
+							$sa_is_first = ( 0 === $sa_idx );
+							?>
 							<img src="<?php echo esc_url( $sa_img_base . $slide['file'] ); ?>"
-								alt="<?php echo esc_attr( $slide['alt'] ); ?>" loading="lazy">
+								alt="<?php echo esc_attr( $slide['alt'] ); ?>"
+								width="1200" height="675"
+								decoding="async"
+								<?php if ( $sa_is_first ) : ?>
+									loading="eager" fetchpriority="high"
+								<?php else : ?>
+									loading="lazy"
+								<?php endif; ?>
+							>
 						</div>
 					<?php endforeach; ?>
 				</div>
 			</div>
-			<button type="button" class="sa-carousel__prev" aria-label="<?php esc_attr_e( '前へ', 'sa-theme' ); ?>">‹</button>
-			<button type="button" class="sa-carousel__next" aria-label="<?php esc_attr_e( '次へ', 'sa-theme' ); ?>">›</button>
-			<div class="sa-carousel__dots" aria-hidden="true"></div>
+			<?php if ( count( $sa_slides ) > 1 ) : ?>
+				<button type="button" class="sa-carousel__prev" aria-label="<?php esc_attr_e( '前へ', 'sa-theme' ); ?>">‹</button>
+				<button type="button" class="sa-carousel__next" aria-label="<?php esc_attr_e( '次へ', 'sa-theme' ); ?>">›</button>
+				<div class="sa-carousel__dots" aria-hidden="true"></div>
+			<?php endif; ?>
 		</div>
+			<?php
+		endif;
+		?>
 
 		<div class="sa-logos">
 			<span><?php esc_html_e( '語学学校', 'sa-theme' ); ?></span>

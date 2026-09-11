@@ -68,7 +68,7 @@ get_header();
 			<p class="sa-upload-expired__lead">
 				<?php esc_html_e( 'この提出リンクは期限切れか、無効になっています。トップページで再度 AI 診断を受け、学校を選択すると新しいリンクが発行されます。', 'sa-theme' ); ?>
 			</p>
-			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="upload-reactivate">
+			<a href="<?php echo esc_url( sa_home_url( '/' ) ); ?>" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="upload-reactivate">
 				<?php esc_html_e( 'トップへ戻って再診断する', 'sa-theme' ); ?>
 			</a>
 		</div>
@@ -137,7 +137,7 @@ get_header();
 
 		<div class="sa-upload-empty">
 			<p><?php esc_html_e( '提出対象の学校がまだありません。トップページで AI 診断を受けて学校を選択してください。', 'sa-theme' ); ?></p>
-			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="sa-btn sa-btn--primary">
+			<a href="<?php echo esc_url( sa_home_url( '/' ) ); ?>" class="sa-btn sa-btn--primary">
 				<?php esc_html_e( 'AI診断を受ける', 'sa-theme' ); ?>
 			</a>
 		</div>

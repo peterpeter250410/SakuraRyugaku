@@ -1,0 +1,222 @@
+<?php
+/**
+ * Sitemap 增强（基于 WordPress 核心 wp-sitemap.xml）。
+ *
+ * 修复要点：
+ *   - 把 noindex 页面（隐私政策、感谢页、资料上传页等）排除出 sitemap。
+ *     sitemap 的语义是「我希望你收录这些」，把 noindex 页放进去是自相矛盾的信号。
+ *   - 为非默认语种（/zh/、/en/）注册独立 sitemap 分组，使各语种页面均可被发现。
+ *     此前 sitemap 只含日文版 URL，中英文页面对搜索引擎不可见。
+ *   - 移除 users / 作者归档 sitemap（本站为中介落地页，作者页无 SEO 价值且泄露账号）。
+ *
+ * @package StudyAbroadTheme
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/* -------------------------------------------------------------------------
+ * 排除无价值 / noindex 内容
+ * ---------------------------------------------------------------------- */
+
+/**
+ * 从 sitemap 中排除 noindex 页面。
+ */
+add_filter(
+	'wp_sitemaps_posts_query_args',
+	function ( $args, $post_type ) {
+		if ( 'page' !== $post_type ) {
+			return $args;
+		}
+
+		$slugs = sa_noindex_slugs();
+		if ( empty( $slugs ) ) {
+			return $args;
+		}
+
+		$exclude = array();
+		foreach ( $slugs as $slug ) {
+			$page = get_page_by_path( $slug );
+			if ( $page instanceof WP_Post ) {
+				$exclude[] = (int) $page->ID;
+			}
+		}
+
+		if ( ! empty( $exclude ) ) {
+			$existing            = isset( $args['post__not_in'] ) ? (array) $args['post__not_in'] : array();
+			$args['post__not_in'] = array_merge( $existing, $exclude );
+		}
+
+		return $args;
+	},
+	10,
+	2
+);
+
+/**
+ * 移除作者 sitemap：中介站的作者归档无 SEO 价值，且会暴露登录名。
+ */
+add_filter(
+	'wp_sitemaps_add_provider',
+	function ( $provider, $name ) {
+		if ( 'users' === $name ) {
+			return false;
+		}
+		return $provider;
+	},
+	10,
+	2
+);
+
+/* -------------------------------------------------------------------------
+ * 多语种 sitemap 提供者
+ * ---------------------------------------------------------------------- */
+
+if ( class_exists( 'WP_Sitemaps_Provider' ) ) {
+
+	/**
+	 * 为每个非默认语种输出一份 URL 清单。
+	 *
+	 * 语种前缀由主题在请求阶段剥离，因此任意已发布页面天然拥有
+	 * /zh/xxx 与 /en/xxx 两个可访问版本，此处将其显式暴露给搜索引擎。
+	 */
+	class SA_Sitemap_Locale_Provider extends WP_Sitemaps_Provider {
+
+		/**
+		 * 构造。
+		 */
+		public function __construct() {
+			$this->name        = 'locales';
+			$this->object_type = 'locale';
+		}
+
+		/**
+		 * 子类型列表：每个非默认语种一组。
+		 *
+		 * @return array<string,array<string,string>>
+		 */
+		public function get_object_subtypes() {
+			$subtypes = array();
+			foreach ( sa_locales() as $key => $loc ) {
+				if ( empty( $loc['prefix'] ) ) {
+					continue; // 默认语种由核心 sitemap 覆盖。
+				}
+				$subtypes[ $loc['prefix'] ] = array(
+					'name'  => $loc['prefix'],
+					'label' => isset( $loc['label'] ) ? $loc['label'] : $key,
+				);
+			}
+			return $subtypes;
+		}
+
+		/**
+		 * 取得某语种某页的 URL 列表。
+		 *
+		 * @param int    $page_num     页码（从 1 开始）。
+		 * @param string $object_subtype 语种前缀。
+		 * @return array<int,array<string,string>>
+		 */
+		public function get_url_list( $page_num, $object_subtype = '' ) {
+			$locale_key = $this->resolve_locale_key( $object_subtype );
+			if ( '' === $locale_key ) {
+				return array();
+			}
+
+			$url_list = array();
+
+			// 语种首页。
+			$url_list[] = array( 'loc' => sa_url( home_url( '/' ), $locale_key ) );
+
+			$query = new WP_Query( $this->build_query_args( $page_num ) );
+
+			foreach ( $query->posts as $post ) {
+				$permalink = get_permalink( $post );
+				if ( ! $permalink ) {
+					continue;
+				}
+				$url_list[] = array( 'loc' => sa_url( $permalink, $locale_key ) );
+			}
+
+			wp_reset_postdata();
+
+			return $url_list;
+		}
+
+		/**
+		 * 某语种的 sitemap 分页总数。
+		 *
+		 * @param string $object_subtype 语种前缀。
+		 * @return int
+		 */
+		public function get_max_num_pages( $object_subtype = '' ) {
+			if ( '' === $this->resolve_locale_key( $object_subtype ) ) {
+				return 0;
+			}
+			$args                  = $this->build_query_args( 1 );
+			$args['fields']        = 'ids';
+			$args['no_found_rows'] = false;
+
+			$query = new WP_Query( $args );
+			$max   = (int) $query->max_num_pages;
+
+			return $max > 0 ? $max : 1;
+		}
+
+		/**
+		 * 构造文章查询参数（排除 noindex 页面）。
+		 *
+		 * @param int $page_num 页码。
+		 * @return array<string,mixed>
+		 */
+		private function build_query_args( $page_num ) {
+			$exclude = array();
+			foreach ( sa_noindex_slugs() as $slug ) {
+				$page = get_page_by_path( $slug );
+				if ( $page instanceof WP_Post ) {
+					$exclude[] = (int) $page->ID;
+				}
+			}
+
+			return array(
+				'post_type'              => array( 'page', 'post' ),
+				'post_status'            => 'publish',
+				'posts_per_page'         => (int) wp_sitemaps_get_max_urls( $this->object_type ),
+				'paged'                  => max( 1, (int) $page_num ),
+				'post__not_in'           => $exclude,
+				'orderby'                => 'ID',
+				'order'                  => 'ASC',
+				'ignore_sticky_posts'    => true,
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			);
+		}
+
+		/**
+		 * 语种前缀 → 语种 key。
+		 *
+		 * @param string $prefix 前缀。
+		 * @return string 空字符串表示无效。
+		 */
+		private function resolve_locale_key( $prefix ) {
+			$map = sa_locale_prefix_map();
+			return isset( $map[ $prefix ] ) ? $map[ $prefix ] : '';
+		}
+	}
+
+	add_action(
+		'init',
+		function () {
+			if ( ! function_exists( 'wp_register_sitemap_provider' ) ) {
+				return;
+			}
+			// 只有存在非默认语种时才注册。
+			if ( empty( sa_locale_prefix_map() ) ) {
+				return;
+			}
+			wp_register_sitemap_provider( 'locales', new SA_Sitemap_Locale_Provider() );
+		},
+		20
+	);
+}

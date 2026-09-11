@@ -38,18 +38,19 @@ get_template_part(
 		</div>
 		<div class="sa-grid sa-grid--3">
 			<?php
+			// 翻译函数必须接收字面量，gettext 才能提取；传变量会导致文案永远不被翻译。
 			$services = array(
-				array( '無料学校マッチング', '予算・希望専攻をもとに、システムが最適な候補校を自動でご提案します。' ),
-				array( '出願書類サポート', '複雑な出願手続きや必要書類の準備を、専任スタッフが丁寧にサポート。' ),
-				array( '進学プラン設計', '語学学校・専門学校・大学・大学院まで、目標に合わせた進学ルートを設計。' ),
-				array( '多言語での相談', '母国語で安心してご相談いただけるよう、多言語対応を順次拡大中です。' ),
-				array( '安心の情報管理', 'お預かりする個人情報は暗号化して安全に管理します。' ),
-				array( '入学後フォロー', '渡日後の生活立ち上げに関するご相談にも対応します。' ),
+				array( __( '無料学校マッチング', 'sa-theme' ), __( '予算・希望専攻をもとに、システムが最適な候補校を自動でご提案します。', 'sa-theme' ) ),
+				array( __( '出願書類サポート', 'sa-theme' ), __( '複雑な出願手続きや必要書類の準備を、専任スタッフが丁寧にサポート。', 'sa-theme' ) ),
+				array( __( '進学プラン設計', 'sa-theme' ), __( '語学学校・専門学校・大学・大学院まで、目標に合わせた進学ルートを設計。', 'sa-theme' ) ),
+				array( __( '多言語での相談', 'sa-theme' ), __( '母国語で安心してご相談いただけるよう、多言語対応を順次拡大中です。', 'sa-theme' ) ),
+				array( __( '安心の情報管理', 'sa-theme' ), __( 'お預かりする個人情報は暗号化して安全に管理します。', 'sa-theme' ) ),
+				array( __( '入学後フォロー', 'sa-theme' ), __( '渡日後の生活立ち上げに関するご相談にも対応します。', 'sa-theme' ) ),
 			);
 			foreach ( $services as $s ) {
 				echo '<div class="sa-card">';
-				echo '<h3 class="sa-card__title">' . esc_html__( $s[0], 'sa-theme' ) . '</h3>'; // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
-				echo '<p class="sa-card__text">' . esc_html__( $s[1], 'sa-theme' ) . '</p>'; // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+				echo '<h3 class="sa-card__title">' . esc_html( $s[0] ) . '</h3>';
+				echo '<p class="sa-card__text">' . esc_html( $s[1] ) . '</p>';
 				echo '</div>';
 			}
 			?>
@@ -67,18 +68,18 @@ get_template_part(
 		<div class="sa-steps">
 			<?php
 			$steps = array(
-				array( '情報入力', '予算・希望専攻など基本情報を入力。' ),
-				array( '無料マッチング', 'システムが最適な候補校をご提案。' ),
-				array( '学校を選ぶ', '気になる学校を選択して相談。' ),
-				array( '出願サポート', '書類準備から出願までサポート。' ),
+				array( __( '情報入力', 'sa-theme' ), __( '予算・希望専攻など基本情報を入力。', 'sa-theme' ) ),
+				array( __( '無料マッチング', 'sa-theme' ), __( 'システムが最適な候補校をご提案。', 'sa-theme' ) ),
+				array( __( '学校を選ぶ', 'sa-theme' ), __( '気になる学校を選択して相談。', 'sa-theme' ) ),
+				array( __( '出願サポート', 'sa-theme' ), __( '書類準備から出願までサポート。', 'sa-theme' ) ),
 			);
 			$n = 0;
 			foreach ( $steps as $s ) {
 				$n++;
 				echo '<div class="sa-step">';
 				echo '<div class="sa-step__num">' . esc_html( $n ) . '</div>';
-				echo '<div class="sa-step__title">' . esc_html__( $s[0], 'sa-theme' ) . '</div>'; // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
-				echo '<div class="sa-step__text">' . esc_html__( $s[1], 'sa-theme' ) . '</div>'; // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+				echo '<div class="sa-step__title">' . esc_html( $s[0] ) . '</div>';
+				echo '<div class="sa-step__text">' . esc_html( $s[1] ) . '</div>';
 				echo '</div>';
 			}
 			?>
@@ -104,7 +105,7 @@ endwhile;
 	<div class="sa-container">
 		<h2><?php esc_html_e( 'まずは無料で、あなたに合う学校を見つけよう', 'sa-theme' ); ?></h2>
 		<p><?php esc_html_e( '入力は30秒。しつこい勧誘はありません。', 'sa-theme' ); ?></p>
-		<a href="<?php echo esc_url( home_url( '/#lead-form' ) ); ?>" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="services-cta"><?php esc_html_e( '無料で学校診断を受ける', 'sa-theme' ); ?></a>
+		<a href="<?php echo esc_url( sa_home_url( '/#lead-form' ) ); ?>" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="services-cta"><?php esc_html_e( '無料で学校診断を受ける', 'sa-theme' ); ?></a>
 	</div>
 </section>
 

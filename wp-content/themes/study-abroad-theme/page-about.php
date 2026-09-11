@@ -64,7 +64,7 @@ get_template_part(
 <section class="sa-cta-band">
 	<div class="sa-container">
 		<h2><?php esc_html_e( 'まずは無料でご相談ください', 'sa-theme' ); ?></h2>
-		<a href="<?php echo esc_url( home_url( '/#lead-form' ) ); ?>" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="about-cta"><?php esc_html_e( '無料で学校診断を受ける', 'sa-theme' ); ?></a>
+		<a href="<?php echo esc_url( sa_home_url( '/#lead-form' ) ); ?>" class="sa-btn sa-btn--primary sa-btn--lg" data-sa-cta="about-cta"><?php esc_html_e( '無料で学校診断を受ける', 'sa-theme' ); ?></a>
 	</div>
 </section>
 
