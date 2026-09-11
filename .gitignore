@@ -36,6 +36,23 @@ wp-config.php
 .env.*
 
 # ============================================
+# 不应出现在网站根目录的文件（安全加固）
+# ------------------------------------------------------------
+# 这些文件可被公网直接下载：
+#   readme.html / license.txt  会暴露 WordPress 版本号，便于针对性攻击
+#   wp-cli.phar                可执行 PHP 归档，7MB，不应放在 web 根目录
+#   主题/插件压缩包             会泄露完整源码
+# WordPress 核心升级会重新生成 readme.html 与 license.txt，
+# 在此忽略可避免它们再次进入版本控制。
+# wp-cli 请安装到 /usr/local/bin/wp 而非站点目录。
+# ============================================
+readme.html
+license.txt
+wp-cli.phar
+/wp-content/themes/*.zip
+/wp-content/plugins/*.zip
+
+# ============================================
 # OS and IDE
 # ============================================
 .DS_Store

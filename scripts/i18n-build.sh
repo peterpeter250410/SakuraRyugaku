@@ -37,12 +37,16 @@ echo "  模式    : ${MODE}"
 echo "============================================================"
 
 # ---------- 定位 wp-cli ----------
-if [ -f "${SITE_ROOT}/wp-cli.phar" ]; then
-    WPCLI="php ${SITE_ROOT}/wp-cli.phar"
-elif command -v wp >/dev/null 2>&1; then
+# 优先用系统安装的 wp 命令。wp-cli.phar 不应留在网站根目录（可被公网下载），
+# 建议安装到 /usr/local/bin/wp；此处保留 phar 回退仅为兼容本地开发环境。
+if command -v wp >/dev/null 2>&1; then
     WPCLI="wp"
+elif [ -f "${SITE_ROOT}/wp-cli.phar" ]; then
+    WPCLI="php ${SITE_ROOT}/wp-cli.phar"
 else
-    c_red "未找到 wp-cli。请确认仓库根目录存在 wp-cli.phar，或系统已安装 wp 命令。"
+    c_red "未找到 wp-cli。安装方式："
+    c_red "  curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar"
+    c_red "  chmod +x wp-cli.phar && mv wp-cli.phar /usr/local/bin/wp"
     exit 1
 fi
 # root 身份需要 --allow-root

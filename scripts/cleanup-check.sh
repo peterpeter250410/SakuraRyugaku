@@ -31,7 +31,10 @@ addcmd() { CMDS="${CMDS}$1
 "; FOUND=$((FOUND+1)); }
 
 # WP-CLI 包装
-if [ -f "${SITE_ROOT}/wp-cli.phar" ]; then
+# 优先用系统安装的 wp 命令（wp-cli.phar 不应留在网站根目录）。
+if command -v wp >/dev/null 2>&1; then
+    WP="wp --path=${SITE_ROOT}"
+elif [ -f "${SITE_ROOT}/wp-cli.phar" ]; then
     WP="php ${SITE_ROOT}/wp-cli.phar --path=${SITE_ROOT}"
 else
     WP="wp --path=${SITE_ROOT}"

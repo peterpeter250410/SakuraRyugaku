@@ -64,12 +64,26 @@ if [ "$SKIP_PULL" = "1" ]; then
 elif [ -d "${SITE_ROOT}/.git" ]; then
     cd "${SITE_ROOT}" || exit 1
 
-    # 发布前先看看有没有未提交的本地改动，避免 pull 冲突后一头雾水。
-    DIRTY=$(git status --porcelain 2>/dev/null | head -5)
+    # 面板类主机（宝塔 / cPanel）会批量重设站点文件权限，
+    # 若 core.fileMode=true，git 会把成千上万个文件报成「已修改」，
+    # 导致 merge 因「本地改动会被覆盖」而中止 —— 但其实一行代码都没变。
+    if [ "$(git config core.fileMode 2>/dev/null)" = "true" ]; then
+        MODE_CHANGES=$(git diff --summary 2>/dev/null | grep -c 'mode change')
+        if [ "${MODE_CHANGES:-0}" -gt 20 ]; then
+            c_ylw "  检测到 ${MODE_CHANGES} 个文件仅权限位变更（面板重设权限所致，非代码改动）"
+            c_ylw "  正在关闭 core.fileMode，使 git 不再跟踪权限位…"
+            git config core.fileMode false
+            c_grn "  已设置 core.fileMode=false"
+        fi
+    fi
+
+    # 发布前看看是否还有真实的未提交改动，避免 merge 中止后一头雾水。
+    DIRTY=$(git status --porcelain 2>/dev/null | head -10)
     if [ -n "$DIRTY" ]; then
         c_ylw "  检测到未提交的本地改动："
         echo "$DIRTY" | sed 's/^/         /'
-        c_ylw "  这些改动可能与拉取的代码冲突。如确认可丢弃，先执行： git checkout -- ."
+        c_ylw "  若其中有需要保留的内容，先备份；确认可丢弃再执行："
+        c_ylw "    git stash save \"backup-\$(date +%F-%H%M)\"    # 旧版 git 用 save，不是 push"
     fi
 
     OLD_REV=$(git rev-parse --short HEAD 2>/dev/null)

@@ -224,6 +224,36 @@ for path in "/" "/zh/" "/en/"; do
     fi
 done
 
+# ---------- B1b. 伪静态是否生效（根因诊断） ----------
+# 多语种页面 404 有两种完全不同的原因，必须区分，否则会误以为是主题代码问题：
+#   (a) 主题语种路由没生效  —— 代码问题
+#   (b) 服务器伪静态没配好  —— 服务器配置问题，与主题无关
+# wp-sitemap.xml 是最好的探针：它是 WordPress 核心功能，与本主题完全无关。
+# 它一旦 404，说明固定链接/伪静态整体失效，此时所有子路径都会 404。
+head2 "B1b. 伪静态（pretty permalinks）是否生效"
+SITEMAP_CODE=$(status_of "${SITE_URL}/wp-sitemap.xml")
+ROOT_CODE=$(status_of "${SITE_URL}/")
+if [ "$SITEMAP_CODE" = "200" ]; then
+    ok "wp-sitemap.xml → 200，伪静态正常"
+elif [ "$ROOT_CODE" = "200" ]; then
+    bad "wp-sitemap.xml → ${SITEMAP_CODE}，但首页正常 —— 伪静态未生效"
+    echo "         这是【服务器配置问题】，不是主题代码问题。"
+    echo "         所有子路径（/zh/ /en/ /faq/ 等）都会因此 404。"
+    echo ""
+    echo "         排查与修复："
+    echo "         1) 查看固定链接结构（返回空即为「朴素」，必须改）:"
+    echo "              wp option get permalink_structure --path=${SITE_ROOT} --allow-root"
+    echo "         2) 设为 postname 并刷新:"
+    echo "              wp rewrite structure '/%postname%/' --path=${SITE_ROOT} --allow-root"
+    echo "              wp rewrite flush --hard --path=${SITE_ROOT} --allow-root"
+    echo "         3) nginx 需要把未命中的路径转交 index.php:"
+    echo "              location / { try_files \$uri \$uri/ /index.php?\$args; }"
+    echo "            宝塔面板: 网站 → 设置 → 伪静态 → 选择 wordpress → 保存"
+    echo "            （请在面板操作，手改 nginx conf 会被面板覆盖）"
+else
+    bad "首页也无法访问（${ROOT_CODE}），请先确认站点与域名解析正常"
+fi
+
 # ---------- B2. 抓取首页用于后续分析 ----------
 fetch "${SITE_URL}/" "${TMP}/home.html"
 fetch "${SITE_URL}/zh/" "${TMP}/home_zh.html"
@@ -274,20 +304,42 @@ fi
 
 # ---------- B5. 语种内容真的不同吗 ----------
 head2 "B4. 三语种内容是否真的不同（防止「假多语言」）"
-H1_JA=$(grep -o '<h1[^>]*>.*</h1>' "${TMP}/home.html" 2>/dev/null | head -1 | sed 's/<[^>]*>//g' | tr -d ' \t')
-H1_ZH=$(grep -o '<h1[^>]*>.*</h1>' "${TMP}/home_zh.html" 2>/dev/null | head -1 | sed 's/<[^>]*>//g' | tr -d ' \t')
-H1_EN=$(grep -o '<h1[^>]*>.*</h1>' "${TMP}/home_en.html" 2>/dev/null | head -1 | sed 's/<[^>]*>//g' | tr -d ' \t')
+# H1 在模板中常跨多行（含 <em> 等内联标签），grep 是按行匹配的，
+# 因此先用 tr 把换行压掉再提取，否则会取到空值。
+extract_h1() {
+    tr '\n' ' ' < "$1" 2>/dev/null \
+        | grep -o '<h1[^>]*>.*\?</h1>' \
+        | head -1 | sed 's/<[^>]*>//g' | tr -s ' ' | sed 's/^ *//; s/ *$//'
+}
+H1_JA=$(extract_h1 "${TMP}/home.html")
+H1_ZH=$(extract_h1 "${TMP}/home_zh.html")
+H1_EN=$(extract_h1 "${TMP}/home_en.html")
 echo "    日文 H1: ${H1_JA:0:60}"
 echo "    中文 H1: ${H1_ZH:0:60}"
 echo "    英文 H1: ${H1_EN:0:60}"
-if [ -n "$H1_ZH" ] && [ "$H1_ZH" = "$H1_JA" ]; then
+
+# 关键：必须先确认页面真的是 200。
+# 否则 404 页面的 H1 与首页 H1 天然不同，会被误判为「翻译已生效」。
+ZH_CODE=$(status_of "${SITE_URL}/zh/")
+EN_CODE=$(status_of "${SITE_URL}/en/")
+
+if [ "$ZH_CODE" != "200" ]; then
+    bad "中文页返回 ${ZH_CODE}，无法校验翻译（需先修复页面可访问性）"
+elif [ -z "$H1_ZH" ]; then
+    warn "中文页未取到 H1，无法自动判定"
+elif [ "$H1_ZH" = "$H1_JA" ]; then
     bad "中文页 H1 与日文页完全相同 —— 翻译未生效，会被判定为重复内容"
-elif [ -n "$H1_ZH" ]; then
+else
     ok "中文页内容与日文页不同（翻译已生效）"
 fi
-if [ -n "$H1_EN" ] && [ "$H1_EN" = "$H1_JA" ]; then
+
+if [ "$EN_CODE" != "200" ]; then
+    bad "英文页返回 ${EN_CODE}，无法校验翻译（需先修复页面可访问性）"
+elif [ -z "$H1_EN" ]; then
+    warn "英文页未取到 H1，无法自动判定"
+elif [ "$H1_EN" = "$H1_JA" ]; then
     bad "英文页 H1 与日文页完全相同 —— 翻译未生效"
-elif [ -n "$H1_EN" ]; then
+else
     ok "英文页内容与日文页不同（翻译已生效）"
 fi
 
@@ -426,9 +478,11 @@ fi
 
 # ---------- B13. 字体加载 ----------
 head2 "B12. 字体加载（CJK 站点的 LCP 关键项）"
-JA_FONTS=$(grep -o 'fonts.googleapis.com[^"]*' "${TMP}/home.html" 2>/dev/null | head -2)
+# 只匹配真正的字体样式表 URL（含 css2?family=），
+# 不能匹配 <link rel="preconnect"> 的裸域名，否则 display=swap 检测必然误报。
+JA_FONTS=$(grep -o "fonts\.googleapis\.com/css2?[^\"']*" "${TMP}/home.html" 2>/dev/null)
 if [ -n "$JA_FONTS" ]; then
-    info "日文页字体请求: ${JA_FONTS}"
+    echo "$JA_FONTS" | sed 's/^/         /'
     if echo "$JA_FONTS" | grep -q "Noto+Sans+SC" && echo "$JA_FONTS" | grep -q "Noto+Sans+JP"; then
         bad "日文页同时加载了 JP 与 SC 两套 CJK 字体 —— 多下载一整套，严重拖累 LCP"
     else
@@ -438,6 +492,12 @@ if [ -n "$JA_FONTS" ]; then
         ok "字体使用 display=swap"
     else
         warn "字体未使用 display=swap，会出现文字不可见期（FOIT）"
+    fi
+    # 异步加载检测：media="print" onload 手法可避免字体样式表阻塞首屏渲染。
+    if grep -q "onload=\"this.media='all'\"\|onload='this.media=\"all\"'" "${TMP}/home.html" 2>/dev/null; then
+        ok "字体样式表异步加载（不阻塞首屏渲染）"
+    else
+        warn "字体样式表可能阻塞渲染"
     fi
 else
     ok "首页未加载外部网络字体（使用系统字体栈，LCP 最优）"
