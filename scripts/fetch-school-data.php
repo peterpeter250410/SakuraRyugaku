@@ -128,17 +128,56 @@ $out_root = __DIR__ . '/school-data';
  * @return array{ok:bool, code:int, body:string, ctype:string, error:string, final:string}
  */
 function sd_fetch( $url ) {
-	$ch = curl_init();
-
-	curl_setopt_array(
-		$ch,
+	/*
+	 * 首轮实测的两类失败，各自需要不同的应对：
+	 *
+	 * 1. "Peer reports incompatible or unsupported protocol version"
+	 *    本机 OpenSSL 与对方 TLS 配置协商不上。对策：第二次尝试显式指定
+	 *    TLSv1.2，并放宽密码套件安全级别（CentOS 7 的 OpenSSL 1.0.2 对
+	 *    部分现代站点的套件组合会直接拒绝）。
+	 *
+	 * 2. "Connection timed out after 15001 milliseconds"
+	 *    跨境访问日本站点，15 秒连接超时偏紧。对策：连接超时放宽到 25 秒，
+	 *    总超时放宽到 60 秒，并对超时类错误重试一次。
+	 *
+	 * 逐级降级尝试，任一成功即返回，避免为了兼容性牺牲所有请求的速度。
+	 */
+	$attempts = array(
+		// 第 1 轮：默认配置（绝大多数站点走这一轮）
+		array(),
+		// 第 2 轮：显式 TLSv1.2 + 放宽密码套件
 		array(
+			CURLOPT_SSLVERSION => 6, // CURL_SSLVERSION_TLSv1_2
+			CURLOPT_SSL_CIPHER_LIST => 'DEFAULT@SECLEVEL=1',
+		),
+		// 第 3 轮：更长超时 + 常见浏览器 UA
+		// 部分站点对非浏览器 UA 直接丢弃连接，表现为超时而非 403。
+		array(
+			CURLOPT_TIMEOUT        => 90,
+			CURLOPT_CONNECTTIMEOUT => 40,
+			CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+		),
+	);
+
+	$last = array(
+		'ok'    => false,
+		'code'  => 0,
+		'body'  => '',
+		'ctype' => '',
+		'error' => 'not attempted',
+		'final' => $url,
+	);
+
+	foreach ( $attempts as $i => $extra ) {
+		$ch = curl_init();
+
+		$opts = array(
 			CURLOPT_URL            => $url,
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_FOLLOWLOCATION => true,
 			CURLOPT_MAXREDIRS      => 5,
-			CURLOPT_TIMEOUT        => 30,
-			CURLOPT_CONNECTTIMEOUT => 15,
+			CURLOPT_TIMEOUT        => 60,
+			CURLOPT_CONNECTTIMEOUT => 25,
 			CURLOPT_ENCODING       => '',
 			// 声明真实身份与用途，便于对方站点管理员识别。
 			CURLOPT_USERAGENT      => 'SakuraRyugakuBot/1.0 (+https://studyinjp.com/; partner school data collection)',
@@ -146,25 +185,45 @@ function sd_fetch( $url ) {
 				'Accept: text/html,application/xhtml+xml',
 				'Accept-Language: ja,en;q=0.8',
 			),
-		)
-	);
+		);
 
-	$body  = curl_exec( $ch );
-	$code  = (int) curl_getinfo( $ch, CURLINFO_HTTP_CODE );
-	$ctype = (string) curl_getinfo( $ch, CURLINFO_CONTENT_TYPE );
-	$final = (string) curl_getinfo( $ch, CURLINFO_EFFECTIVE_URL );
-	$err   = curl_error( $ch );
+		// PHP 数组 + 运算符是左侧优先，故 $extra 在左，用于覆盖默认值。
+		curl_setopt_array( $ch, $extra + $opts );
 
-	curl_close( $ch );
+		$body  = curl_exec( $ch );
+		$code  = (int) curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+		$ctype = (string) curl_getinfo( $ch, CURLINFO_CONTENT_TYPE );
+		$final = (string) curl_getinfo( $ch, CURLINFO_EFFECTIVE_URL );
+		$err   = curl_error( $ch );
 
-	return array(
-		'ok'    => ( false !== $body && $code >= 200 && $code < 300 ),
-		'code'  => $code,
-		'body'  => is_string( $body ) ? $body : '',
-		'ctype' => $ctype,
-		'error' => $err,
-		'final' => '' !== $final ? $final : $url,
-	);
+		curl_close( $ch );
+
+		$last = array(
+			'ok'      => ( false !== $body && $code >= 200 && $code < 300 ),
+			'code'    => $code,
+			'body'    => is_string( $body ) ? $body : '',
+			'ctype'   => $ctype,
+			'error'   => $err,
+			'final'   => '' !== $final ? $final : $url,
+			'attempt' => $i + 1,
+		);
+
+		if ( $last['ok'] ) {
+			return $last;
+		}
+
+		// 只有 TLS / 连接类错误才值得换配置重试；
+		// 明确的 4xx/5xx 说明连上了对方服务器，换 TLS 或 UA 无济于事。
+		if ( $code >= 400 ) {
+			return $last;
+		}
+
+		if ( $i < count( $attempts ) - 1 ) {
+			usleep( 800000 );
+		}
+	}
+
+	return $last;
 }
 
 /* -------------------------------------------------------------------------
@@ -427,16 +486,39 @@ foreach ( $SCHOOLS as $key => $school ) {
 
 	if ( ! $home['ok'] ) {
 		echo "失败 (HTTP {$home['code']}) {$home['error']}\n";
+
+		// 针对失败原因给出可操作的处置建议，而不是只报错。
+		$hint = '';
+		if ( false !== stripos( $home['error'], 'protocol version' )
+			|| false !== stripos( $home['error'], 'SSL' )
+			|| false !== stripos( $home['error'], 'TLS' ) ) {
+			$hint = 'TLS 协商失败。本机 OpenSSL 偏旧，脚本已尝试 TLSv1.2 与放宽密码套件仍不通。'
+				. '可尝试：curl --tlsv1.3 手动验证；或升级 curl/openssl；或改为手工复制官网内容。';
+		} elseif ( false !== stripos( $home['error'], 'timed out' ) ) {
+			$hint = '连接超时。脚本已重试到 40 秒连接 / 90 秒总超时仍不通。'
+				. '可能是对方站点拦截了服务器 IP 或非浏览器请求。'
+				. '建议在本地电脑上跑本脚本，或手工复制官网内容。';
+		} elseif ( $home['code'] >= 400 ) {
+			$hint = "对方返回 HTTP {$home['code']}，属明确拒绝（可能针对 UA 或 IP）。建议手工复制官网内容。";
+		}
+
 		$summary[] = str_repeat( '-', 70 );
 		$summary[] = "【{$key}】{$school['name']}";
 		$summary[] = "  采集失败：HTTP {$home['code']} {$home['error']}";
-		$summary[] = "  请手工打开 {$school['url']} 复制相关信息。";
+		$summary[] = '  尝试轮次：' . ( isset( $home['attempt'] ) ? $home['attempt'] : '?' ) . ' / 3';
+		if ( '' !== $hint ) {
+			$summary[] = '  处置建议：' . $hint;
+		}
+		$summary[] = "  官网：{$school['url']}";
+		$summary[] = '  需手工提供的页面：学費 / 募集要項 / アクセス（校舎所在地）/ コース一覧';
 		$summary[] = '';
+
+		echo "      → {$hint}\n";
 		++$total_fail;
 		continue;
 	}
 
-	echo "OK (HTTP {$home['code']})\n";
+	echo "OK (HTTP {$home['code']}, 第 {$home['attempt']} 轮)\n";
 	++$total_ok;
 
 	$all_text   = array();
