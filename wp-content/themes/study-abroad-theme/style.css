@@ -238,7 +238,69 @@ a { color: var(--sa-accent); text-decoration: none; }
 .sa-faq { max-width: 820px; margin: 0 auto; }
 .sa-faq__item { border-bottom: 1px solid var(--sa-border); padding: 20px 0; }
 .sa-faq__q { font-weight: 700; color: var(--sa-ink); margin: 0 0 8px; font-size: 17px; }
-.sa-faq__a { color: var(--sa-muted); margin: 0; font-size: 15px; }
+.sa-faq__a { color: var(--sa-muted); margin: 0; font-size: 15px; line-height: 1.8; }
+
+/* FAQ 分组与目录（FAQ 独立页）
+   长页面需要目录才能快速定位；锚点同时可用于站内深度链接。 */
+.sa-faq-toc {
+	max-width: 820px;
+	margin: 0 auto 40px;
+	padding: 18px 20px;
+	background: var(--sa-bg-soft);
+	border: 1px solid var(--sa-border);
+	border-radius: var(--sa-radius);
+}
+.sa-faq-toc ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 10px;
+}
+.sa-faq-toc a {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 14px;
+	background: #fff;
+	border: 1px solid var(--sa-border);
+	border-radius: 999px;
+	color: var(--sa-text);
+	font-size: 14px;
+	text-decoration: none;
+	transition: border-color .15s, color .15s;
+}
+.sa-faq-toc a:hover,
+.sa-faq-toc a:focus-visible {
+	border-color: var(--sa-primary);
+	color: var(--sa-primary);
+}
+.sa-faq-toc__count {
+	font-size: 12px;
+	color: var(--sa-muted);
+	background: var(--sa-bg-soft);
+	border-radius: 999px;
+	padding: 1px 7px;
+}
+
+.sa-faq-group { max-width: 820px; margin: 0 auto 44px; }
+.sa-faq-group:last-of-type { margin-bottom: 0; }
+/* 锚点跳转时为固定头部预留空间，避免标题被遮住 */
+.sa-faq-group { scroll-margin-top: 84px; }
+.sa-faq-group__title {
+	font-size: 20px;
+	color: var(--sa-ink);
+	margin: 0 0 4px;
+	padding-bottom: 10px;
+	border-bottom: 2px solid var(--sa-primary);
+}
+
+@media (max-width: 640px) {
+	.sa-faq-toc { padding: 14px; margin-bottom: 28px; }
+	.sa-faq-toc a { font-size: 13px; padding: 6px 12px; }
+	.sa-faq-group__title { font-size: 18px; }
+}
 
 /* CTA band */
 .sa-cta-band { background: linear-gradient(135deg, var(--sa-primary) 0%, var(--sa-primary-dark) 100%); color: #fff; text-align: center; padding: 64px 20px; }
