@@ -106,22 +106,44 @@ elif [ -d "${SITE_ROOT}/.git" ]; then
     PULL_OK=0
     for delay in 0 2 4 8 16; do
         [ "$delay" != "0" ] && { c_ylw "  第 $((delay))s 后重试…"; sleep "$delay"; }
-        if git fetch origin "${BRANCH}" 2>&1 | sed 's/^/         /'; then
+        # 必须用显式 refspec。
+        # `git fetch origin main` 在较旧的 git 上只更新 FETCH_HEAD，
+        # 不更新 refs/remotes/origin/main；随后 merge origin/main 合的是陈旧引用，
+        # 结果明明有新提交却报 "Already up-to-date"（本项目实际踩过：
+        # 服务器停在旧提交，新脚本文件根本没拉下来）。
+        if git fetch origin "${BRANCH}:refs/remotes/origin/${BRANCH}" 2>&1 | sed 's/^/         /'; then
             PULL_OK=1
             break
         fi
     done
 
     if [ "$PULL_OK" = "1" ]; then
-        git merge --ff-only "origin/${BRANCH}" 2>&1 | sed 's/^/         /' \
+        git merge --ff-only "refs/remotes/origin/${BRANCH}" 2>&1 | sed 's/^/         /' \
             || { c_red "  快进合并失败（本地有分叉提交），请手工处理"; FAILED=1; }
+
         NEW_REV=$(git rev-parse --short HEAD 2>/dev/null)
+        REMOTE_REV=$(git rev-parse --short "refs/remotes/origin/${BRANCH}" 2>/dev/null)
+
         if [ "$OLD_REV" = "$NEW_REV" ]; then
-            c_grn "  代码已是最新 (${NEW_REV})"
+            c_grn "  代码未变动 (${NEW_REV})"
         else
             c_grn "  已更新 ${OLD_REV} → ${NEW_REV}"
             echo "  本次变更："
             git log --oneline "${OLD_REV}..${NEW_REV}" 2>/dev/null | head -15 | sed 's/^/         /'
+        fi
+
+        # 关键校验：合并后必须与远端一致。
+        # 只看「HEAD 有没有变」是不够的 —— 合并了陈旧的跟踪引用时，
+        # HEAD 不变会被误报为「已是最新」，而实际落后好几个提交
+        # （本项目真实发生过：新脚本文件没拉下来，却显示发布成功）。
+        if [ -n "$REMOTE_REV" ] && [ "$NEW_REV" != "$REMOTE_REV" ]; then
+            BEHIND=$(git rev-list --count "HEAD..refs/remotes/origin/${BRANCH}" 2>/dev/null)
+            c_red "  本地 (${NEW_REV}) 仍落后远端 (${REMOTE_REV}) ${BEHIND:-?} 个提交"
+            echo "         未拉取的提交："
+            git log --oneline "HEAD..refs/remotes/origin/${BRANCH}" 2>/dev/null | head -10 | sed 's/^/           /'
+            FAILED=1
+        elif [ -n "$REMOTE_REV" ]; then
+            c_grn "  与远端一致 (${REMOTE_REV})"
         fi
     else
         c_red "  git fetch 多次失败，请检查网络或 git 凭据"
