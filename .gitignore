@@ -89,3 +89,7 @@ Thumbs.db
 # 本规则只用于拦截此后新下载的语言包，避免它们持续出现在 git status 中。
 # ============================================
 /wp-content/languages/*
+
+# 翻译编译状态标记（i18n-build.sh 用于判断 .po 是否变化以跳过重编译）
+# 属于本机构建状态，不应入库。
+/wp-content/themes/*/languages/.*.build

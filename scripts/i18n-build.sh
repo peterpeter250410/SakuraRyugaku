@@ -94,23 +94,55 @@ else
 fi
 
 # ---------- 3. 编译 .mo ----------
+#
+# 跳过机制：wp-cli 生成的 .mo/.l10n.php 与仓库中已提交的版本存在字节差异
+# （不同实现的编码顺序与元数据不同），因此每次无条件重编译都会让这些
+# 已跟踪文件变成「已修改」，进而挡住下一次 git merge --ff-only。
+#
+# 解决办法：记录上次编译时 .po 的哈希到一个被 gitignore 的 sidecar 文件。
+# .po 没变且 .mo 已存在时直接跳过编译，工作区保持干净。
+# sidecar 丢失或过期只会导致多编译一次，不会出错。
+COMPILED_ANY=0
+
 echo
 echo "[3/4] 编译 .po → .mo"
 for LC in ${LOCALES}; do
     PO="${LANG_DIR}/${DOMAIN}-${LC}.po"
     MO="${LANG_DIR}/${DOMAIN}-${LC}.mo"
+    STAMP="${LANG_DIR}/.${DOMAIN}-${LC}.build"
+
     if [ ! -f "$PO" ]; then
         c_red "  ${LC}: 缺少 ${DOMAIN}-${LC}.po"
         continue
     fi
+
+    # 计算 .po 当前哈希（sha1sum 缺失时退回 md5sum，都没有则不跳过）
+    PO_HASH=""
+    if command -v sha1sum >/dev/null 2>&1; then
+        PO_HASH=$(sha1sum "$PO" | awk '{print $1}')
+    elif command -v md5sum >/dev/null 2>&1; then
+        PO_HASH=$(md5sum "$PO" | awk '{print $1}')
+    fi
+
+    if [ -n "$PO_HASH" ] && [ -f "$MO" ] && [ -f "$STAMP" ] \
+        && [ "$PO_HASH" = "$(cat "$STAMP" 2>/dev/null)" ]; then
+        SIZE=$(wc -c < "$MO" 2>/dev/null || echo 0)
+        c_grn "  ${LC}: 无变化，跳过编译 (${SIZE} 字节)"
+        continue
+    fi
+
+    COMPILED_ANY=1
+
     if ${WPCLI} i18n make-mo "$PO" "$MO" >/dev/null 2>&1; then
         SIZE=$(wc -c < "$MO" 2>/dev/null || echo 0)
         c_grn "  ${LC}: ${DOMAIN}-${LC}.mo (${SIZE} 字节)"
+        [ -n "$PO_HASH" ] && printf '%s' "$PO_HASH" > "$STAMP"
     else
         # wp-cli 的 make-mo 对单文件参数形式较敏感，回退为目录形式。
         if ${WPCLI} i18n make-mo "${LANG_DIR}" >/dev/null 2>&1 && [ -f "$MO" ]; then
             SIZE=$(wc -c < "$MO")
             c_grn "  ${LC}: ${DOMAIN}-${LC}.mo (${SIZE} 字节)"
+            [ -n "$PO_HASH" ] && printf '%s' "$PO_HASH" > "$STAMP"
         else
             c_red "  ${LC}: .mo 编译失败"
         fi
@@ -120,7 +152,11 @@ done
 # ---------- 4. 编译 .l10n.php ----------
 echo
 echo "[4/4] 编译 .po → .l10n.php（WordPress 6.5+ 高速格式）"
-if ${WPCLI} i18n make-php "${LANG_DIR}" 2>&1 | tail -1; then
+if [ "$COMPILED_ANY" = "0" ]; then
+    # .mo 全部跳过说明 .po 未变动，.l10n.php 同样无需重新生成 ——
+    # 无条件重跑会再次污染工作区，正是本次要解决的问题。
+    c_grn "  无变化，跳过"
+elif ${WPCLI} i18n make-php "${LANG_DIR}" 2>&1 | tail -1; then
     c_grn "  完成"
 else
     c_ylw "  .l10n.php 生成失败（不影响功能，WordPress 会回退用 .mo）"
