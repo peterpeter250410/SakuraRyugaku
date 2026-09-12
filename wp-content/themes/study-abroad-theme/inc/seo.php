@@ -219,15 +219,21 @@ function sa_share_image() {
 		}
 	}
 
-	// 主题内置默认分享图（存在才输出，避免 404 图链）。
-	$default_rel = '/assets/images/og-default.jpg';
-	if ( file_exists( get_template_directory() . $default_rel ) ) {
-		return get_template_directory_uri() . $default_rel;
-	}
+	// 主题内置默认分享图。
+	// 按语种优先：分享图是用户在社交平台看到的第一眼内容，
+	// 日文图发给中国学生会明显降低点击意愿，因此各语种用各自的图。
+	// 生成方式见 scripts/make-og-image.php。
+	// 只返回真实存在的文件，避免输出 404 图链（社交平台会因此不显示缩略图）。
+	$candidates = array(
+		'/assets/images/og-default-' . sa_current_locale() . '.jpg',
+		'/assets/images/og-default.jpg', // 默认语种 / 总兜底
+		'/assets/images/slide-1.jpg',
+	);
 
-	$slide_rel = '/assets/images/slide-1.jpg';
-	if ( file_exists( get_template_directory() . $slide_rel ) ) {
-		return get_template_directory_uri() . $slide_rel;
+	foreach ( $candidates as $rel ) {
+		if ( file_exists( get_template_directory() . $rel ) ) {
+			return get_template_directory_uri() . $rel;
+		}
 	}
 
 	return '';
@@ -294,6 +300,14 @@ add_action(
 		if ( $share_image ) {
 			echo '<meta property="og:image" content="' . esc_url( $share_image ) . '">' . "\n";
 			echo '<meta property="og:image:alt" content="' . esc_attr( $title ) . '">' . "\n";
+			// 声明尺寸可让社交平台在未抓取图片前就正确预留位置，
+			// 首次分享时更快显示大图卡片而非纯文字。
+			// 仅对本主题内置的 1200x630 图声明；文章特色图尺寸不定，不声明。
+			if ( false !== strpos( $share_image, '/assets/images/og-default' ) ) {
+				echo '<meta property="og:image:width" content="1200">' . "\n";
+				echo '<meta property="og:image:height" content="630">' . "\n";
+				echo '<meta property="og:image:type" content="image/jpeg">' . "\n";
+			}
 		}
 
 		// --- Twitter Card ---

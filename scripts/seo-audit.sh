@@ -186,8 +186,17 @@ else
     warn "assets/images/ 目录不存在 —— 首页轮播将不渲染（代码已做降级处理，不会出现破图）"
     echo "         补图命令: bash scripts/fetch-images.sh"
 fi
-if [ ! -f "${THEME}/assets/images/og-default.jpg" ]; then
-    warn "缺少 og-default.jpg —— 社交分享无缩略图，建议放一张 1200x630 的品牌图"
+# 分享图按语种各一张（sa_share_image() 会优先选当前语种的图）
+OG_MISSING=""
+for og in "og-default.jpg:ja" "og-default-zh_CN.jpg:zh_CN" "og-default-en_US.jpg:en_US"; do
+    F="${og%%:*}"; LC="${og##*:}"
+    [ -f "${THEME}/assets/images/${F}" ] || OG_MISSING="${OG_MISSING} ${LC}"
+done
+if [ -z "$OG_MISSING" ]; then
+    ok "三语分享图齐全（1200x630）"
+else
+    warn "缺少分享图语种:${OG_MISSING} —— 该语种分享时无缩略图"
+    echo "         生成命令: php scripts/make-og-image.php"
 fi
 
 # ============================================================

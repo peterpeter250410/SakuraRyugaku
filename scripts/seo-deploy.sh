@@ -175,10 +175,42 @@ if [ -n "$WP" ]; then
         fi
     done
 
-    # OPcache：PHP 7.4 下代码更新后不清会继续跑旧字节码
-    ${WP} eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "ok"; }' 2>/dev/null | grep -q ok \
-        && c_grn "  OPcache 已重置" \
-        || c_ylw "  OPcache 未重置（若代码改动未生效，请重启 php-fpm）"
+    # --- OPcache ---
+    # 注意：不能用 wp eval 调 opcache_reset()。
+    # CLI PHP 与 php-fpm 是两个独立进程，各有自己的 OPcache 实例，
+    # 在 CLI 里 reset 清掉的是 CLI 的缓存，对网站请求毫无作用。
+    # 真正要让 fpm 重新读取改动后的 PHP 文件，只能 reload fpm 进程
+    # （reload 是优雅重启，不中断正在处理的请求）。
+    FPM_RELOADED=0
+
+    # 宝塔面板用自己的 init 脚本管理 PHP，systemd 单元状态常年显示 failed，
+    # 因此优先走 init.d，再退回 systemctl。
+    for INIT in /etc/init.d/php-fpm-* /etc/init.d/php-fpm; do
+        [ -x "$INIT" ] || continue
+        if "$INIT" reload >/dev/null 2>&1; then
+            c_grn "  已 reload php-fpm（$(basename "$INIT")），OPcache 随之失效"
+            FPM_RELOADED=1
+            break
+        fi
+    done
+
+    if [ "$FPM_RELOADED" = "0" ] && command -v systemctl >/dev/null 2>&1; then
+        for UNIT in php-fpm-74 php7.4-fpm php-fpm; do
+            if systemctl reload "$UNIT" >/dev/null 2>&1; then
+                c_grn "  已 reload ${UNIT}，OPcache 随之失效"
+                FPM_RELOADED=1
+                break
+            fi
+        done
+    fi
+
+    if [ "$FPM_RELOADED" = "0" ]; then
+        c_ylw "  未能自动 reload php-fpm"
+        echo "         若代码改动未生效，请手动执行其中一条："
+        echo "           /etc/init.d/php-fpm-74 reload"
+        echo "           宝塔面板 → 软件商店 → PHP 7.4 → 重启"
+        echo "         （OPcache 若开启了 validate_timestamps，文件改动通常会自动生效）"
+    fi
 else
     c_ylw "  未找到 wp-cli，跳过缓存刷新"
     echo "         手工操作: 后台清缓存 + systemctl reload php-fpm"
