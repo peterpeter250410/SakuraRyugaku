@@ -586,3 +586,176 @@ a { color: var(--sa-accent); text-decoration: none; }
 .sa-upload-expired { text-align: center; padding: 60px 20px; }
 .sa-upload-expired h1 { font-size: 24px; color: var(--sa-ink); margin: 0 0 12px; }
 .sa-upload-expired p { color: var(--sa-muted); margin: 0 0 24px; }
+
+/* =========================================================
+   院校页（列表 + 详情）
+   ========================================================= */
+
+/* --- 列表 --- */
+.sa-school-grid { align-items: stretch; }
+.sa-school-card { display: flex; flex-direction: column; }
+.sa-school-card__type {
+	display: inline-block;
+	align-self: flex-start;
+	font-size: 12px;
+	color: var(--sa-primary);
+	background: rgba(212, 55, 44, .08);
+	border-radius: 999px;
+	padding: 3px 10px;
+	margin-bottom: 10px;
+}
+.sa-school-card__name { margin: 0 0 12px; font-size: 18px; line-height: 1.5; }
+.sa-school-card__name a { color: var(--sa-ink); text-decoration: none; }
+.sa-school-card__name a:hover,
+.sa-school-card__name a:focus-visible { color: var(--sa-primary); text-decoration: underline; }
+
+.sa-school-card__meta {
+	list-style: none;
+	margin: 0 0 16px;
+	padding: 0;
+	font-size: 14px;
+	color: var(--sa-text);
+	flex: 1;
+}
+.sa-school-card__meta li {
+	display: flex;
+	gap: 8px;
+	padding: 5px 0;
+	border-bottom: 1px dashed var(--sa-border);
+}
+.sa-school-card__meta li:last-child { border-bottom: 0; }
+.sa-school-card__meta span {
+	flex: 0 0 72px;
+	color: var(--sa-muted);
+	font-size: 13px;
+}
+.sa-school-card__more {
+	align-self: flex-start;
+	font-size: 14px;
+	font-weight: 700;
+	color: var(--sa-primary);
+	text-decoration: none;
+}
+.sa-school-card__more:hover { text-decoration: underline; }
+
+.sa-pagination {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 36px;
+}
+.sa-pagination a,
+.sa-pagination span {
+	min-width: 40px;
+	padding: 8px 12px;
+	text-align: center;
+	border: 1px solid var(--sa-border);
+	border-radius: 8px;
+	text-decoration: none;
+	color: var(--sa-text);
+	font-size: 14px;
+}
+.sa-pagination a:hover { border-color: var(--sa-primary); color: var(--sa-primary); }
+.sa-pagination span[aria-current="page"] {
+	background: var(--sa-primary);
+	border-color: var(--sa-primary);
+	color: #fff;
+	font-weight: 700;
+}
+
+/* --- 详情 --- */
+.sa-school-type-badge {
+	display: inline-block;
+	font-size: 13px;
+	color: #fff;
+	background: var(--sa-primary);
+	border-radius: 999px;
+	padding: 4px 14px;
+	margin-bottom: 10px;
+}
+.sa-school-detail { max-width: 860px; margin: 0 auto; }
+.sa-school-detail__h2 {
+	font-size: 20px;
+	color: var(--sa-ink);
+	margin: 40px 0 16px;
+	padding-bottom: 10px;
+	border-bottom: 2px solid var(--sa-primary);
+}
+.sa-school-detail__h2:first-child { margin-top: 0; }
+.sa-school-detail__body { font-size: 15px; line-height: 1.9; }
+.sa-school-detail__back { margin-top: 44px; font-size: 15px; }
+.sa-school-detail__back a { color: var(--sa-primary); text-decoration: none; }
+.sa-school-detail__back a:hover { text-decoration: underline; }
+
+.sa-school-facts dl {
+	margin: 0;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1px;
+	background: var(--sa-border);
+	border: 1px solid var(--sa-border);
+	border-radius: var(--sa-radius);
+	overflow: hidden;
+}
+.sa-school-facts dl > div { background: #fff; padding: 14px 16px; }
+.sa-school-facts dt { font-size: 12px; color: var(--sa-muted); margin-bottom: 4px; }
+.sa-school-facts dd { margin: 0; font-size: 15px; font-weight: 700; color: var(--sa-ink); }
+
+/* 表格在窄屏需要横向滚动，否则会撑破布局 */
+.sa-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.sa-table {
+	width: 100%;
+	min-width: 560px;
+	border-collapse: collapse;
+	font-size: 14px;
+	background: #fff;
+	border: 1px solid var(--sa-border);
+	border-radius: var(--sa-radius);
+}
+.sa-table th,
+.sa-table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--sa-border); }
+.sa-table thead th {
+	background: var(--sa-bg-soft);
+	color: var(--sa-muted);
+	font-size: 13px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+.sa-table tbody tr:last-child td { border-bottom: 0; }
+
+.sa-doc-list { list-style: none; margin: 0; padding: 0; }
+.sa-doc-list li {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 11px 0;
+	border-bottom: 1px solid var(--sa-border);
+	font-size: 15px;
+}
+.sa-doc-list li:last-child { border-bottom: 0; }
+.sa-doc-list__req {
+	font-size: 11px;
+	color: var(--sa-primary);
+	background: rgba(212, 55, 44, .08);
+	border-radius: 999px;
+	padding: 2px 8px;
+}
+
+.sa-note { font-size: 13px; color: var(--sa-muted); margin: 14px 0 0; line-height: 1.8; }
+
+/* 未公开院校的管理员预览提示 */
+.sa-preview-notice {
+	background: #fff8e1;
+	border: 1px solid #f0c36d;
+	border-radius: 8px;
+	padding: 10px 14px;
+	font-size: 14px;
+	color: #7a5c00;
+	margin: 0 0 14px;
+}
+
+@media (max-width: 640px) {
+	.sa-school-facts dl { grid-template-columns: 1fr; }
+	.sa-school-detail__h2 { font-size: 18px; margin: 32px 0 14px; }
+}

@@ -33,6 +33,7 @@ require_once get_template_directory() . '/inc/i18n.php';
 sa_bootstrap_locale();
 
 require_once get_template_directory() . '/inc/seo.php';
+require_once get_template_directory() . '/inc/schools.php';
 require_once get_template_directory() . '/inc/sitemap.php';
 require_once get_template_directory() . '/inc/performance.php';
 

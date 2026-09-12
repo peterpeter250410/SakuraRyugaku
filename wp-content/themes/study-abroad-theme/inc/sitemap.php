@@ -205,17 +205,141 @@ if ( class_exists( 'WP_Sitemaps_Provider' ) ) {
 		}
 	}
 
+	/**
+	 * 院校公开页 sitemap。
+	 *
+	 * 院校详情页是自定义 rewrite 端点，数据存在 sa_schools 表而非 wp_posts，
+	 * 因此 WordPress 核心 sitemap 完全看不到它们 —— 不单独注册的话，
+	 * 这些页面只能靠列表页的内链被发现，收录会明显变慢。
+	 *
+	 * 每个语种一组：同一所院校在三个语种下是三个独立可索引 URL。
+	 */
+	class SA_Sitemap_Schools_Provider extends WP_Sitemaps_Provider {
+
+		/**
+		 * 构造。
+		 */
+		public function __construct() {
+			$this->name        = 'schools';
+			$this->object_type = 'school';
+		}
+
+		/**
+		 * 子类型：每个语种一组（含默认语种）。
+		 *
+		 * @return array<string,array<string,string>>
+		 */
+		public function get_object_subtypes() {
+			$subtypes = array();
+			foreach ( sa_locales() as $key => $loc ) {
+				// 默认语种前缀为空，用语种 key 作为分组名。
+				$name              = empty( $loc['prefix'] ) ? $key : $loc['prefix'];
+				$subtypes[ $name ] = array(
+					'name'  => $name,
+					'label' => isset( $loc['label'] ) ? $loc['label'] : $key,
+				);
+			}
+			return $subtypes;
+		}
+
+		/**
+		 * URL 列表。
+		 *
+		 * @param int    $page_num       页码。
+		 * @param string $object_subtype 语种分组名。
+		 * @return array<int,array<string,string>>
+		 */
+		public function get_url_list( $page_num, $object_subtype = '' ) {
+			$locale_key = $this->resolve_locale_key( $object_subtype );
+			if ( '' === $locale_key || ! class_exists( 'SA_School_Repo' ) ) {
+				return array();
+			}
+
+			$per_page = (int) wp_sitemaps_get_max_urls( $this->object_type );
+			$schools  = SA_School_Repo::get_published_schools(
+				array(
+					'limit'  => $per_page,
+					'offset' => ( max( 1, (int) $page_num ) - 1 ) * $per_page,
+				)
+			);
+
+			$url_list = array();
+
+			// 列表页本身也要收录（详情页的入口）。
+			if ( 1 === (int) $page_num ) {
+				$url_list[] = array( 'loc' => sa_schools_url( $locale_key ) );
+			}
+
+			foreach ( $schools as $school ) {
+				if ( empty( $school['slug'] ) ) {
+					continue;
+				}
+				$url_list[] = array( 'loc' => sa_school_url( $school['slug'], $locale_key ) );
+			}
+
+			return $url_list;
+		}
+
+		/**
+		 * 分页总数。
+		 *
+		 * @param string $object_subtype 语种分组名。
+		 * @return int
+		 */
+		public function get_max_num_pages( $object_subtype = '' ) {
+			if ( '' === $this->resolve_locale_key( $object_subtype ) || ! class_exists( 'SA_School_Repo' ) ) {
+				return 0;
+			}
+
+			$total = SA_School_Repo::count_published_schools();
+			if ( $total < 1 ) {
+				// 没有已发布院校时，仍保留 1 页用于收录列表页。
+				return 1;
+			}
+
+			$per_page = max( 1, (int) wp_sitemaps_get_max_urls( $this->object_type ) );
+
+			return (int) ceil( $total / $per_page );
+		}
+
+		/**
+		 * 分组名 → 语种 key。
+		 *
+		 * @param string $subtype 分组名（语种前缀，或默认语种的 key）。
+		 * @return string
+		 */
+		private function resolve_locale_key( $subtype ) {
+			if ( '' === $subtype ) {
+				return '';
+			}
+
+			$map = sa_locale_prefix_map();
+			if ( isset( $map[ $subtype ] ) ) {
+				return $map[ $subtype ];
+			}
+
+			// 默认语种以 key 命名分组。
+			$locales = sa_locales();
+			return isset( $locales[ $subtype ] ) ? $subtype : '';
+		}
+	}
+
 	add_action(
 		'init',
 		function () {
 			if ( ! function_exists( 'wp_register_sitemap_provider' ) ) {
 				return;
 			}
-			// 只有存在非默认语种时才注册。
-			if ( empty( sa_locale_prefix_map() ) ) {
-				return;
+
+			// 只有存在非默认语种时才注册多语种分组。
+			if ( ! empty( sa_locale_prefix_map() ) ) {
+				wp_register_sitemap_provider( 'locales', new SA_Sitemap_Locale_Provider() );
 			}
-			wp_register_sitemap_provider( 'locales', new SA_Sitemap_Locale_Provider() );
+
+			// 院校页 sitemap：有院校库时才注册。
+			if ( class_exists( 'SA_School_Repo' ) && function_exists( 'sa_school_url' ) ) {
+				wp_register_sitemap_provider( 'schools', new SA_Sitemap_Schools_Provider() );
+			}
 		},
 		20
 	);

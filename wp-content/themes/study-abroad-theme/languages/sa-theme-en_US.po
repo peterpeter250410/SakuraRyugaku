@@ -218,6 +218,8 @@ msgstr "I agree to the %s."
 
 #: front-page.php:127
 #: front-page.php:307
+#: template-school-single.php:189
+#: template-schools.php:158
 msgid "無料でAI診断を受ける"
 msgstr "Get my free AI match"
 
@@ -329,22 +331,27 @@ msgid "次へ"
 msgstr "Next"
 
 #: front-page.php:269
+#: inc/schools.php:233
 msgid "語学学校"
 msgstr "Language schools"
 
 #: front-page.php:270
+#: inc/schools.php:234
 msgid "専門学校"
 msgstr "Vocational colleges"
 
 #: front-page.php:271
+#: inc/schools.php:235
 msgid "大学（学部）"
 msgstr "Universities (undergraduate)"
 
 #: front-page.php:272
+#: inc/schools.php:236
 msgid "大学院"
 msgstr "Graduate schools"
 
 #: front-page.php:273
+#: inc/schools.php:237
 msgid "短期大学"
 msgstr "Junior colleges"
 
@@ -358,12 +365,12 @@ msgstr "Find the school that fits — free to start"
 msgid "入力は30秒。しつこい勧誘はありません。"
 msgstr "Thirty seconds to fill in. No pushy sales calls."
 
-#: functions.php:60
+#: functions.php:61
 #: header.php:44
 msgid "主导航"
 msgstr "Primary menu"
 
-#: functions.php:61
+#: functions.php:62
 msgid "页脚导航"
 msgstr "Footer menu"
 
@@ -400,6 +407,7 @@ msgstr "Company Profile"
 
 #: inc/i18n.php:462
 #: template-parts/site-page-head.php:27
+#: template-school-single.php:50
 msgid "ホーム"
 msgstr "Home"
 
@@ -467,15 +475,55 @@ msgstr "Submitted"
 msgid "ファイルを選択"
 msgstr "Choose file"
 
+#: inc/schools.php:253
+msgid "中学卒業"
+msgstr "Junior high school graduate"
+
+#: inc/schools.php:254
+msgid "高校卒業"
+msgstr "High school graduate"
+
+#: inc/schools.php:255
+msgid "大学卒業"
+msgstr "University graduate"
+
+#. translators: 1: 下限, 2: 上限（单位：万日元/年）
+#: inc/schools.php:330
+msgid "年間 %1$s〜%2$s 万円（目安）"
+msgstr "%1$s0,000-%2$s0,000 JPY per year (guide)"
+
+#. translators: %s: 金额（单位：万日元/年）
+#: inc/schools.php:335
+msgid "年間 約%s 万円（目安）"
+msgstr "Around %s0,000 JPY per year (guide)"
+
+#: inc/schools.php:395
+msgid "%1$s（%2$s）"
+msgstr "%1$s (%2$s)"
+
+#: inc/schools.php:403
+#: template-schools.php:38
+msgid "対応院校一覧"
+msgstr "Partner schools"
+
+#: inc/schools.php:423
+msgid "語学学校から大学院まで、対応している日本の院校を一覧でご紹介します。学費・語学要件・所在地から比較し、気になる学校は無料でマッチング診断を受けられます。"
+msgstr "Browse the schools in Japan we work with, from language schools through to graduate programmes. Compare tuition, language requirements and location, then run a free match on any that interest you."
+
+#: inc/schools.php:448
+msgid "%1$s（%2$s）の基本情報・出願条件・学費目安をまとめました。無料のマッチング診断で、あなたの条件に合うか確認できます。"
+msgstr "Key facts, entry requirements and indicative tuition for %1$s (%2$s). Run a free match to see whether your profile fits."
+
 #: inc/seo.php:73
 msgid "日本留学のことなら、無料マッチングで最適な学校をご提案。"
 msgstr "Study in Japan — free school matching tailored to your budget and field."
 
-#: inc/seo.php:432
+#: inc/seo.php:453
 msgid "パンくずリスト"
 msgstr "Breadcrumb"
 
 #: index.php:32
+#: template-school-single.php:27
 msgid "コンテンツが見つかりませんでした。"
 msgstr "No content found."
 
@@ -526,6 +574,7 @@ msgstr "Start with a free consultation"
 #: page-about.php:67
 #: page-faq.php:271
 #: page-services.php:108
+#: template-schools.php:56
 msgid "無料で学校診断を受ける"
 msgstr "Get your free school match"
 
@@ -952,3 +1001,116 @@ msgstr "Once every required (*) document is uploaded, submit using the button be
 #: page-upload.php:259
 msgid "提出する"
 msgstr "Submit"
+
+#: template-school-single.php:51
+#: template-schools.php:40
+msgid "対応院校"
+msgstr "Schools"
+
+#: template-school-single.php:59
+msgid "【未公開プレビュー】この院校ページはまだ公開されていません。管理者のみ閲覧できます。"
+msgstr "[Unpublished preview] This school page is not yet public. Visible to administrators only."
+
+#: template-school-single.php:85
+msgid "基本情報"
+msgstr "Key facts"
+
+#: template-school-single.php:89
+msgid "学校種別"
+msgstr "School type"
+
+#: template-school-single.php:93
+msgid "地域"
+msgstr "Region"
+
+#: template-school-single.php:97
+#: template-schools.php:97
+msgid "所在地"
+msgstr "City"
+
+#: template-school-single.php:101
+#: template-school-single.php:127
+#: template-schools.php:111
+msgid "語学要件"
+msgstr "Language requirement"
+
+#: template-school-single.php:105
+msgid "最低学歴"
+msgstr "Minimum education"
+
+#: template-school-single.php:112
+msgid "学校紹介"
+msgstr "About the school"
+
+#: template-school-single.php:120
+msgid "募集専攻・学費目安"
+msgstr "Programmes and indicative tuition"
+
+#: template-school-single.php:125
+msgid "専攻"
+msgstr "Programme"
+
+#: template-school-single.php:126
+msgid "学費（目安）"
+msgstr "Tuition (guide)"
+
+#: template-school-single.php:128
+msgid "修業年限"
+msgstr "Duration"
+
+#: template-school-single.php:149
+msgid "※ 学費は目安です。入学金・教材費などが別途必要な場合があります。最新の金額は各校の募集要項をご確認ください。"
+msgstr "Note: tuition figures are indicative. Enrolment fees and materials are often billed separately. Check each school's admissions material for current amounts."
+
+#: template-school-single.php:155
+msgid "出願に必要な書類"
+msgstr "Documents required to apply"
+
+#: template-school-single.php:162
+msgid "必須"
+msgstr "Required"
+
+#: template-school-single.php:168
+msgid "※ 学歴や国籍により追加書類を求められる場合があります。詳細は無料相談でご案内します。"
+msgstr "Note: additional documents may be requested depending on your academic background and nationality. We go through the full list in your free consultation."
+
+#: template-school-single.php:174
+msgid "対応院校一覧に戻る"
+msgstr "Back to all schools"
+
+#. translators: %s: 院校名
+#: template-school-single.php:184
+msgid "%s に出願できるか、無料で診断"
+msgstr "Check your eligibility for %s, free"
+
+#: template-school-single.php:187
+msgid "予算・日本語レベル・希望専攻を入力するだけ。マッチ度をその場で確認できます。"
+msgstr "Enter your budget, Japanese level and intended major to see your match score right away."
+
+#: template-schools.php:39
+msgid "語学学校から大学院まで、対応している日本の院校をご紹介します。"
+msgstr "The schools in Japan we work with, from language schools to graduate programmes."
+
+#: template-schools.php:52
+msgid "現在公開中の院校情報はありません。無料のマッチング診断では、より多くの提携校からご提案が可能です。"
+msgstr "No school pages are published yet. Our free matching service can still recommend from a wider set of partner schools."
+
+#: template-schools.php:118
+msgid "学費"
+msgstr "Tuition"
+
+#: template-schools.php:125
+msgid "詳細を見る"
+msgstr "View details"
+
+#: template-schools.php:132
+msgid "ページ送り"
+msgstr "Pagination"
+
+#: template-schools.php:155
+msgid "どの学校が自分に合うか、まだ迷っていますか？"
+msgstr "Still unsure which school suits you?"
+
+#: template-schools.php:156
+msgid "予算と希望専攻を入力するだけ。AIがその場で候補校を診断します。"
+msgstr "Enter your budget and intended major, and our AI shortlists schools instantly."

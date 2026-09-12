@@ -389,6 +389,48 @@ else
     info "中文页不可访问（${ZH_CODE}），跳过本项"
 fi
 
+# ---------- B4c. 院校公开页 ----------
+head2 "B4c. 院校公开页（/schools/）"
+SCHOOLS_CODE=$(status_of "${SITE_URL}/schools/")
+if [ "$SCHOOLS_CODE" = "200" ]; then
+    ok "/schools/ → 200"
+    fetch "${SITE_URL}/schools/" "${TMP}/schools.html"
+
+    # 取第一个院校详情链接，验证详情页确实可访问
+    FIRST_SCHOOL=$(grep -o 'href="[^"]*/schools/[^"/]\+/"' "${TMP}/schools.html" 2>/dev/null \
+        | head -1 | sed 's/.*href="//; s/"$//')
+    if [ -n "$FIRST_SCHOOL" ]; then
+        DETAIL_CODE=$(status_of "$FIRST_SCHOOL")
+        if [ "$DETAIL_CODE" = "200" ]; then
+            ok "院校详情页可访问: ${FIRST_SCHOOL}"
+            fetch "$FIRST_SCHOOL" "${TMP}/school.html"
+            grep -q '"@type":"WebPage"' "${TMP}/school.html" 2>/dev/null \
+                && ok "详情页含 WebPage/about 结构化数据" \
+                || warn "详情页未发现 WebPage 结构化数据"
+            DETAIL_CANON=$(grep -o '<link rel="canonical" href="[^"]*"' "${TMP}/school.html" 2>/dev/null | head -1 | sed 's/.*href="//; s/"$//')
+            case "$DETAIL_CANON" in
+                */schools/*) ok "详情页 canonical 正确: ${DETAIL_CANON}" ;;
+                "")          bad "详情页未输出 canonical" ;;
+                *)           bad "详情页 canonical 未指向自身（${DETAIL_CANON}）" ;;
+            esac
+        else
+            bad "院校详情页返回 ${DETAIL_CODE}: ${FIRST_SCHOOL}"
+        fi
+    else
+        info "列表页暂无已发布院校（published 默认为 0，需在后台逐校核实后开启）"
+    fi
+
+    # 未发布 / 不存在的院校必须 404，否则会产生可被收录的软 404 页面
+    NX_CODE=$(status_of "${SITE_URL}/schools/__nonexistent-school-check__/")
+    if [ "$NX_CODE" = "404" ]; then
+        ok "不存在的院校正确返回 404"
+    else
+        bad "不存在的院校返回 ${NX_CODE}（应为 404，否则会被收录为空页面）"
+    fi
+else
+    warn "/schools/ → ${SCHOOLS_CODE}（若刚部署，需执行 wp rewrite flush --hard）"
+fi
+
 # ---------- B6. lang 属性 ----------
 head2 "B5. html lang 属性"
 for pair in "home.html:/" "home_zh.html:/zh/" "home_en.html:/en/"; do

@@ -47,6 +47,7 @@ class SA_Activator {
 
 		// 老库兜底：dbDelta 偶发不加列时，显式 ADD COLUMN。
 		self::ensure_schools_required_docs();
+		self::ensure_schools_public_columns();
 
 		// 补齐可能缺失的规则/角色/目录（各自幂等）。
 		self::seed_match_rules();
@@ -57,6 +58,59 @@ class SA_Activator {
 
 		// 结构变更后刷新固定链接（如新增页面 slug 依赖）。
 		flush_rewrite_rules();
+	}
+
+	/**
+	 * 兜底确保 schools 表存在公开页所需的列（slug / published）。
+	 *
+	 * 这两列服务于对外的院校详情页：
+	 *   slug      —— SEO 友好 URL（/schools/{slug}/）。为空时该校不生成公开页。
+	 *   published —— 公开发布开关，**默认 0**。
+	 *
+	 * published 与 status 是两件不同的事，不能合用：
+	 * status='active' 表示该校参与 AI 匹配（内部使用），
+	 * published=1 表示允许生成对外可被搜索引擎索引的页面。
+	 * 院校页会展示学费、语言要求等事实信息，且涉及真实院校名称，
+	 * 未经业务方核实就公开等同于以真实院校名义发布未核实数据，
+	 * 因此默认关闭，必须逐校显式开启。
+	 */
+	private static function ensure_schools_public_columns() {
+		global $wpdb;
+
+		$table  = $wpdb->prefix . SA_TABLE_PREFIX . 'schools';
+		$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
+		if ( $exists !== $table ) {
+			return;
+		}
+
+		/*
+		 * slug 必须是 DEFAULT NULL 而不是 DEFAULT ''。
+		 * MySQL 的 UNIQUE 索引允许多行为 NULL，但不允许多行为同一个空字符串 ——
+		 * 若默认值为 ''，多所尚未设置 slug 的院校会互相冲突，
+		 * 唯一索引创建失败，甚至后续插入报 Duplicate entry。
+		 */
+		$columns = array(
+			'slug'      => 'ADD COLUMN slug VARCHAR(191) DEFAULT NULL AFTER name',
+			'published' => 'ADD COLUMN published TINYINT(1) NOT NULL DEFAULT 0 AFTER status',
+		);
+
+		foreach ( $columns as $col => $ddl ) {
+			$found = $wpdb->get_results(
+				$wpdb->prepare( "SHOW COLUMNS FROM `{$table}` LIKE %s", $col )
+			);
+			if ( empty( $found ) ) {
+				$wpdb->query( "ALTER TABLE `{$table}` {$ddl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			}
+		}
+
+		// 把历史数据里的空字符串 slug 归一为 NULL，否则唯一索引建不起来。
+		$wpdb->query( "UPDATE `{$table}` SET slug = NULL WHERE slug = ''" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		// slug 唯一索引：公开 URL 必须唯一，否则同一路径会解析到多所院校。
+		$index = $wpdb->get_results( "SHOW INDEX FROM `{$table}` WHERE Key_name = 'slug'" );
+		if ( empty( $index ) ) {
+			$wpdb->query( "ALTER TABLE `{$table}` ADD UNIQUE KEY slug (slug)" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
 	}
 
 	/**
@@ -137,10 +191,13 @@ class SA_Activator {
 		) {$charset_collate};";
 
 		// 院校库
+		// slug / published 服务于对外的院校详情页，详见 ensure_schools_public_columns()。
+		// slug 用 DEFAULT NULL：唯一索引允许多个 NULL，但不允许多个空字符串。
 		$sql[] = "CREATE TABLE {$p}schools (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			post_id BIGINT UNSIGNED DEFAULT 0,
 			name VARCHAR(191) DEFAULT '',
+			slug VARCHAR(191) DEFAULT NULL,
 			name_i18n TEXT NULL,
 			school_type VARCHAR(32) DEFAULT '',
 			region VARCHAR(64) DEFAULT '',
@@ -150,11 +207,14 @@ class SA_Activator {
 			description_i18n LONGTEXT NULL,
 			required_docs LONGTEXT NULL,
 			status VARCHAR(16) DEFAULT 'active',
+			published TINYINT(1) NOT NULL DEFAULT 0,
 			sort_order INT DEFAULT 0,
 			created_at DATETIME NULL,
 			updated_at DATETIME NULL,
 			PRIMARY KEY  (id),
+			UNIQUE KEY slug (slug),
 			KEY status (status),
+			KEY published (published),
 			KEY region (region),
 			KEY school_type (school_type)
 		) {$charset_collate};";

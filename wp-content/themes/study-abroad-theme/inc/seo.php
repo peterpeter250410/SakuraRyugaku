@@ -134,7 +134,14 @@ function sa_canonical_url() {
 		$url = trailingslashit( $url ) . 'page/' . $paged . '/';
 	}
 
-	return sa_url( $url );
+	/**
+	 * 过滤器 sa_canonical_url：供自定义端点覆盖。
+	 *
+	 * 院校详情页这类自定义 rewrite 端点走的是 index.php?sa_school=xxx，
+	 * WordPress 会把它当作默认查询（is_home），上面的分支无法推导出正确的
+	 * 规范 URL，必须由端点自己指定。
+	 */
+	return apply_filters( 'sa_canonical_url', sa_url( $url ) );
 }
 
 /* -------------------------------------------------------------------------

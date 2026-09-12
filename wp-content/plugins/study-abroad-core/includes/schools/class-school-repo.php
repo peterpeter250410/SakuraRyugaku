@@ -122,6 +122,8 @@ class SA_School_Repo {
 			'description_i18n' => self::encode_json_field( isset( $data['description_i18n'] ) ? $data['description_i18n'] : null ),
 			'required_docs'    => self::encode_json_field( isset( $data['required_docs'] ) ? $data['required_docs'] : null ),
 			'status'           => isset( $data['status'] ) ? sanitize_key( $data['status'] ) : 'active',
+			// published 默认 0：新建院校不会自动对外可见，须核实数据后显式发布。
+			'published'        => empty( $data['published'] ) ? 0 : 1,
 			'sort_order'       => isset( $data['sort_order'] ) ? (int) $data['sort_order'] : 0,
 			'created_at'       => $now,
 			'updated_at'       => $now,
@@ -130,10 +132,37 @@ class SA_School_Repo {
 		$ok = $wpdb->insert(
 			SA_DB::table( 'schools' ),
 			$row,
-			array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s' )
+			array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s' )
 		);
 
-		return $ok ? (int) $wpdb->insert_id : false;
+		if ( ! $ok ) {
+			return false;
+		}
+
+		$new_id = (int) $wpdb->insert_id;
+
+		/*
+		 * slug 在插入后再写入：生成唯一 slug 需要 ID 做兜底（school-{id}），
+		 * 而 ID 只有插入后才存在。
+		 */
+		$slug = isset( $data['slug'] ) ? sanitize_title( (string) $data['slug'] ) : '';
+		if ( '' !== $slug ) {
+			$slug = self::unique_slug( $slug, $new_id );
+		} else {
+			$slug = self::generate_slug( $data, $new_id );
+		}
+
+		if ( '' !== $slug ) {
+			$wpdb->update(
+				SA_DB::table( 'schools' ),
+				array( 'slug' => $slug ),
+				array( 'id' => $new_id ),
+				array( '%s' ),
+				array( '%d' )
+			);
+		}
+
+		return $new_id;
 	}
 
 	/**
@@ -188,6 +217,25 @@ class SA_School_Repo {
 		if ( isset( $data['sort_order'] ) ) {
 			$row['sort_order'] = (int) $data['sort_order'];
 			$formats[]         = '%d';
+		}
+
+		// 公开发布开关。默认关闭，须显式置 1 才生成对外页面。
+		if ( isset( $data['published'] ) ) {
+			$row['published'] = empty( $data['published'] ) ? 0 : 1;
+			$formats[]        = '%d';
+		}
+
+		// slug：留空则自动生成；存空字符串会与唯一索引冲突，故归一为 NULL。
+		if ( array_key_exists( 'slug', $data ) ) {
+			$slug = sanitize_title( (string) $data['slug'] );
+			if ( '' === $slug ) {
+				$existing = self::get_school( $id );
+				$slug     = $existing ? self::generate_slug( $existing, $id ) : '';
+			} else {
+				$slug = self::unique_slug( $slug, $id );
+			}
+			$row['slug'] = '' === $slug ? null : $slug;
+			$formats[]   = '%s';
 		}
 		foreach ( array( 'name_i18n', 'description_i18n', 'required_docs' ) as $jf ) {
 			if ( array_key_exists( $jf, $data ) ) {
@@ -310,6 +358,267 @@ class SA_School_Repo {
 		);
 
 		return $ok ? (int) $wpdb->insert_id : false;
+	}
+
+	/* ---------------------------------------------------------------------
+	 * 对外公开页（院校详情页）所需的查询
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 按 slug 取院校。
+	 *
+	 * @param string $slug              URL slug。
+	 * @param bool   $require_published 是否仅返回已发布院校（默认是）。
+	 *                                  后台预览未发布院校时传 false。
+	 * @return array|null
+	 */
+	public static function get_school_by_slug( $slug, $require_published = true ) {
+		global $wpdb;
+
+		$slug = sanitize_title( $slug );
+		if ( '' === $slug ) {
+			return null;
+		}
+
+		$table = SA_DB::table( 'schools' );
+
+		if ( $require_published ) {
+			$row = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT * FROM {$table} WHERE slug = %s AND published = 1 LIMIT 1",
+					$slug
+				),
+				ARRAY_A
+			);
+		} else {
+			$row = $wpdb->get_row(
+				$wpdb->prepare( "SELECT * FROM {$table} WHERE slug = %s LIMIT 1", $slug ),
+				ARRAY_A
+			);
+		}
+
+		return $row ? $row : null;
+	}
+
+	/**
+	 * 取某院校下的 active 专业。
+	 *
+	 * @param int $school_id 院校 ID。
+	 * @return array 专业行数组（ARRAY_A）。
+	 */
+	public static function get_school_programs( $school_id ) {
+		global $wpdb;
+
+		$table = SA_DB::table( 'programs' );
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE school_id = %d AND status = 'active' ORDER BY id ASC",
+				absint( $school_id )
+			),
+			ARRAY_A
+		);
+
+		return $rows ? $rows : array();
+	}
+
+	/**
+	 * 取已发布且有 slug 的院校（公开列表页与 sitemap 用）。
+	 *
+	 * 没有 slug 就无法生成 URL，因此一并排除，避免列表里出现点不开的条目。
+	 *
+	 * @param array $args 可选：limit、offset、school_type、region。
+	 * @return array
+	 */
+	public static function get_published_schools( array $args = array() ) {
+		global $wpdb;
+
+		$table = SA_DB::table( 'schools' );
+
+		$where  = array( 'published = 1', "slug IS NOT NULL", "slug <> ''" );
+		$params = array();
+
+		if ( ! empty( $args['school_type'] ) ) {
+			$where[]  = 'school_type = %s';
+			$params[] = sanitize_text_field( $args['school_type'] );
+		}
+		if ( ! empty( $args['region'] ) ) {
+			$where[]  = 'region = %s';
+			$params[] = sanitize_text_field( $args['region'] );
+		}
+
+		$sql = "SELECT * FROM {$table} WHERE " . implode( ' AND ', $where )
+			. ' ORDER BY sort_order ASC, id ASC';
+
+		if ( isset( $args['limit'] ) ) {
+			$sql     .= ' LIMIT %d OFFSET %d';
+			$params[] = max( 1, (int) $args['limit'] );
+			$params[] = max( 0, isset( $args['offset'] ) ? (int) $args['offset'] : 0 );
+		}
+
+		if ( ! empty( $params ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$rows = $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A );
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$rows = $wpdb->get_results( $sql, ARRAY_A );
+		}
+
+		return $rows ? $rows : array();
+	}
+
+	/**
+	 * 已发布院校总数（分页用）。
+	 *
+	 * @return int
+	 */
+	public static function count_published_schools() {
+		global $wpdb;
+
+		$table = SA_DB::table( 'schools' );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		return (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$table} WHERE published = 1 AND slug IS NOT NULL AND slug <> ''"
+		);
+	}
+
+	/* ---------------------------------------------------------------------
+	 * 多语言字段
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 取 i18n JSON 字段在指定语种下的值。
+	 *
+	 * 院校名称与简介存在数据库的 *_i18n JSON 列中，不经过 gettext，
+	 * 因此需要在读取时按语种解析。
+	 *
+	 * JSON 里的键历史上用短码（ja / zh / en），而主题的语种 key 是
+	 * ja / zh_CN / en_US，故按「完整 key → 短码 → 默认语种 → 基础列」逐级回退。
+	 * 任何一级命中即返回，保证永远不会输出空白。
+	 *
+	 * @param array  $row        数据行。
+	 * @param string $json_field JSON 列名，如 name_i18n。
+	 * @param string $base_field 兜底的基础列名，如 name。
+	 * @param string $locale     语种 key，如 zh_CN；留空取当前语种。
+	 * @return string
+	 */
+	public static function localized_field( array $row, $json_field, $base_field, $locale = '' ) {
+		if ( '' === $locale ) {
+			$locale = function_exists( 'sa_current_locale' ) ? sa_current_locale() : 'ja';
+		}
+
+		$decoded = array();
+		if ( ! empty( $row[ $json_field ] ) ) {
+			$maybe = json_decode( (string) $row[ $json_field ], true );
+			if ( is_array( $maybe ) ) {
+				$decoded = $maybe;
+			}
+		}
+
+		// 完整 key（zh_CN）→ 短码（zh）
+		$short = strtolower( substr( $locale, 0, 2 ) );
+		foreach ( array( $locale, $short ) as $key ) {
+			if ( ! empty( $decoded[ $key ] ) && is_string( $decoded[ $key ] ) ) {
+				return $decoded[ $key ];
+			}
+		}
+
+		// 默认语种（日语）
+		if ( ! empty( $decoded['ja'] ) && is_string( $decoded['ja'] ) ) {
+			return $decoded['ja'];
+		}
+
+		// 基础列
+		return isset( $row[ $base_field ] ) ? (string) $row[ $base_field ] : '';
+	}
+
+	/* ---------------------------------------------------------------------
+	 * slug
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 生成唯一的 slug。
+	 *
+	 * 优先用英文名派生：sanitize_title() 对日文/中文会输出百分号编码，
+	 * 既不可读也不利于分享与外链锚文本，因此
+	 * 「英文名 → 基础名（若为 ASCII）→ school-{id}」逐级回退。
+	 * 冲突时追加 -2、-3。
+	 *
+	 * @param array $row        院校数据（至少含 name，可含 name_i18n）。
+	 * @param int   $exclude_id 更新时排除自身 ID。
+	 * @return string 可能为空字符串（无法生成时由调用方决定是否放弃）。
+	 */
+	public static function generate_slug( array $row, $exclude_id = 0 ) {
+		$candidates = array();
+
+		// 英文名优先
+		$en = self::localized_field( $row, 'name_i18n', 'name', 'en_US' );
+		if ( '' !== $en ) {
+			$candidates[] = $en;
+		}
+		if ( ! empty( $row['name'] ) ) {
+			$candidates[] = $row['name'];
+		}
+
+		$base = '';
+		foreach ( $candidates as $c ) {
+			$try = sanitize_title( $c );
+			// 含百分号说明 sanitize_title 对非 ASCII 做了编码，不适合做 URL。
+			if ( '' !== $try && false === strpos( $try, '%' ) ) {
+				$base = $try;
+				break;
+			}
+		}
+
+		if ( '' === $base ) {
+			$base = $exclude_id > 0 ? 'school-' . $exclude_id : '';
+		}
+		if ( '' === $base ) {
+			return '';
+		}
+
+		return self::unique_slug( $base, $exclude_id );
+	}
+
+	/**
+	 * 确保 slug 在表内唯一。
+	 *
+	 * @param string $base       基础 slug。
+	 * @param int    $exclude_id 排除的院校 ID。
+	 * @return string
+	 */
+	public static function unique_slug( $base, $exclude_id = 0 ) {
+		global $wpdb;
+
+		$base = sanitize_title( $base );
+		if ( '' === $base ) {
+			return '';
+		}
+
+		$table = SA_DB::table( 'schools' );
+		$slug  = $base;
+		$n     = 1;
+
+		while ( true ) {
+			$found = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT id FROM {$table} WHERE slug = %s AND id <> %d LIMIT 1",
+					$slug,
+					absint( $exclude_id )
+				)
+			);
+			if ( ! $found ) {
+				return $slug;
+			}
+			++$n;
+			$slug = $base . '-' . $n;
+
+			if ( $n > 50 ) {
+				// 极端情况下放弃递增，用时间戳兜底，避免死循环。
+				return $base . '-' . time();
+			}
+		}
 	}
 
 	/**

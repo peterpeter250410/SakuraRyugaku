@@ -218,6 +218,8 @@ msgstr "我已阅读并同意%s。"
 
 #: front-page.php:127
 #: front-page.php:307
+#: template-school-single.php:189
+#: template-schools.php:158
 msgid "無料でAI診断を受ける"
 msgstr "免费获取 AI 匹配结果"
 
@@ -329,22 +331,27 @@ msgid "次へ"
 msgstr "下一张"
 
 #: front-page.php:269
+#: inc/schools.php:233
 msgid "語学学校"
 msgstr "语言学校"
 
 #: front-page.php:270
+#: inc/schools.php:234
 msgid "専門学校"
 msgstr "专门学校"
 
 #: front-page.php:271
+#: inc/schools.php:235
 msgid "大学（学部）"
 msgstr "大学（本科）"
 
 #: front-page.php:272
+#: inc/schools.php:236
 msgid "大学院"
 msgstr "大学院（读研）"
 
 #: front-page.php:273
+#: inc/schools.php:237
 msgid "短期大学"
 msgstr "短期大学"
 
@@ -358,12 +365,12 @@ msgstr "先免费试试，找到属于你的那所院校"
 msgid "入力は30秒。しつこい勧誘はありません。"
 msgstr "填写只需 30 秒，绝不骚扰推销。"
 
-#: functions.php:60
+#: functions.php:61
 #: header.php:44
 msgid "主导航"
 msgstr "主导航"
 
-#: functions.php:61
+#: functions.php:62
 msgid "页脚导航"
 msgstr "页脚导航"
 
@@ -400,6 +407,7 @@ msgstr "公司介绍"
 
 #: inc/i18n.php:462
 #: template-parts/site-page-head.php:27
+#: template-school-single.php:50
 msgid "ホーム"
 msgstr "首页"
 
@@ -467,15 +475,55 @@ msgstr "已提交"
 msgid "ファイルを選択"
 msgstr "选择文件"
 
+#: inc/schools.php:253
+msgid "中学卒業"
+msgstr "初中毕业"
+
+#: inc/schools.php:254
+msgid "高校卒業"
+msgstr "高中毕业"
+
+#: inc/schools.php:255
+msgid "大学卒業"
+msgstr "大学毕业"
+
+#. translators: 1: 下限, 2: 上限（单位：万日元/年）
+#: inc/schools.php:330
+msgid "年間 %1$s〜%2$s 万円（目安）"
+msgstr "每年 %1$s〜%2$s 万日元（参考）"
+
+#. translators: %s: 金额（单位：万日元/年）
+#: inc/schools.php:335
+msgid "年間 約%s 万円（目安）"
+msgstr "每年约 %s 万日元（参考）"
+
+#: inc/schools.php:395
+msgid "%1$s（%2$s）"
+msgstr "%1$s（%2$s）"
+
+#: inc/schools.php:403
+#: template-schools.php:38
+msgid "対応院校一覧"
+msgstr "合作院校一览"
+
+#: inc/schools.php:423
+msgid "語学学校から大学院まで、対応している日本の院校を一覧でご紹介します。学費・語学要件・所在地から比較し、気になる学校は無料でマッチング診断を受けられます。"
+msgstr "从语言学校到大学院，集中展示我们覆盖的日本院校。可按学费、日语要求、所在地对比，看中哪所就直接免费做匹配诊断。"
+
+#: inc/schools.php:448
+msgid "%1$s（%2$s）の基本情報・出願条件・学費目安をまとめました。無料のマッチング診断で、あなたの条件に合うか確認できます。"
+msgstr "%1$s（%2$s）的基本信息、出愿条件与学费参考一次看清。用免费匹配诊断，确认你的条件是否符合。"
+
 #: inc/seo.php:73
 msgid "日本留学のことなら、無料マッチングで最適な学校をご提案。"
 msgstr "日本留学中介首选：免费院校匹配，按预算与专业推荐最合适的日本院校。"
 
-#: inc/seo.php:432
+#: inc/seo.php:453
 msgid "パンくずリスト"
 msgstr "面包屑导航"
 
 #: index.php:32
+#: template-school-single.php:27
 msgid "コンテンツが見つかりませんでした。"
 msgstr "没有找到相关内容。"
 
@@ -526,6 +574,7 @@ msgstr "先从免费咨询开始"
 #: page-about.php:67
 #: page-faq.php:271
 #: page-services.php:108
+#: template-schools.php:56
 msgid "無料で学校診断を受ける"
 msgstr "免费获取院校匹配"
 
@@ -952,3 +1001,116 @@ msgstr "带 * 的必需材料全部上传后，即可点击下方按钮完成提
 #: page-upload.php:259
 msgid "提出する"
 msgstr "提交"
+
+#: template-school-single.php:51
+#: template-schools.php:40
+msgid "対応院校"
+msgstr "合作院校"
+
+#: template-school-single.php:59
+msgid "【未公開プレビュー】この院校ページはまだ公開されていません。管理者のみ閲覧できます。"
+msgstr "【未公开预览】该院校页面尚未对外发布，仅管理员可见。"
+
+#: template-school-single.php:85
+msgid "基本情報"
+msgstr "基本信息"
+
+#: template-school-single.php:89
+msgid "学校種別"
+msgstr "院校类型"
+
+#: template-school-single.php:93
+msgid "地域"
+msgstr "地区"
+
+#: template-school-single.php:97
+#: template-schools.php:97
+msgid "所在地"
+msgstr "所在城市"
+
+#: template-school-single.php:101
+#: template-school-single.php:127
+#: template-schools.php:111
+msgid "語学要件"
+msgstr "日语要求"
+
+#: template-school-single.php:105
+msgid "最低学歴"
+msgstr "最低学历"
+
+#: template-school-single.php:112
+msgid "学校紹介"
+msgstr "院校介绍"
+
+#: template-school-single.php:120
+msgid "募集専攻・学費目安"
+msgstr "招生专业与学费参考"
+
+#: template-school-single.php:125
+msgid "専攻"
+msgstr "专业"
+
+#: template-school-single.php:126
+msgid "学費（目安）"
+msgstr "学费（参考）"
+
+#: template-school-single.php:128
+msgid "修業年限"
+msgstr "学制"
+
+#: template-school-single.php:149
+msgid "※ 学費は目安です。入学金・教材費などが別途必要な場合があります。最新の金額は各校の募集要項をご確認ください。"
+msgstr "※ 学费为参考金额。入学金、教材费等通常另计。最新实际金额请以各校招生简章为准。"
+
+#: template-school-single.php:155
+msgid "出願に必要な書類"
+msgstr "出愿所需材料"
+
+#: template-school-single.php:162
+msgid "必須"
+msgstr "必需"
+
+#: template-school-single.php:168
+msgid "※ 学歴や国籍により追加書類を求められる場合があります。詳細は無料相談でご案内します。"
+msgstr "※ 根据学历与国籍，可能还需补充其他材料。具体清单可在免费咨询时获取。"
+
+#: template-school-single.php:174
+msgid "対応院校一覧に戻る"
+msgstr "返回合作院校一览"
+
+#. translators: %s: 院校名
+#: template-school-single.php:184
+msgid "%s に出願できるか、無料で診断"
+msgstr "免费诊断：你能否申请 %s"
+
+#: template-school-single.php:187
+msgid "予算・日本語レベル・希望専攻を入力するだけ。マッチ度をその場で確認できます。"
+msgstr "只需填写预算、日语水平和意向专业，当场就能看到匹配度。"
+
+#: template-schools.php:39
+msgid "語学学校から大学院まで、対応している日本の院校をご紹介します。"
+msgstr "从语言学校到大学院，我们覆盖的日本院校都在这里。"
+
+#: template-schools.php:52
+msgid "現在公開中の院校情報はありません。無料のマッチング診断では、より多くの提携校からご提案が可能です。"
+msgstr "目前还没有公开的院校信息。使用免费匹配诊断，可以从更多合作院校中获得推荐。"
+
+#: template-schools.php:118
+msgid "学費"
+msgstr "学费"
+
+#: template-schools.php:125
+msgid "詳細を見る"
+msgstr "查看详情"
+
+#: template-schools.php:132
+msgid "ページ送り"
+msgstr "分页导航"
+
+#: template-schools.php:155
+msgid "どの学校が自分に合うか、まだ迷っていますか？"
+msgstr "还不确定哪所院校适合自己？"
+
+#: template-schools.php:156
+msgid "予算と希望専攻を入力するだけ。AIがその場で候補校を診断します。"
+msgstr "只需填写预算与意向专业，AI 当场给出候选院校。"

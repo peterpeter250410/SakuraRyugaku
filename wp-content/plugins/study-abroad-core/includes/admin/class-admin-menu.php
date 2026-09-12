@@ -275,6 +275,10 @@ class SA_Admin_Menu {
 			'status'        => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
 			'sort_order'    => isset( $_POST['sort_order'] ) ? (int) $_POST['sort_order'] : 0,
 			'required_docs' => self::collect_required_docs(),
+			// 公开页 URL slug。留空则由仓储层按英文名自动生成。
+			'slug'          => isset( $_POST['slug'] ) ? sanitize_title( wp_unslash( $_POST['slug'] ) ) : '',
+			// 对外发布开关。未勾选即为 0，院校页返回 404，不会被搜索引擎收录。
+			'published'     => ! empty( $_POST['published'] ) ? 1 : 0,
 		);
 
 		if ( $id ) {
@@ -340,7 +344,8 @@ class SA_Admin_Menu {
 		echo '<th>' . esc_html__( '类型', 'sa-core' ) . '</th>';
 		echo '<th>' . esc_html__( '地区', 'sa-core' ) . '</th>';
 		echo '<th>' . esc_html__( '资料项数', 'sa-core' ) . '</th>';
-		echo '<th>' . esc_html__( '状态', 'sa-core' ) . '</th>';
+		echo '<th>' . esc_html__( '匹配状态', 'sa-core' ) . '</th>';
+		echo '<th>' . esc_html__( '对外公开', 'sa-core' ) . '</th>';
 		echo '<th>' . esc_html__( '操作', 'sa-core' ) . '</th>';
 		echo '</tr></thead><tbody>';
 
@@ -350,6 +355,10 @@ class SA_Admin_Menu {
 				array( 'page' => 'sa-schools', 'edit' => $s['id'] ),
 				admin_url( 'admin.php' )
 			);
+
+			$is_pub = ! empty( $s['published'] );
+			$slug   = isset( $s['slug'] ) ? (string) $s['slug'] : '';
+
 			echo '<tr>';
 			echo '<td>' . esc_html( $s['id'] ) . '</td>';
 			echo '<td>' . esc_html( $s['name'] ) . '</td>';
@@ -357,6 +366,21 @@ class SA_Admin_Menu {
 			echo '<td>' . esc_html( trim( $s['region'] . ' ' . $s['city'] ) ) . '</td>';
 			echo '<td>' . esc_html( count( $docs ) ) . '</td>';
 			echo '<td>' . esc_html( $s['status'] ) . '</td>';
+
+			// 对外公开状态：已发布时给出可点击的实际页面链接，便于逐校核对。
+			echo '<td>';
+			if ( $is_pub && '' !== $slug && function_exists( 'sa_school_url' ) ) {
+				echo '<span style="color:#1e7e34;font-weight:600;">'
+					. esc_html__( '已公开', 'sa-core' ) . '</span><br>';
+				echo '<a href="' . esc_url( sa_school_url( $slug ) ) . '" target="_blank" rel="noopener">'
+					. esc_html( '/' . $slug . '/' ) . '</a>';
+			} elseif ( $is_pub && '' === $slug ) {
+				echo '<span style="color:#b32d2e;">' . esc_html__( '缺 slug，无法生成页面', 'sa-core' ) . '</span>';
+			} else {
+				echo '<span style="color:#8c8f94;">' . esc_html__( '未公开', 'sa-core' ) . '</span>';
+			}
+			echo '</td>';
+
 			echo '<td><a class="button button-small" href="' . esc_url( $edit_url ) . '">' . esc_html__( '编辑', 'sa-core' ) . '</a></td>';
 			echo '</tr>';
 		}
@@ -403,7 +427,52 @@ class SA_Admin_Menu {
 		foreach ( array( 'active' => __( '启用', 'sa-core' ), 'inactive' => __( '停用', 'sa-core' ) ) as $k => $label ) {
 			echo '<option value="' . esc_attr( $k ) . '" ' . selected( $status, $k, false ) . '>' . esc_html( $label ) . '</option>';
 		}
-		echo '</select></td></tr>';
+		echo '</select>';
+		echo '<p class="description">' . esc_html__( '控制该院校是否参与 AI 匹配（内部逻辑），与下方「对外公开」是两件独立的事。', 'sa-core' ) . '</p>';
+		echo '</td></tr>';
+
+		echo '</tbody></table>';
+
+		/*
+		 * 对外公开设置
+		 *
+		 * 单独成块并加醒目说明：院校详情页会以真实院校名义对外展示学费、
+		 * 语言要求等事实信息，且可被搜索引擎收录。未经核实就勾选公开，
+		 * 等同于以该院校名义发布未核实数据。因此默认关闭，须逐校确认。
+		 */
+		$slug_val  = $val( 'slug' );
+		$published = ! empty( $val( 'published' ) );
+
+		echo '<h3>' . esc_html__( '对外公开设置（院校详情页）', 'sa-core' ) . '</h3>';
+		echo '<div style="background:#fff8e1;border:1px solid #f0c36d;border-radius:6px;padding:12px 14px;max-width:820px;margin-bottom:12px;">';
+		echo '<strong>' . esc_html__( '发布前请务必核实：', 'sa-core' ) . '</strong>';
+		echo '<ul style="margin:8px 0 0 18px;list-style:disc;">';
+		echo '<li>' . esc_html__( '院校名称、所在地、语言要求是否与官方信息一致', 'sa-core' ) . '</li>';
+		echo '<li>' . esc_html__( '各专业学费是否为当前年度数据（页面会标注「目安」，但仍不应偏离实际）', 'sa-core' ) . '</li>';
+		echo '<li>' . esc_html__( '是否有权以本站名义展示该院校信息', 'sa-core' ) . '</li>';
+		echo '</ul>';
+		echo '<p style="margin:8px 0 0;">' . esc_html__( '未勾选时，该院校页面返回 404，不会被搜索引擎收录，也不会出现在 sitemap 与院校列表中。', 'sa-core' ) . '</p>';
+		echo '</div>';
+
+		echo '<table class="form-table"><tbody>';
+
+		echo '<tr><th><label for="sa-field-slug">' . esc_html__( 'URL slug', 'sa-core' ) . '</label></th><td>';
+		echo '<input type="text" class="regular-text" id="sa-field-slug" name="slug" value="' . esc_attr( $slug_val ) . '" />';
+		echo '<p class="description">';
+		echo esc_html__( '公开页地址为 /schools/{slug}/。留空将按英文名自动生成（例：Waseda University → waseda-university）。', 'sa-core' );
+		echo '<br>' . esc_html__( '建议使用英文小写与连字符：日文/中文 slug 在 URL 中会被百分号编码，既不可读也不利于分享与外链。', 'sa-core' );
+		echo '</p>';
+		if ( $is_edit && '' !== $slug_val && function_exists( 'sa_school_url' ) ) {
+			echo '<p><strong>' . esc_html__( '当前地址：', 'sa-core' ) . '</strong> ';
+			echo '<a href="' . esc_url( sa_school_url( $slug_val ) ) . '" target="_blank" rel="noopener">'
+				. esc_html( sa_school_url( $slug_val ) ) . '</a></p>';
+		}
+		echo '</td></tr>';
+
+		echo '<tr><th>' . esc_html__( '对外公开', 'sa-core' ) . '</th><td>';
+		echo '<label><input type="checkbox" name="published" value="1" ' . checked( $published, true, false ) . ' /> ';
+		echo esc_html__( '生成可被搜索引擎收录的院校详情页', 'sa-core' ) . '</label>';
+		echo '</td></tr>';
 
 		echo '</tbody></table>';
 

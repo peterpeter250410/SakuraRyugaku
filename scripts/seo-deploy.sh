@@ -284,18 +284,94 @@ echo
 echo "############################################################"
 if [ "$FAILED" -eq 0 ]; then
     c_grn "#  发布完成，全部校验通过"
-    echo "#"
-    echo "#  接下来手工验证（链接清单）："
-    echo "#    bash scripts/seo-links.sh ${SITE_URL}"
-    echo "#"
-    echo "#  然后去 Google Search Console："
-    echo "#    1. 重新提交 sitemap: wp-sitemap.xml"
-    echo "#    2. 对 / 、/zh/ 、/en/ 分别执行「请求编入索引」"
-    echo "#    3. 查看「国际定位」报告，确认 hreflang 无错误"
 else
     c_red "#  发布过程中存在问题，请查看上方标红项"
 fi
 echo "############################################################"
-echo
+
+# ------------------------------------------------------------
+# 检查链接（直接可点，按优先级排列）
+# ------------------------------------------------------------
+HOST=$(echo "$SITE_URL" | sed 's#https\?://##; s#/.*##')
+
+# URL 编码，用于把站点地址塞进各工具的查询串
+enc() {
+    printf '%s' "$1" | sed \
+        -e 's|%|%25|g' -e 's|:|%3A|g' -e 's|/|%2F|g' \
+        -e 's|?|%3F|g' -e 's|&|%26|g' -e 's|=|%3D|g' -e 's|#|%23|g'
+}
+
+GSC_RES=$(enc "${SITE_URL}/")
+
+cat <<LINKS
+
+============================================================
+  一、收录情况（最该先看的）
+============================================================
+
+【GSC 索引报告】—— 已收录 / 未收录页数与原因
+  https://search.google.com/search-console/index?resource_id=$(enc "${SITE_URL}/")
+
+【GSC 站点地图】—— 确认已发现的网址数是否符合预期
+  https://search.google.com/search-console/sitemaps?resource_id=${GSC_RES}
+  待提交的 sitemap 路径： wp-sitemap.xml
+  直接查看： ${SITE_URL}/wp-sitemap.xml
+
+【GSC 效果报告】—— 展现量 / 点击 / 平均排名
+  https://search.google.com/search-console/performance/search-analytics?resource_id=${GSC_RES}
+
+【网址检查】—— 逐个语种确认收录状态，可「请求编入索引」
+  日文首页 https://search.google.com/search-console/inspect?resource_id=${GSC_RES}&id=$(enc "${SITE_URL}/")
+  中文首页 https://search.google.com/search-console/inspect?resource_id=${GSC_RES}&id=$(enc "${SITE_URL}/zh/")
+  英文首页 https://search.google.com/search-console/inspect?resource_id=${GSC_RES}&id=$(enc "${SITE_URL}/en/")
+  常见问题 https://search.google.com/search-console/inspect?resource_id=${GSC_RES}&id=$(enc "${SITE_URL}/faq/")
+  院校列表 https://search.google.com/search-console/inspect?resource_id=${GSC_RES}&id=$(enc "${SITE_URL}/schools/")
+
+【site: 快查收录量】—— 不用登录，最快的粗略判断
+  全站   https://www.google.com/search?q=$(enc "site:${HOST}")
+  中文站 https://www.google.com/search?q=$(enc "site:${HOST}/zh/")
+  英文站 https://www.google.com/search?q=$(enc "site:${HOST}/en/")
+  百度   https://www.baidu.com/s?wd=$(enc "site:${HOST}")
+
+============================================================
+  二、性能（Core Web Vitals，直接影响排名）
+============================================================
+
+  日文首页 https://pagespeed.web.dev/analysis?url=$(enc "${SITE_URL}/")
+  中文首页 https://pagespeed.web.dev/analysis?url=$(enc "${SITE_URL}/zh/")
+  英文首页 https://pagespeed.web.dev/analysis?url=$(enc "${SITE_URL}/en/")
+  院校列表 https://pagespeed.web.dev/analysis?url=$(enc "${SITE_URL}/schools/")
+  移动端目标： LCP < 2.5s ／ CLS < 0.1 ／ INP < 200ms ／ 性能 >= 75
+
+  中国大陆访问速度 https://www.itdog.cn/http/${HOST}
+
+============================================================
+  三、结构化数据与多语言
+============================================================
+
+  富媒体结果测试 https://search.google.com/test/rich-results?url=$(enc "${SITE_URL}/")
+  Schema 校验器  https://validator.schema.org/#url=$(enc "${SITE_URL}/")
+  hreflang 校验  https://technicalseo.com/tools/hreflang/?url=$(enc "${SITE_URL}/")
+  说明: GSC 的「国际定位」报告已被 Google 下线；hreflang 问题现在改为
+        在「编制索引 → 网页」里看是否出现「重复网页，Google 选择的规范网址不同」。
+
+============================================================
+  四、其它站长平台
+============================================================
+
+  必应站长工具   https://www.bing.com/webmasters/   （可从 GSC 一键导入）
+  百度资源平台   https://ziyuan.baidu.com/          （主攻中国市场必做）
+  SSL 证书等级   https://www.ssllabs.com/ssltest/analyze.html?d=$(enc "${HOST}")
+
+============================================================
+  五、本地命令
+============================================================
+
+  完整检查链接清单   bash scripts/seo-links.sh ${SITE_URL}
+  仅本地代码排查     bash scripts/seo-audit.sh
+  无用组件排查       bash scripts/cleanup-check.sh
+  重新生成分享图     php scripts/make-og-image.php
+
+LINKS
 
 exit "$FAILED"
