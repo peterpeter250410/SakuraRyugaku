@@ -40,40 +40,55 @@ msgstr "导航"
 msgid "サービス紹介"
 msgstr "服务介绍"
 
-#: footer.php:26
+#: footer.php:29
+#: header.php:59
+#: inc/schools.php:403
+#: template-schools.php:38
+msgid "対応院校一覧"
+msgstr "合作院校一览"
+
+#: footer.php:31
 #: inc/i18n.php:459
 #: page-about.php:25
 msgid "私たちについて"
 msgstr "关于我们"
 
-#: footer.php:27
+#: footer.php:32
 #: front-page.php:283
-#: header.php:57
+#: header.php:61
 #: inc/i18n.php:457
 #: page-faq.php:207
 msgid "よくある質問"
 msgstr "常见问题"
 
-#: footer.php:28
-#: footer.php:32
+#: footer.php:33
+#: footer.php:37
 #: inc/i18n.php:458
 #: page-contact.php:25
 msgid "お問い合わせ"
 msgstr "联系我们"
 
-#: footer.php:34
+#: footer.php:39
 #: front-page.php:78
 #: page-contact.php:35
 msgid "メール"
 msgstr "邮箱"
 
-#: footer.php:42
+#: footer.php:57
+msgid "言語を選択"
+msgstr "选择语言"
+
+#: footer.php:58
+msgid "言語"
+msgstr "语言"
+
+#: footer.php:82
 #: front-page.php:121
 #: inc/i18n.php:468
 msgid "プライバシーポリシー"
 msgstr "隐私政策"
 
-#: footer.php:50
+#: footer.php:90
 msgid "無料で学校診断"
 msgstr "免费院校匹配"
 
@@ -392,7 +407,7 @@ msgstr "服务"
 msgid "流れ"
 msgstr "流程"
 
-#: header.php:92
+#: header.php:96
 #: inc/i18n.php:463
 msgid "無料相談"
 msgstr "免费咨询"
@@ -500,11 +515,6 @@ msgstr "每年约 %s 万日元（参考）"
 #: inc/schools.php:395
 msgid "%1$s（%2$s）"
 msgstr "%1$s（%2$s）"
-
-#: inc/schools.php:403
-#: template-schools.php:38
-msgid "対応院校一覧"
-msgstr "合作院校一览"
 
 #: inc/schools.php:423
 msgid "語学学校から大学院まで、対応している日本の院校を一覧でご紹介します。学費・語学要件・所在地から比較し、気になる学校は無料でマッチング診断を受けられます。"

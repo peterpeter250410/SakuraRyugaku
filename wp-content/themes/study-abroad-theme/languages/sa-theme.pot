@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-12T11:25:23+00:00\n"
+"POT-Creation-Date: 2026-09-12T11:39:09+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: sa-theme\n"
@@ -44,40 +44,55 @@ msgstr ""
 msgid "サービス紹介"
 msgstr ""
 
-#: footer.php:26
+#: footer.php:29
+#: header.php:59
+#: inc/schools.php:403
+#: template-schools.php:38
+msgid "対応院校一覧"
+msgstr ""
+
+#: footer.php:31
 #: inc/i18n.php:459
 #: page-about.php:25
 msgid "私たちについて"
 msgstr ""
 
-#: footer.php:27
+#: footer.php:32
 #: front-page.php:283
-#: header.php:57
+#: header.php:61
 #: inc/i18n.php:457
 #: page-faq.php:207
 msgid "よくある質問"
 msgstr ""
 
-#: footer.php:28
-#: footer.php:32
+#: footer.php:33
+#: footer.php:37
 #: inc/i18n.php:458
 #: page-contact.php:25
 msgid "お問い合わせ"
 msgstr ""
 
-#: footer.php:34
+#: footer.php:39
 #: front-page.php:78
 #: page-contact.php:35
 msgid "メール"
 msgstr ""
 
-#: footer.php:42
+#: footer.php:57
+msgid "言語を選択"
+msgstr ""
+
+#: footer.php:58
+msgid "言語"
+msgstr ""
+
+#: footer.php:82
 #: front-page.php:121
 #: inc/i18n.php:468
 msgid "プライバシーポリシー"
 msgstr ""
 
-#: footer.php:50
+#: footer.php:90
 msgid "無料で学校診断"
 msgstr ""
 
@@ -397,7 +412,7 @@ msgstr ""
 msgid "流れ"
 msgstr ""
 
-#: header.php:92
+#: header.php:96
 #: inc/i18n.php:463
 msgid "無料相談"
 msgstr ""
@@ -507,11 +522,6 @@ msgstr ""
 #: inc/schools.php:395
 #, php-format
 msgid "%1$s（%2$s）"
-msgstr ""
-
-#: inc/schools.php:403
-#: template-schools.php:38
-msgid "対応院校一覧"
 msgstr ""
 
 #: inc/schools.php:423

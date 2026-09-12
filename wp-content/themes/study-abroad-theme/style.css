@@ -759,3 +759,40 @@ a { color: var(--sa-accent); text-decoration: none; }
 	.sa-school-facts dl { grid-template-columns: 1fr; }
 	.sa-school-detail__h2 { font-size: 18px; margin: 32px 0 14px; }
 }
+
+/* 页脚语种入口
+   头部语言切换器在下拉里，权重信号弱；hreflang 只声明替代关系、不促使收录。
+   真正让 /zh/ 与 /en/ 被抓取的是全站稳定可见的内链，故在页脚常驻一组。 */
+.sa-footer__langs {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px 14px;
+	padding: 18px 0 0;
+	margin-top: 8px;
+	border-top: 1px solid rgba(255, 255, 255, .12);
+}
+.sa-footer__langs-label { font-size: 13px; opacity: .65; }
+.sa-footer__langs ul {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 10px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.sa-footer__langs a {
+	display: inline-block;
+	font-size: 13px;
+	padding: 4px 12px;
+	border: 1px solid rgba(255, 255, 255, .22);
+	border-radius: 999px;
+	text-decoration: none;
+	opacity: .85;
+}
+.sa-footer__langs a:hover { opacity: 1; border-color: rgba(255, 255, 255, .5); }
+.sa-footer__langs a[aria-current="true"] {
+	border-color: var(--sa-primary);
+	opacity: 1;
+	font-weight: 700;
+}
