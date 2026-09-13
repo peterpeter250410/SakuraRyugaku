@@ -462,6 +462,55 @@ if [ "$SCHOOLS_CODE" = "200" ]; then
                 "")          bad "详情页未输出 canonical" ;;
                 *)           bad "详情页 canonical 未指向自身（${DETAIL_CANON}）" ;;
             esac
+
+            # --- 事实准确性相关的检查 ---
+            # 这些页面冠着真实院校名称展示学费，写错就是发布虚假信息，
+            # 因此把「容易错、错了后果重」的几项固化成检查。
+            SCHOOL_TXT=$(tr '\n' ' ' < "${TMP}/school.html" 2>/dev/null)
+
+            # 1) 结构化数据里院校实体的 url 绝不能是本站。
+            #    标成本站等于声称「本站就是这所学校」。
+            ABOUT_URL=$(printf '%s' "$SCHOOL_TXT" \
+                | grep -o '"about":{[^}]*"url":"[^"]*"' 2>/dev/null \
+                | head -1 | sed 's/.*"url":"//; s/"$//; s/\\\///g')
+            if [ -z "$ABOUT_URL" ]; then
+                warn "详情页 about 节点未输出 url（该校未填 official_url 时属预期）"
+            else
+                case "$ABOUT_URL" in
+                    *studyinjp.com*)
+                        bad "结构化数据把院校实体的 url 指向了本站（${ABOUT_URL}）—— 等于声称本站就是这所学校" ;;
+                    http*)
+                        ok "院校实体 url 指向校方官网: ${ABOUT_URL}" ;;
+                    *)
+                        warn "院校实体 url 取值异常: ${ABOUT_URL}" ;;
+                esac
+            fi
+
+            # 2) 学费口径必须显式写出「年間」或「総額」。
+            #    此前代码把单位硬编码成「年間」，会把课程总额显示成年额，
+            #    金额差出一倍 —— 这条检查就是为了防止那种回归。
+            if printf '%s' "$SCHOOL_TXT" | grep -q '学費'; then
+                if printf '%s' "$SCHOOL_TXT" | grep -qE '(年間|総額|年间|总额|Total|per year)'; then
+                    BASIS_SHOWN=$(printf '%s' "$SCHOOL_TXT" | grep -oE '(年間 [^<]{0,24}万円|総額 [^<]{0,24}万円)' | head -2 | tr '\n' ' ')
+                    ok "学费已标明口径: ${BASIS_SHOWN:-（非日文语种）}"
+                else
+                    warn "详情页有学费表但未见「年間 / 総額」字样，请确认口径是否显示"
+                fi
+            fi
+
+            # 3) 关系开示必须在页面上真实出现（不能只在模板里）。
+            if printf '%s' "$SCHOOL_TXT" | grep -qE '(代理店ではありません|不是所刊载院校的代理|not an agent)'; then
+                ok "关系开示已在详情页输出"
+            else
+                bad "详情页未见关系开示 —— 页面以真实校名展示学费却未说明本站与该校无代理关系"
+            fi
+
+            # 4) 官网链接：页面写着「以官方最新信息为准」，就必须给得出链接。
+            if printf '%s' "$SCHOOL_TXT" | grep -qE 'rel="noopener"[^>]*>|学校公式サイト|学校官方网站|Official website'; then
+                ok "详情页含学校官网入口"
+            else
+                warn "详情页未见学校官网链接（该校未填 official_url？）"
+            fi
         else
             bad "院校详情页返回 ${DETAIL_CODE}: ${FIRST_SCHOOL}"
         fi
