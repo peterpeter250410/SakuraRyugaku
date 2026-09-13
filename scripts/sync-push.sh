@@ -151,17 +151,97 @@ else
     printf "  粘贴 Token 后按回车（输入不会显示）: "
     read -rs GH_TOKEN
     echo
-    if [ -z "${GH_TOKEN:-}" ]; then
+    # 粘贴时常带上首尾空白或换行，它们会让认证静默失败。
+    GH_TOKEN=$(printf '%s' "${GH_TOKEN:-}" | tr -d '[:space:]')
+
+    if [ -z "$GH_TOKEN" ]; then
         c_red "  未输入 Token，已终止。"
         exit 1
     fi
-    PUSH_URL="https://x-access-token:${GH_TOKEN}@github.com/${REPO_PATH}.git"
 
-    echo "  正在验证 Token…"
-    if GIT_TERMINAL_PROMPT=0 git push --dry-run "$PUSH_URL" "${BRANCH}" >/dev/null 2>&1; then
-        c_grn "  Token 有效"
+    # 回显长度与前缀，让人能确认「确实粘进来了、粘的是完整的那一串」，
+    # 同时不泄露 token 本身。classic token 是 ghp_ + 36 位，共 40 字符；
+    # fine-grained 是 github_pat_ 开头、长度 90+。
+    TOK_LEN=${#GH_TOKEN}
+    TOK_HEAD=$(printf '%s' "$GH_TOKEN" | cut -c1-4)
+    echo "  已读取：长度 ${TOK_LEN}，以 ${TOK_HEAD}… 开头"
+    case "$GH_TOKEN" in
+        ghp_*)        echo "  类型：classic token" ;;
+        github_pat_*) c_ylw "  类型：fine-grained token —— 需要在 token 的 Repository access 里"
+                      c_ylw "        选中本仓库，并把 Contents 权限设为 Read and write" ;;
+        gho_*|ghu_*)  c_ylw "  类型：OAuth/用户 token，通常不能用于推送" ;;
+        *)            c_ylw "  类型：无法识别。确认复制的是 token 本身，而不是页面上的其它文字" ;;
+    esac
+
+    # ---- 先问 GitHub API，它的报错比 git push 明确得多 ----
+    echo "  正在向 GitHub 核对…"
+    API_HEAD=$(curl -sS -D - -o /dev/null --max-time 20 \
+        -H "Authorization: Bearer ${GH_TOKEN}" \
+        -H "Accept: application/vnd.github+json" \
+        https://api.github.com/user 2>&1)
+    API_CODE=$(printf '%s' "$API_HEAD" | awk 'toupper($1) ~ /^HTTP/ {print $2}' | tail -1)
+    API_SCOPES=$(printf '%s' "$API_HEAD" | awk -F': ' 'tolower($1)=="x-oauth-scopes" {print $2}' | tr -d '\r')
+
+    case "${API_CODE:-0}" in
+        200)
+            c_grn "  Token 本身有效（GitHub 认得它）"
+            if [ -n "$API_SCOPES" ]; then
+                echo "  已授予的权限: ${API_SCOPES}"
+                # 必须按逗号分隔逐项精确比对，不能用 *repo* 通配 ——
+                # public_repo 含子串 repo，但它只能推公开仓库，
+                # 通配会把一个推不了私有仓库的 token 判成合格。
+                HAS_REPO=0
+                OLD_IFS=$IFS; IFS=','
+                for s in $API_SCOPES; do
+                    s=$(printf '%s' "$s" | tr -d '[:space:]')
+                    [ "$s" = "repo" ] && HAS_REPO=1
+                done
+                IFS=$OLD_IFS
+
+                if [ "$HAS_REPO" = "1" ]; then
+                    c_grn "  含 repo 权限"
+                else
+                    c_red "  缺少 repo 权限 —— 这是推送必需的。"
+                    case "$API_SCOPES" in
+                        *public_repo*)
+                            c_red "  当前只有 public_repo：它只能推送公开仓库。" ;;
+                    esac
+                    c_red "  回到 https://github.com/settings/tokens 重新生成，"
+                    c_red "  勾选最外层的 repo（而不是它下面的子项），再跑一次本脚本。"
+                    exit 1
+                fi
+            fi
+            ;;
+        401)
+            c_red "  GitHub 返回 401：token 无效、已过期，或被撤销。"
+            c_red "  常见原因：复制时漏了字符；token 只在生成页面显示一次，"
+            c_red "            事后无法再查看，遗失只能重新生成。"
+            exit 1 ;;
+        403)
+            c_red "  GitHub 返回 403：token 有效但被拒绝（可能触发了速率限制或组织策略）。"
+            exit 1 ;;
+        "")
+            c_red "  无法连到 api.github.com。检查服务器出网："
+            echo "$API_HEAD" | head -3 | sed 's/^/       /'
+            exit 1 ;;
+        *)
+            c_red "  GitHub 返回 HTTP ${API_CODE}，未预期的响应。"
+            exit 1 ;;
+    esac
+
+    # ---- 再试真正的推送权限 ----
+    PUSH_URL="https://x-access-token:${GH_TOKEN}@github.com/${REPO_PATH}.git"
+    echo "  正在验证对 ${REPO_PATH} 的推送权限…"
+    PUSH_ERR=$(GIT_TERMINAL_PROMPT=0 git push --dry-run "$PUSH_URL" "${BRANCH}" 2>&1)
+    if [ $? -eq 0 ]; then
+        c_grn "  可以推送"
     else
-        c_red "  Token 无效或权限不足（需要 repo 权限）。"
+        c_red "  推送被拒绝。git 的原始报错（token 已打码）："
+        printf '%s\n' "$PUSH_ERR" | sed "s|x-access-token:[^@]*@|***@|g" | head -6 | sed 's/^/       /'
+        echo
+        c_ylw "  token 本身是有效的，所以问题出在权限范围或仓库路径上："
+        c_ylw "    · 确认 ${REPO_PATH} 拼写无误，且这个账号对它有写权限"
+        c_ylw "    · fine-grained token 需单独授权该仓库并给 Contents: Read and write"
         exit 1
     fi
 fi
