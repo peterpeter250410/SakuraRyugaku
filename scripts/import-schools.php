@@ -10,12 +10,18 @@
  * 幂等：按 slug 判断，已存在则更新，不存在则新建。
  * 可反复执行，不会产生重复院校。
  *
- * published 字段的语义与后台一致：只有显式写 true 的院校才对外可见。
- * 导入时会统计并明确提示有多少所将被公开，避免误发布未核实数据。
+ * published 的语义：
+ *   新建院校时按 JSON 取值（默认 false，即页面 404、不被收录）。
+ *   更新已有院校时**不动**这个字段 —— 发布与否是运营状态，不是院校资料：
+ *   某校下线后，为了补一句简介重跑导入，不该把它又悄悄发布出去。
+ *   日常发布 / 下线请用 scripts/publish-school.sh，它直接改库并验证页面状态，
+ *   不需要编辑这个被 git 跟踪的 JSON（在服务器上改它会让工作区变脏，
+ *   挡住下一次 git merge --ff-only —— 本项目实际踩过）。
  *
  * 用法：
  *   php scripts/import-schools.php <file.json>
- *   php scripts/import-schools.php <file.json> --dry-run   只校验不写库
+ *   php scripts/import-schools.php <file.json> --dry-run          只校验不写库
+ *   php scripts/import-schools.php <file.json> --force-published  用 JSON 覆盖线上发布状态
  *
  * JSON 格式（顶层为数组）：
  * [
@@ -57,7 +63,9 @@ if ( PHP_SAPI !== 'cli' ) {
 }
 
 $args    = array_slice( $argv, 1 );
-$dry_run = in_array( '--dry-run', $args, true );
+$dry_run         = in_array( '--dry-run', $args, true );
+// 默认不用 JSON 的 published 覆盖已有院校的线上发布状态，见下方更新分支的说明。
+$force_published = in_array( '--force-published', $args, true );
 $files   = array_values( array_filter( $args, function ( $a ) { return 0 !== strpos( $a, '--' ); } ) );
 
 if ( empty( $files ) ) {
@@ -229,15 +237,21 @@ foreach ( $data as $row ) {
 }
 
 if ( empty( $to_publish ) ) {
-	echo "本次导入的院校全部为「不公开」，页面将返回 404，不会被搜索引擎收录。\n";
-	echo "核实数据后，在后台勾选「对外公开」或把 JSON 中 published 改为 true 再次导入。\n\n";
+	echo "JSON 中的院校全部标记为「不公开」。新建的院校将返回 404，不会被搜索引擎收录。\n";
 } else {
-	echo "本次将【对外公开】以下 " . count( $to_publish ) . " 所院校（页面可被搜索引擎收录）：\n";
+	echo "JSON 中以下 " . count( $to_publish ) . " 所院校标记为 published：\n";
 	foreach ( $to_publish as $n ) {
 		echo "  ● {$n}\n";
 	}
-	echo "  请确认这些院校的名称、所在地、学费均已核实无误。\n\n";
 }
+if ( $force_published ) {
+	echo "\n⚠ 已指定 --force-published：JSON 的 published 会覆盖线上状态，\n";
+	echo "  包括把此前刻意下线的院校重新公开。请确认这是你要的结果。\n";
+} else {
+	echo "\n已有院校的发布状态以数据库为准，本次不会被 JSON 改动（新建的院校按 JSON 取值）。\n";
+	echo "发布 / 下线请用： bash scripts/publish-school.sh <slug> on|off\n";
+}
+echo "\n";
 
 if ( $dry_run ) {
 	echo "校验通过。去掉 --dry-run 即可实际导入。\n";
@@ -289,10 +303,37 @@ foreach ( $data as $row ) {
 	}
 
 	if ( $existing_id > 0 ) {
+		/*
+		 * 更新已有院校时，默认不动 published。
+		 *
+		 * 发布与否是运营状态，不是院校资料的一部分：某校核实后被下线，
+		 * 下一次为了补一句简介而重跑导入，不应该把它又悄悄发布出去。
+		 * 因此让数据库里的开关保持权威，JSON 里的 published 只作为
+		 * 新建时的初始值（默认 false）。
+		 *
+		 * 确实要用 JSON 覆盖线上状态时，显式加 --force-published。
+		 * 日常的发布 / 下线请用：bash scripts/publish-school.sh <slug> on|off
+		 */
+		$cur_pub = (int) $wpdb->get_var(
+			$wpdb->prepare( "SELECT published FROM {$schools_table} WHERE id = %d", $existing_id )
+		);
+		if ( ! $force_published ) {
+			unset( $fields['published'] );
+		}
+
 		SA_School_Repo::update_school( $existing_id, $fields );
 		$school_id = $existing_id;
 		++$updated;
-		printf( "  [更新] #%d %s\n", $school_id, $fields['name'] );
+
+		$pub_note = '';
+		if ( ! $force_published && (int) ( ! empty( $row['published'] ) ) !== $cur_pub ) {
+			$pub_note = sprintf(
+				'（JSON 写的是 published=%s，但保留线上的 %s —— 如需覆盖请加 --force-published）',
+				! empty( $row['published'] ) ? 'true' : 'false',
+				$cur_pub ? '已发布' : '未发布'
+			);
+		}
+		printf( "  [更新] #%d %s %s\n", $school_id, $fields['name'], $pub_note );
 	} else {
 		$school_id = SA_School_Repo::create_school( $fields );
 		if ( ! $school_id ) {
