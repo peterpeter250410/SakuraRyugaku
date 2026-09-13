@@ -45,6 +45,19 @@ echo "============================================================"
 echo
 c_cyn "--- 1. 待提交的文件 ---"
 
+#
+# git 的状态不止「未跟踪」和「已修改」两种，漏掉任何一种都会误判。
+# 这里按 porcelain 的实际取值分清楚：
+#
+#   ??   未跟踪          —— 新文件，符合资源特征就加入
+#   A    已暂存的新增    —— 有人先跑过 git add，等着提交，直接用
+#   M    已暂存的修改    —— 同上
+#    M   已修改未暂存    —— 对已跟踪文件的改动，属于代码变更，要人明确指定
+#
+# 此前只处理了 ?? 和 " M"，结果把已暂存的资源文件（A）错判成「代码改动」
+# 而拒绝提交 —— 那恰恰是要提交的东西。
+STAGED=$(git diff --cached --name-only 2>/dev/null)
+
 if [ "$#" -gt 0 ]; then
     FILES="$*"
     echo "  使用命令行指定的路径"
@@ -55,8 +68,9 @@ else
     # 曾经写成 google[0-9a-f]+ 只能匹配十六进制 token，换个站点就漏掉。
     FILES=$(git ls-files --others --exclude-standard 2>/dev/null \
         | grep -Ei '^(google[a-z0-9_-]+\.html|baidu[_-]?verify.*|sogousiteverification.*|_?bytedance.*\.txt|wp-content/themes/[^/]+/assets/)' || true)
-    if [ -z "$FILES" ]; then
-        MODIFIED=$(git status --porcelain --untracked-files=no)
+    if [ -z "$FILES" ] && [ -z "$STAGED" ]; then
+        # 只看「未暂存的」改动 —— 已暂存的由 $STAGED 处理，不该在这里报警。
+        MODIFIED=$(git diff --name-only 2>/dev/null)
         OTHER_UNTRACKED=$(git ls-files --others --exclude-standard 2>/dev/null)
 
         if [ -n "$MODIFIED" ]; then
@@ -84,8 +98,16 @@ else
     fi
 fi
 
-echo "$FILES" | tr ' ' '\n' | grep -v '^$' | sed 's/^/       /'
-TOTAL=$(echo "$FILES" | tr ' ' '\n' | grep -vc '^$')
+if [ -n "$STAGED" ]; then
+    echo "  已暂存（之前跑过 git add，等待提交）："
+    echo "$STAGED" | sed 's/^/       /'
+fi
+if [ -n "$FILES" ]; then
+    [ -n "$STAGED" ] && echo "  本次新加入："
+    echo "$FILES" | tr ' ' '\n' | grep -v '^$' | sed 's/^/       /'
+fi
+
+TOTAL=$(printf '%s\n%s\n' "$STAGED" "$FILES" | tr ' ' '\n' | grep -vc '^$')
 echo "  共 ${TOTAL} 项"
 
 # ---------- 2. git 身份 ----------
@@ -158,8 +180,11 @@ esac
 echo
 c_cyn "--- 5. 提交并推送 ---"
 
-# shellcheck disable=SC2086
-git add -- $FILES || { c_red "  git add 失败"; exit 1; }
+# 已暂存的无需再 add；只加入本次新挑选出来的。
+if [ -n "$FILES" ]; then
+    # shellcheck disable=SC2086
+    git add -- $FILES || { c_red "  git add 失败"; exit 1; }
+fi
 
 if git diff --cached --quiet; then
     c_ylw "  暂存区为空（这些文件可能已在仓库中），无需提交。"
