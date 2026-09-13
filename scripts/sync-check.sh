@@ -169,15 +169,35 @@ fi
 # ---------- 4. 推送权限 ----------
 echo
 c_cyn "--- 4. 本机能否推送到 GitHub ---"
-PUSH_TEST=$(git push --dry-run origin "${BRANCH}" 2>&1)
-if [ $? -eq 0 ]; then
-    c_grn "  可以推送（已通过 --dry-run 验证，未实际推送任何内容）"
+#
+# GIT_TERMINAL_PROMPT=0 是必须的：没有凭据时 git 会交互式地要
+# 用户名和密码，把这个「检查」变成一个挂起等待输入的命令。
+# 诊断脚本必须立刻失败并说明原因，绝不能阻塞。
+if GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=/bin/true \
+    git push --dry-run origin "${BRANCH}" >/dev/null 2>"${SITE_ROOT}/.sync-push-test" ; then
+    c_grn "  可以推送（--dry-run 验证，未实际推送任何内容）"
+    PUSH_OK=1
 else
-    c_ylw "  推送可能不可用："
-    echo "$PUSH_TEST" | head -4 | sed 's/^/       /'
-    echo "       若是认证问题，在 GitHub 生成 Personal Access Token 后执行："
-    echo "         git remote set-url origin https://<TOKEN>@github.com/peterpeter250410/SakuraRyugaku.git"
+    PUSH_OK=0
+    c_ylw "  无法推送："
+    head -4 "${SITE_ROOT}/.sync-push-test" 2>/dev/null | sed 's/^/       /'
+    echo
+    echo "       这台机器没有推送权限。两种处理方式："
+    echo
+    echo "       [A] 配置 Personal Access Token（一次配置，长期有效）"
+    echo "           1. 打开 https://github.com/settings/tokens"
+    echo "           2. Generate new token (classic) → 勾选 repo → 生成并复制"
+    echo "           3. 在本机执行（把 <TOKEN> 换成刚复制的值）："
+    echo "              git remote set-url origin https://<TOKEN>@github.com/peterpeter250410/SakuraRyugaku.git"
+    echo "           4. 重新运行本脚本确认"
+    echo
+    echo "       [B] 不配置凭据，把文件交给开发侧代为提交"
+    echo "           打包上面「应当入库」的文件："
+    echo "              cd ${SITE_ROOT} && tar -czf /tmp/prod-assets.tar.gz \\"
+    echo "                \$(git ls-files --others --exclude-standard | grep -E '^(google|wp-content/themes/.*/assets/)')"
+    echo "           然后把 /tmp/prod-assets.tar.gz 下载下来发出去。"
 fi
+rm -f "${SITE_ROOT}/.sync-push-test"
 
 # ---------- 处理建议 ----------
 if [ "$SHOW_FIX" = "1" ] && [ "$DRIFT" = "1" ]; then
