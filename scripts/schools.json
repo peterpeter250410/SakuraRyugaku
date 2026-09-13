@@ -1,0 +1,218 @@
+[
+  {
+    "_comment": "ヒューマンアカデミー日本語学校 —— 目前唯一学费数据完整的院校。学费为课程总额（非年额），五组数字经算术交叉验证：第一年 907,500 円，其后每 3 个月 206,250 円。⚠ 采集时表格被拍平，列标题丢失，课程与金额的对应关系是按算术一致性反推的，发布前必须对照官网原表核对。",
+    "slug": "human-academy-japanese-school",
+    "name": "ヒューマンアカデミー日本語学校",
+    "name_i18n": {
+      "ja": "ヒューマンアカデミー日本語学校",
+      "zh": "Human Academy 日本语学校",
+      "en": "Human Academy Japanese Language School"
+    },
+    "official_url": "https://hajl.athuman.com",
+    "school_type": "language",
+    "region": "関東",
+    "city": "東京（高田馬場）",
+    "language_req": "",
+    "min_education": "",
+    "status": "active",
+    "published": false,
+    "sort_order": 10,
+    "description_i18n": {
+      "ja": "ヒューマンアカデミー日本語学校は、東京（高田馬場）・大阪（本町）・神戸（三宮）・福岡（天神）・広島（八丁堀）に校舎を置く日本語学校です。いずれの校舎も最寄駅から徒歩10分以内に位置しています。\n\nコースは9か月から2年まで、入学時期に応じて複数の期間が用意されています。\n\n※ 横浜校は2027年4月開校予定で、文部科学省への認定申請中です（2026年9月時点の公表情報）。",
+      "zh": "Human Academy 日本语学校在东京（高田马场）、大阪（本町）、神户（三宫）、福冈（天神）、广岛（八丁堀）设有校区，各校区均距最近车站步行 10 分钟以内。\n\n课程按入学时期提供 9 个月至 2 年的多种学习期间。\n\n※ 横滨校区预定于 2027 年 4 月开校，目前正在向文部科学省申请认定（截至 2026 年 9 月的公开信息）。",
+      "en": "Human Academy Japanese Language School has campuses in Tokyo (Takadanobaba), Osaka (Hommachi), Kobe (Sannomiya), Fukuoka (Tenjin) and Hiroshima (Hatchobori), each within a 10-minute walk of the nearest station.\n\nCourse lengths range from 9 months to 2 years, depending on the intake.\n\nNote: the Yokohama campus is scheduled to open in April 2027 and is currently applying for MEXT accreditation (per information published as of September 2026)."
+    },
+    "programs": [
+      {
+        "name": "2年コース",
+        "name_i18n": { "zh": "2 年课程", "en": "2-year course" },
+        "duration": "2年",
+        "tuition_min": 1732500,
+        "tuition_max": 1732500,
+        "tuition_basis": "total",
+        "tuition_note": "入学金・授業料・教材費を含む総額。選考料 27,500円は別途。"
+      },
+      {
+        "name": "1年9か月コース",
+        "name_i18n": { "zh": "1 年 9 个月课程", "en": "1 year 9 months course" },
+        "duration": "1年9か月",
+        "tuition_min": 1526250,
+        "tuition_max": 1526250,
+        "tuition_basis": "total",
+        "tuition_note": "入学金・授業料・教材費を含む総額。選考料 27,500円は別途。"
+      },
+      {
+        "name": "1年6か月コース",
+        "name_i18n": { "zh": "1 年 6 个月课程", "en": "1 year 6 months course" },
+        "duration": "1年6か月",
+        "tuition_min": 1320000,
+        "tuition_max": 1320000,
+        "tuition_basis": "total",
+        "tuition_note": "入学金・授業料・教材費を含む総額。選考料 27,500円は別途。"
+      },
+      {
+        "name": "1年3か月コース",
+        "name_i18n": { "zh": "1 年 3 个月课程", "en": "1 year 3 months course" },
+        "duration": "1年3か月",
+        "tuition_min": 1113750,
+        "tuition_max": 1113750,
+        "tuition_basis": "total",
+        "tuition_note": "入学金・授業料・教材費を含む総額。選考料 27,500円は別途。"
+      },
+      {
+        "name": "9か月コース",
+        "name_i18n": { "zh": "9 个月课程", "en": "9-month course" },
+        "duration": "9か月",
+        "tuition_min": 701250,
+        "tuition_max": 701250,
+        "tuition_basis": "total",
+        "tuition_note": "入学金・授業料・教材費を含む総額。選考料 27,500円は別途。"
+      }
+    ]
+  },
+
+  {
+    "_comment": "千駄ヶ谷グループ 1/3 —— 学费在官网由 JS 动态渲染，静态 HTML 抓不到，故 tuition 全为 0，页面不显示学费行。补齐学费前不要发布。",
+    "slug": "sendagaya-japanese-school",
+    "name": "千駄ヶ谷日本語学校",
+    "name_i18n": {
+      "ja": "千駄ヶ谷日本語学校",
+      "zh": "千驮谷日本语学校",
+      "en": "Sendagaya Japanese School"
+    },
+    "official_url": "https://group.jp-sji.org/sjs/",
+    "school_type": "language",
+    "region": "関東",
+    "city": "東京",
+    "language_req": "",
+    "min_education": "",
+    "status": "active",
+    "published": false,
+    "sort_order": 20,
+    "description_i18n": {
+      "ja": "千駄ヶ谷日本語教育研究所グループの一校で、進学準備教育課程を設置しています。定員は1,728名、入学時期は4月と10月です。",
+      "zh": "千驮谷日本语教育研究所集团旗下院校，设有升学准备教育课程。定员 1,728 名，入学时期为 4 月与 10 月。",
+      "en": "Part of the Sendagaya Japanese Institute group, offering a university-preparation programme. Capacity 1,728 students; intakes in April and October."
+    },
+    "programs": [
+      {
+        "name": "進学準備教育課程",
+        "name_i18n": { "zh": "升学准备教育课程", "en": "University preparation programme" },
+        "duration": "",
+        "tuition_min": 0,
+        "tuition_max": 0,
+        "tuition_basis": "total",
+        "tuition_note": ""
+      }
+    ]
+  },
+
+  {
+    "_comment": "千駄ヶ谷グループ 2/3 —— 大学院進学コース。N1 以上是官网明确写出的要求。学费同样为 JS 渲染，未取得。",
+    "slug": "sendagaya-japanese-institute",
+    "name": "千駄ヶ谷日本語教育研究所",
+    "name_i18n": {
+      "ja": "千駄ヶ谷日本語教育研究所",
+      "zh": "千驮谷日本语教育研究所",
+      "en": "Sendagaya Japanese Institute"
+    },
+    "official_url": "https://group.jp-sji.org/sji/",
+    "school_type": "language",
+    "region": "関東",
+    "city": "東京",
+    "language_req": "N1",
+    "min_education": "",
+    "status": "active",
+    "published": false,
+    "sort_order": 21,
+    "description_i18n": {
+      "ja": "千駄ヶ谷日本語教育研究所グループの一校で、大学院進学コースを設置しています。出願にはN1以上の日本語力が必要です。定員は900名、入学時期は4月・7月・10月・1月です。",
+      "zh": "千驮谷日本语教育研究所集团旗下院校，设有大学院（研究生）升学课程。报考需具备 N1 以上日语能力。定员 900 名，入学时期为 4 月、7 月、10 月、1 月。",
+      "en": "Part of the Sendagaya Japanese Institute group, offering a graduate-school preparation course. Applicants need JLPT N1 or above. Capacity 900 students; intakes in April, July, October and January."
+    },
+    "programs": [
+      {
+        "name": "大学院進学コース",
+        "name_i18n": { "zh": "大学院升学课程", "en": "Graduate school preparation course" },
+        "duration": "",
+        "language_req": "N1",
+        "tuition_min": 0,
+        "tuition_max": 0,
+        "tuition_basis": "total",
+        "tuition_note": ""
+      }
+    ]
+  },
+
+  {
+    "_comment": "千駄ヶ谷グループ 3/3 —— 就職課程。定員100名と最も小規模。学费同样未取得。",
+    "slug": "sendagaya-language-school",
+    "name": "千駄ヶ谷外語学院",
+    "name_i18n": {
+      "ja": "千駄ヶ谷外語学院",
+      "zh": "千驮谷外语学院",
+      "en": "Sendagaya Language School"
+    },
+    "official_url": "https://group.jp-sji.org/sls/",
+    "school_type": "language",
+    "region": "関東",
+    "city": "東京（駒込）",
+    "language_req": "",
+    "min_education": "",
+    "status": "active",
+    "published": false,
+    "sort_order": 22,
+    "description_i18n": {
+      "ja": "千駄ヶ谷日本語教育研究所グループの一校で、就職課程を設置しています。定員は100名と小規模で、入学時期は4月・7月・10月です。駒込駅から徒歩5分に位置しています。",
+      "zh": "千驮谷日本语教育研究所集团旗下院校，设有就职课程。定员 100 名，规模较小，入学时期为 4 月、7 月、10 月。位于驹込站步行 5 分钟处。",
+      "en": "Part of the Sendagaya Japanese Institute group, offering an employment-track course. A small school with capacity for 100 students; intakes in April, July and October. Five minutes' walk from Komagome Station."
+    },
+    "programs": [
+      {
+        "name": "就職課程",
+        "name_i18n": { "zh": "就职课程", "en": "Employment-track course" },
+        "duration": "",
+        "tuition_min": 0,
+        "tuition_max": 0,
+        "tuition_basis": "total",
+        "tuition_note": ""
+      }
+    ]
+  },
+
+  {
+    "_comment": "東京国際文化学院 —— 学费同样为 JS 渲染，未取得。各校舎に中国語対応の事務スタッフが2名以上という点は中国人学生向けの実質的な情報なので記載。",
+    "slug": "tokyo-international-culture-academy",
+    "name": "東京国際文化学院",
+    "name_i18n": {
+      "ja": "東京国際文化学院",
+      "zh": "东京国际文化学院",
+      "en": "Tokyo International Culture Academy"
+    },
+    "official_url": "https://www.tokyoia.com/",
+    "school_type": "language",
+    "region": "関東",
+    "city": "東京（新宿区）",
+    "language_req": "",
+    "min_education": "",
+    "status": "active",
+    "published": false,
+    "sort_order": 30,
+    "description_i18n": {
+      "ja": "1986年に設立された日本語学校で、新宿区に3つの校舎を置いています。在籍学生数は約800名、1クラスの人数は20名です。入学時期は4月・7月・10月・1月の年4回。\n\n各校舎に中国語対応の事務スタッフが2名以上在籍しています。月額30,000円の奨学金制度があります。校舎はいずれもJR山手線新大久保駅から徒歩5分以内です。",
+      "zh": "1986 年设立的日本语学校，在新宿区设有 3 个校舍。在籍学生约 800 名，每班 20 人。入学时期为 4 月、7 月、10 月、1 月，一年四次。\n\n各校舍均配有 2 名以上可用中文对应的事务老师。设有每月 30,000 日元的奖学金制度。各校舍均位于 JR 山手线新大久保站步行 5 分钟以内。",
+      "en": "A Japanese language school founded in 1986, with three campuses in Shinjuku, Tokyo. Around 800 enrolled students, with 20 students per class. Four intakes a year: April, July, October and January.\n\nEach campus has at least two Chinese-speaking administrative staff. A scholarship of 30,000 yen per month is available. All campuses are within a five-minute walk of Shin-Ōkubo Station on the JR Yamanote Line."
+    },
+    "programs": [
+      {
+        "name": "日本語コース",
+        "name_i18n": { "zh": "日语课程", "en": "Japanese language course" },
+        "duration": "",
+        "tuition_min": 0,
+        "tuition_max": 0,
+        "tuition_basis": "total",
+        "tuition_note": ""
+      }
+    ]
+  }
+]

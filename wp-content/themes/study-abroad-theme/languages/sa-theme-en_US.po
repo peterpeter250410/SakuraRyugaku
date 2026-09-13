@@ -1039,10 +1039,6 @@ msgstr "Tuition (guide)"
 msgid "修業年限"
 msgstr "Duration"
 
-#: template-school-single.php:149
-msgid "※ 学費は目安です。入学金・教材費などが別途必要な場合があります。最新の金額は各校の募集要項をご確認ください。"
-msgstr "Note: tuition figures are indicative. Enrolment fees and materials are often billed separately. Check each school's admissions material for current amounts."
-
 #: template-school-single.php:155
 msgid "出願に必要な書類"
 msgstr "Documents required to apply"
@@ -1137,3 +1133,12 @@ msgstr "Enrollment fees and tuition are paid directly by you to the school. We n
 
 msgid "掲載内容は各校の公表資料をもとに整理した参考情報です。募集要項・学費・出願条件は変更される場合があります。お申し込み前に、必ず学校公式サイトで最新情報をご確認ください。"
 msgstr "The information here is compiled from each school's published materials and is provided for reference. Admission requirements, fees and conditions can change — always confirm the latest details on the school's official website before applying."
+
+msgid "総額 %1$s〜%2$s 万円（目安）"
+msgstr "Total %1$s–%2$s man yen (approx.)"
+
+msgid "総額 約%s 万円（目安）"
+msgstr "Total approx. %s man yen"
+
+msgid "※ 学費は目安です。金額に含まれる費用は学校・コースにより異なります（各行の注記をご確認ください）。最新の金額は必ず学校公式サイトの募集要項でご確認ください。"
+msgstr "* Fees are indicative. What each figure includes varies by school and course — see the note on each row. Always confirm current figures in the school's own published admission guide."

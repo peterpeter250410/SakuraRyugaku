@@ -48,6 +48,7 @@ class SA_Activator {
 		// 老库兜底：dbDelta 偶发不加列时，显式 ADD COLUMN。
 		self::ensure_schools_required_docs();
 		self::ensure_schools_public_columns();
+		self::ensure_programs_tuition_columns();
 
 		// 补齐可能缺失的规则/角色/目录（各自幂等）。
 		self::seed_match_rules();
@@ -121,6 +122,47 @@ class SA_Activator {
 		$index = $wpdb->get_results( "SHOW INDEX FROM `{$table}` WHERE Key_name = 'slug'" );
 		if ( empty( $index ) ) {
 			$wpdb->query( "ALTER TABLE `{$table}` ADD UNIQUE KEY slug (slug)" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+	}
+
+	/**
+	 * 兜底确保 programs 表存在学费口径相关的列。
+	 *
+	 * 为什么必须区分口径：
+	 *   各校公布学费的方式不统一 —— 语言学校常按「课程总额」标价
+	 *   （例：2年课程 1,732,500 円），大学则多按「年额」。
+	 *   两者混在同一个数字字段里，渲染时只能二选一地硬写单位，
+	 *   于是把 2 年总额显示成「年間 約173 万円」，金额直接翻倍失真。
+	 *   这是挂着真实院校名称的页面，这种错误等同于发布虚假信息。
+	 *
+	 *   tuition_basis  year|total —— 决定前台显示「年間」还是「総額」
+	 *   tuition_note   自由文本 —— 说明该金额含哪些费用、哪些另计
+	 *                  （human 的总额已含入学金与教材费，但選考料另计，
+	 *                   模板里那句通用的「入学金等另计」对它就是错的）
+	 *
+	 * 默认 'year'：既有数据都是按年额录入的，不会因加列而改变含义。
+	 */
+	private static function ensure_programs_tuition_columns() {
+		global $wpdb;
+
+		$table  = $wpdb->prefix . SA_TABLE_PREFIX . 'programs';
+		$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
+		if ( $exists !== $table ) {
+			return;
+		}
+
+		$columns = array(
+			'tuition_basis' => "ADD COLUMN tuition_basis VARCHAR(8) NOT NULL DEFAULT 'year' AFTER tuition_max",
+			'tuition_note'  => "ADD COLUMN tuition_note VARCHAR(255) DEFAULT '' AFTER tuition_basis",
+		);
+
+		foreach ( $columns as $col => $ddl ) {
+			$found = $wpdb->get_results(
+				$wpdb->prepare( "SHOW COLUMNS FROM `{$table}` LIKE %s", $col )
+			);
+			if ( empty( $found ) ) {
+				$wpdb->query( "ALTER TABLE `{$table}` {$ddl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			}
 		}
 	}
 
@@ -240,6 +282,8 @@ class SA_Activator {
 			major_tags TEXT NULL,
 			tuition_min INT UNSIGNED DEFAULT 0,
 			tuition_max INT UNSIGNED DEFAULT 0,
+			tuition_basis VARCHAR(8) NOT NULL DEFAULT 'year',
+			tuition_note VARCHAR(255) DEFAULT '',
 			language_req VARCHAR(32) DEFAULT '',
 			duration VARCHAR(32) DEFAULT '',
 			status VARCHAR(16) DEFAULT 'active',

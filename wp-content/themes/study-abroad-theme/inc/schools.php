@@ -309,7 +309,7 @@ function sa_program_name( array $program ) {
  * @param int $max 上限（日元/年）。
  * @return string 无有效数据时返回空字符串。
  */
-function sa_tuition_range( $min, $max ) {
+function sa_tuition_range( $min, $max, $basis = 'year' ) {
 	$min = (int) $min;
 	$max = (int) $max;
 
@@ -325,14 +325,31 @@ function sa_tuition_range( $min, $max ) {
 			: number_format( $man, 1 );
 	};
 
+	/*
+	 * 口径不能硬编码成「年間」。
+	 *
+	 * 语言学校普遍按课程总额标价（例：ヒューマンアカデミー的 2 年课程
+	 * 1,732,500 円是两年总计），大学则多按年额。此前这里写死「年間」，
+	 * 把总额显示成年额，金额直接翻倍 —— 页面上冠的是真实院校名称，
+	 * 这属于发布错误的事实信息，不是排版瑕疵。
+	 */
+	$is_total = ( 'total' === $basis );
+
 	if ( $min > 0 && $max > 0 && $min !== $max ) {
-		/* translators: 1: 下限, 2: 上限（单位：万日元/年） */
-		return sprintf( __( '年間 %1$s〜%2$s 万円（目安）', 'sa-theme' ), $fmt( $min ), $fmt( $max ) );
+		return $is_total
+			/* translators: 1: 下限, 2: 上限（单位：万日元，课程总额） */
+			? sprintf( __( '総額 %1$s〜%2$s 万円（目安）', 'sa-theme' ), $fmt( $min ), $fmt( $max ) )
+			/* translators: 1: 下限, 2: 上限（单位：万日元/年） */
+			: sprintf( __( '年間 %1$s〜%2$s 万円（目安）', 'sa-theme' ), $fmt( $min ), $fmt( $max ) );
 	}
 
 	$one = $min > 0 ? $min : $max;
-	/* translators: %s: 金额（单位：万日元/年） */
-	return sprintf( __( '年間 約%s 万円（目安）', 'sa-theme' ), $fmt( $one ) );
+
+	return $is_total
+		/* translators: %s: 金额（单位：万日元，课程总额） */
+		? sprintf( __( '総額 約%s 万円（目安）', 'sa-theme' ), $fmt( $one ) )
+		/* translators: %s: 金额（单位：万日元/年） */
+		: sprintf( __( '年間 約%s 万円（目安）', 'sa-theme' ), $fmt( $one ) );
 }
 
 /* -------------------------------------------------------------------------

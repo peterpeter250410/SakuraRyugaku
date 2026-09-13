@@ -401,20 +401,29 @@ class SA_School_Repo {
 			'name'         => isset( $data['name'] ) ? sanitize_text_field( $data['name'] ) : '',
 			'name_i18n'    => self::encode_json_field( isset( $data['name_i18n'] ) ? $data['name_i18n'] : null ),
 			'major_tags'   => self::encode_json_field( isset( $data['major_tags'] ) ? $data['major_tags'] : null ),
-			'tuition_min'  => isset( $data['tuition_min'] ) ? absint( $data['tuition_min'] ) : 0,
-			'tuition_max'  => isset( $data['tuition_max'] ) ? absint( $data['tuition_max'] ) : 0,
-			'language_req' => isset( $data['language_req'] ) ? sanitize_text_field( $data['language_req'] ) : '',
-			'duration'     => isset( $data['duration'] ) ? sanitize_text_field( $data['duration'] ) : '',
-			'status'       => isset( $data['status'] ) ? sanitize_key( $data['status'] ) : 'active',
-			'created_at'   => $now,
-			'updated_at'   => $now,
+			'tuition_min'   => isset( $data['tuition_min'] ) ? absint( $data['tuition_min'] ) : 0,
+			'tuition_max'   => isset( $data['tuition_max'] ) ? absint( $data['tuition_max'] ) : 0,
+			// 只接受 year / total 两个取值，其余一律回落到 year。
+			// 这个字段直接决定前台显示「年間」还是「総額」，写错就是金额失真。
+			'tuition_basis' => ( isset( $data['tuition_basis'] ) && 'total' === $data['tuition_basis'] ) ? 'total' : 'year',
+			'tuition_note'  => isset( $data['tuition_note'] ) ? sanitize_text_field( $data['tuition_note'] ) : '',
+			'language_req'  => isset( $data['language_req'] ) ? sanitize_text_field( $data['language_req'] ) : '',
+			'duration'      => isset( $data['duration'] ) ? sanitize_text_field( $data['duration'] ) : '',
+			'status'        => isset( $data['status'] ) ? sanitize_key( $data['status'] ) : 'active',
+			'created_at'    => $now,
+			'updated_at'    => $now,
 		);
 
-		$ok = $wpdb->insert(
-			SA_DB::table( 'programs' ),
-			$row,
-			array( '%d', '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s' )
-		);
+		// 格式按 $row 键顺序对应：school_id(%d) / name,name_i18n,major_tags(%s×3)
+		// / tuition_min,tuition_max(%d×2) / basis,note,language_req,duration,status,
+		//   created_at,updated_at(%s×7) = 13
+		$formats = array( '%d', '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
+
+		if ( count( $formats ) !== count( $row ) ) {
+			return false;
+		}
+
+		$ok = $wpdb->insert( SA_DB::table( 'programs' ), $row, $formats );
 
 		return $ok ? (int) $wpdb->insert_id : false;
 	}

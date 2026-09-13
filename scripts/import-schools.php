@@ -142,6 +142,12 @@ foreach ( $data as $i => $row ) {
 		if ( empty( $row['programs'] ) ) {
 			$warnings[] = "{$label}: 标记为 published 但没有 programs —— 页面将没有专业与学费表";
 		}
+		// 页面正文明确写着「最新情报以学校官网为准」，那就必须给得出链接。
+		if ( empty( $row['official_url'] ) ) {
+			$errors[] = "{$label}: 标记为 published 但缺少 official_url —— "
+				. '页面声明「以官方最新信息为准」，不给链接等于让用户自己去搜；'
+				. '该字段同时是结构化数据里院校实体的 url';
+		}
 	}
 
 	// 学费合理性：防止单位写错（例如把 78 万写成 780 而不是 780000）
@@ -161,6 +167,30 @@ foreach ( $data as $i => $row ) {
 				if ( $v > 30000000 ) {
 					$warnings[] = "{$label} / {$pn}: {$k} = {$v}，超过 3000 万日元，请确认";
 				}
+			}
+
+			/*
+			 * 学费口径必须显式且合法。
+			 *
+			 * 写错这个字段不会报错，只会让页面把「课程总额」显示成「年額」
+			 * （或反之），金额可能差出一倍 —— 而页面上冠的是真实院校名。
+			 * 因此这里按错误而非警告处理。
+			 */
+			$basis = isset( $p['tuition_basis'] ) ? $p['tuition_basis'] : 'year';
+			if ( ! in_array( $basis, array( 'year', 'total' ), true ) ) {
+				$errors[] = "{$label} / {$pn}: tuition_basis 非法「{$basis}」，只能是 year（年额）或 total（课程总额）";
+			}
+			if ( ( $min > 0 || $max > 0 ) && ! isset( $p['tuition_basis'] ) ) {
+				$warnings[] = "{$label} / {$pn}: 填了学费却未写 tuition_basis，将按 year（年额）显示。"
+					. '语言学校多按课程总额公布，请确认是否应为 total';
+			}
+
+			// 超过 1 年的课程标成年额、金额又明显偏高时，多半是把总额当年额填了。
+			$dur = isset( $p['duration'] ) ? (string) $p['duration'] : '';
+			if ( 'year' === $basis && $max >= 1200000
+				&& preg_match( '/(2年|３年|3年|1年[6９9６]|1年9|21か月|24か月)/u', $dur ) ) {
+				$warnings[] = "{$label} / {$pn}: 修业年限「{$dur}」超过 1 年，学费 {$max} 却标为年额。"
+					. '请确认不是把课程总额填进了年额字段';
 			}
 		}
 	}
@@ -236,6 +266,8 @@ foreach ( $data as $row ) {
 		'school_type'      => isset( $row['school_type'] ) ? $row['school_type'] : '',
 		'region'           => isset( $row['region'] ) ? $row['region'] : '',
 		'city'             => isset( $row['city'] ) ? $row['city'] : '',
+		// 官网地址。协议白名单清洗由 SA_School_Repo 统一处理。
+		'official_url'     => isset( $row['official_url'] ) ? $row['official_url'] : '',
 		'language_req'     => isset( $row['language_req'] ) ? $row['language_req'] : '',
 		'min_education'    => isset( $row['min_education'] ) ? $row['min_education'] : '',
 		'status'           => isset( $row['status'] ) ? $row['status'] : 'active',
@@ -282,11 +314,14 @@ foreach ( $data as $row ) {
 					'name'         => isset( $p['name'] ) ? $p['name'] : '',
 					'name_i18n'    => isset( $p['name_i18n'] ) ? $p['name_i18n'] : null,
 					'major_tags'   => isset( $p['major_tags'] ) ? $p['major_tags'] : null,
-					'tuition_min'  => isset( $p['tuition_min'] ) ? (int) $p['tuition_min'] : 0,
-					'tuition_max'  => isset( $p['tuition_max'] ) ? (int) $p['tuition_max'] : 0,
-					'language_req' => isset( $p['language_req'] ) ? $p['language_req'] : '',
-					'duration'     => isset( $p['duration'] ) ? $p['duration'] : '',
-					'status'       => 'active',
+					'tuition_min'   => isset( $p['tuition_min'] ) ? (int) $p['tuition_min'] : 0,
+					'tuition_max'   => isset( $p['tuition_max'] ) ? (int) $p['tuition_max'] : 0,
+					// year=年额 / total=课程总额。决定前台显示「年間」还是「総額」。
+					'tuition_basis' => isset( $p['tuition_basis'] ) ? $p['tuition_basis'] : 'year',
+					'tuition_note'  => isset( $p['tuition_note'] ) ? $p['tuition_note'] : '',
+					'language_req'  => isset( $p['language_req'] ) ? $p['language_req'] : '',
+					'duration'      => isset( $p['duration'] ) ? $p['duration'] : '',
+					'status'        => 'active',
 				)
 			);
 			if ( $ok ) {

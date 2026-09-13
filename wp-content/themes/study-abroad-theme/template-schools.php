@@ -66,13 +66,25 @@ get_template_part(
 					$sa_name = sa_school_name( $sa_school );
 					$sa_link = sa_school_url( $sa_school['slug'] );
 
-					// 学费区间取该校各专业的最小下限与最大上限，展示一个总体范围。
+					/*
+					 * 卡片上的学费区间取该校各专业的最小下限与最大上限。
+					 *
+					 * 但只有在所有专业口径一致时才能这么合并 ——
+					 * 把「年额」和「课程总额」放进同一个区间，无论标哪个单位
+					 * 都会有一半的数字是错的。口径混杂时卡片不显示学费，
+					 * 由详情页逐条呈现（那里每行都带自己的口径与注记）。
+					 */
 					$sa_programs = SA_School_Repo::get_school_programs( $sa_school['id'] );
 					$sa_min      = 0;
 					$sa_max      = 0;
+					$sa_bases    = array();
 					foreach ( $sa_programs as $sa_p ) {
 						$pmin = (int) $sa_p['tuition_min'];
 						$pmax = (int) $sa_p['tuition_max'];
+						if ( $pmin <= 0 && $pmax <= 0 ) {
+							continue; // 无学费数据的专业不参与，也不影响口径判断
+						}
+						$sa_bases[] = isset( $sa_p['tuition_basis'] ) ? $sa_p['tuition_basis'] : 'year';
 						if ( $pmin > 0 && ( 0 === $sa_min || $pmin < $sa_min ) ) {
 							$sa_min = $pmin;
 						}
@@ -80,7 +92,10 @@ get_template_part(
 							$sa_max = $pmax;
 						}
 					}
-					$sa_tuition = sa_tuition_range( $sa_min, $sa_max );
+					$sa_bases   = array_unique( $sa_bases );
+					$sa_tuition = ( 1 === count( $sa_bases ) )
+						? sa_tuition_range( $sa_min, $sa_max, reset( $sa_bases ) )
+						: '';
 					?>
 					<article class="sa-card sa-school-card">
 						<div class="sa-school-card__type">

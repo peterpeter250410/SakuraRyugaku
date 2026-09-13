@@ -169,8 +169,18 @@ get_header();
 								<td><?php echo esc_html( sa_program_name( $sa_p ) ); ?></td>
 								<td>
 									<?php
-									$sa_t = sa_tuition_range( $sa_p['tuition_min'], $sa_p['tuition_max'] );
+									$sa_t = sa_tuition_range(
+										$sa_p['tuition_min'],
+										$sa_p['tuition_max'],
+										isset( $sa_p['tuition_basis'] ) ? $sa_p['tuition_basis'] : 'year'
+									);
 									echo '' !== $sa_t ? esc_html( $sa_t ) : '—';
+
+									// 该金额含哪些费用因校而异，通用脚注说不清楚，逐条给。
+									if ( ! empty( $sa_p['tuition_note'] ) ) {
+										echo '<br><small class="sa-tuition-note">'
+											. esc_html( $sa_p['tuition_note'] ) . '</small>';
+									}
 									?>
 								</td>
 								<td><?php echo ! empty( $sa_p['language_req'] ) ? esc_html( $sa_p['language_req'] ) : '—'; ?></td>
@@ -181,7 +191,11 @@ get_header();
 				</table>
 			</div>
 			<p class="sa-note">
-				<?php esc_html_e( '※ 学費は目安です。入学金・教材費などが別途必要な場合があります。最新の金額は各校の募集要項をご確認ください。', 'sa-theme' ); ?>
+				<?php
+				// 「入学金・教材費は別途」と一律に書くのは誤り ——
+				// 総額に含めて公表している学校もある（含む／含まないは各行の注記で示す）。
+				esc_html_e( '※ 学費は目安です。金額に含まれる費用は学校・コースにより異なります（各行の注記をご確認ください）。最新の金額は必ず学校公式サイトの募集要項でご確認ください。', 'sa-theme' );
+				?>
 			</p>
 		<?php endif; ?>
 
