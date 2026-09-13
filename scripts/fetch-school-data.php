@@ -12,9 +12,17 @@
  *   输出里的每一条信息都能追溯到具体 URL 与原文行，便于逐条核实。
  *
  * 用法：
- *   php scripts/fetch-school-data.php                 # 采集全部院校
- *   php scripts/fetch-school-data.php isi             # 只采集指定院校（键名匹配）
- *   php scripts/fetch-school-data.php --pages=8       # 每校最多抓取的页面数（默认 6）
+ *   php scripts/fetch-school-data.php                     # 采集全部院校
+ *   php scripts/fetch-school-data.php isi                 # 只采集指定院校（键名匹配）
+ *   php scripts/fetch-school-data.php isi akamonkai kla   # 多所，空格分隔
+ *   php scripts/fetch-school-data.php --pages=8           # 每校最多抓取的页面数（默认 6）
+ *
+ * 采集耗时较长时，建议放到后台跑，避免 SSH 断线把进程一起带走：
+ *   nohup php scripts/fetch-school-data.php > /tmp/fetch.log 2>&1 &
+ *   tail -f /tmp/fetch.log
+ *
+ * 退出码：全部失败返回 1，只要有一所成功即返回 0
+ * —— 因此不要用 `cmd1 && cmd2` 串联多次调用，前一次全失败会中断后续。
  *
  * 输出：
  *   scripts/school-data/{key}/pages/*.txt   各页面纯文本（可追溯来源 URL）
@@ -108,14 +116,36 @@ $HIGHLIGHT_KEYWORDS = array(
 );
 
 $max_pages = 6;
-$only      = '';
+$only_keys = array();
 
 foreach ( array_slice( $argv, 1 ) as $arg ) {
 	if ( 0 === strpos( $arg, '--pages=' ) ) {
 		$max_pages = max( 1, min( 20, (int) substr( $arg, 8 ) ) );
 	} elseif ( 0 !== strpos( $arg, '--' ) ) {
-		$only = $arg;
+		// 必须收进数组。此前写的是 $only = $arg，多个参数会互相覆盖，
+		// `php fetch-school-data.php isi akamonkai kla` 实际只跑了最后一个。
+		$only_keys[] = $arg;
 	}
+}
+
+// 提前校验院校 key，避免拼错时静默跑成「一所都没匹配到」。
+$unknown = array();
+foreach ( $only_keys as $k ) {
+	$hit = false;
+	foreach ( array_keys( $SCHOOLS ) as $sk ) {
+		if ( false !== stripos( $sk, $k ) ) {
+			$hit = true;
+			break;
+		}
+	}
+	if ( ! $hit ) {
+		$unknown[] = $k;
+	}
+}
+if ( ! empty( $unknown ) ) {
+	fwrite( STDERR, '未知的院校 key: ' . implode( ', ', $unknown ) . "\n" );
+	fwrite( STDERR, '可用: ' . implode( ' ', array_keys( $SCHOOLS ) ) . "\n" );
+	exit( 1 );
 }
 
 $out_root = __DIR__ . '/school-data';
@@ -148,31 +178,58 @@ function sd_fetch( $url ) {
 	 *    与 libcurl 的 NSS 完全独立。OpenSSL 1.0.2 支持 TLS 1.2，
 	 *    因此 curl 握不上手的站点，流封装往往可以。见 sd_fetch_stream()。
 	 *
-	 * 2. "Connection timed out after 15001 milliseconds"
-	 *    跨境访问日本站点，15 秒连接超时偏紧；也可能是对方按 IP 或 UA
-	 *    静默丢包。对策：放宽超时，并换成常见浏览器 UA 再试一次。
+	 * 2. "Connection timed out"
+	 *    实测把连接超时放宽到 40 秒依然不通，说明不是「慢」而是「不通」——
+	 *    对方多半按地域或 IP 段静默丢包。继续加长超时只是把每所院校的
+	 *    失败时间从 40 秒拖到 3 分钟，于事无补。
+	 *    因此改为先用 sd_probe_tcp() 快速判定可达性（8 秒内出结果），
+	 *    不可达就立刻返回，并明确报成 timeout 而非 TLS 问题。
+	 *    仍保留一轮浏览器 UA 重试：部分站点只是拒绝非浏览器 UA。
 	 *
 	 * 逐级降级，任一成功即返回，不让兼容性拖慢正常站点。
 	 */
 	$attempts = array(
 		// 第 1 轮：默认配置（绝大多数站点走这一轮）
 		array(),
-		// 第 2 轮：更长超时 + 常见浏览器 UA
+		// 第 2 轮：常见浏览器 UA
 		// 部分站点对非浏览器 UA 直接丢弃连接，表现为超时而非 403。
 		array(
-			CURLOPT_TIMEOUT        => 90,
-			CURLOPT_CONNECTTIMEOUT => 40,
-			CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+			CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
 		),
 	);
 
+	/*
+	 * 先探 TCP 再谈 TLS。
+	 *
+	 * 上一版没有这一步，代价很直接：kla 的 443 端口根本连不上，
+	 * 却仍然依次跑完 curl 45s + curl 90s + 流封装 60s ≈ 3 分钟，
+	 * 三所院校就是十分钟，SSH 会话直接被拖断。
+	 *
+	 * 而且没有这一步就分不清「TLS 协商失败」和「压根连不上」——
+	 * 这两者的处置办法完全不同（换 TLS 栈 vs 换出口 IP）。
+	 */
+	$probe = sd_probe_tcp( $url );
+	if ( ! $probe['ok'] ) {
+		return array(
+			'ok'      => false,
+			'code'    => 0,
+			'body'    => '',
+			'ctype'   => '',
+			'error'   => $probe['msg'],
+			'reason'  => $probe['reason'],
+			'final'   => $url,
+			'attempt' => 'tcp-probe',
+		);
+	}
+
 	$last = array(
-		'ok'    => false,
-		'code'  => 0,
-		'body'  => '',
-		'ctype' => '',
-		'error' => 'not attempted',
-		'final' => $url,
+		'ok'     => false,
+		'code'   => 0,
+		'body'   => '',
+		'ctype'  => '',
+		'error'  => 'not attempted',
+		'reason' => 'other',
+		'final'  => $url,
 	);
 
 	foreach ( $attempts as $i => $extra ) {
@@ -183,8 +240,14 @@ function sd_fetch( $url ) {
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_FOLLOWLOCATION => true,
 			CURLOPT_MAXREDIRS      => 5,
-			CURLOPT_TIMEOUT        => 60,
-			CURLOPT_CONNECTTIMEOUT => 25,
+			/*
+			 * TCP 可达性已由 sd_probe_tcp() 先行确认，所以这里的连接超时
+			 * 不需要留给「可能根本连不上」的情况 —— 15 秒足够。
+			 * 上一版给到 40 秒连接 / 90 秒总时长，一所连不上的院校要耗掉
+			 * 三分钟，三所就把 SSH 会话拖断了。
+			 */
+			CURLOPT_TIMEOUT        => 45,
+			CURLOPT_CONNECTTIMEOUT => 15,
 			CURLOPT_ENCODING       => '',
 			// 声明真实身份与用途，便于对方站点管理员识别。
 			// 措辞不能写 partner —— 本站与这些院校之间没有任何合作关系，
@@ -204,6 +267,7 @@ function sd_fetch( $url ) {
 		$ctype = (string) curl_getinfo( $ch, CURLINFO_CONTENT_TYPE );
 		$final = (string) curl_getinfo( $ch, CURLINFO_EFFECTIVE_URL );
 		$err   = curl_error( $ch );
+		$errno = curl_errno( $ch );
 
 		curl_close( $ch );
 
@@ -213,6 +277,10 @@ function sd_fetch( $url ) {
 			'body'    => is_string( $body ) ? $body : '',
 			'ctype'   => $ctype,
 			'error'   => $err,
+			// 按 curl 错误码分类，不解析报错文本。
+			// 文本匹配曾经把 "流封装(OpenSSL)亦失败" 里的 SSL 误判成 TLS 问题，
+			// 结果给一个纯粹的连接超时开出了「换 TLS 栈」的药方。
+			'reason'  => sd_classify_curl_error( $errno, $code ),
 			'final'   => '' !== $final ? $final : $url,
 			'attempt' => $i + 1,
 		);
@@ -238,16 +306,110 @@ function sd_fetch( $url ) {
 	 * 只在「连一个字节都没拿到」时才走这里（$code === 0）。若已经收到
 	 * HTTP 状态码，说明 TLS 握手是成功的，换栈没有意义。
 	 */
-	if ( 0 === $last['code'] ) {
+	// 超时说明网络层面走不通，换 TLS 栈没有意义，直接返回省下一轮等待。
+	if ( 0 === $last['code'] && 'timeout' !== $last['reason'] ) {
 		$via_stream = sd_fetch_stream( $url );
 		if ( $via_stream['ok'] || 0 !== $via_stream['code'] ) {
 			return $via_stream;
 		}
-		// 两条栈都失败时，把两边的报错都留下，便于判断是共性问题还是栈特有。
+		// 两条栈都失败时保留两边报错，便于判断是共性问题还是某条栈特有。
+		// 注意 reason 保持 curl 那一轮的判定，不要被这段追加文本影响。
 		$last['error'] = $last['error'] . ' | 流封装(OpenSSL)亦失败: ' . $via_stream['error'];
 	}
 
 	return $last;
+}
+
+/**
+ * 把 curl 错误码归成可据以行动的几类。
+ *
+ * 用错误码而不是错误文本：文本会随 curl 版本与 TLS 后端变化，
+ * 而且我们自己往里追加过说明文字，再去 stripos('SSL') 必然误判。
+ *
+ * @param int $errno curl_errno()。
+ * @param int $code  HTTP 状态码。
+ * @return string tls|timeout|dns|refused|http|other
+ */
+function sd_classify_curl_error( $errno, $code ) {
+	if ( 0 === $errno && $code >= 400 ) {
+		return 'http';
+	}
+	if ( 0 === $errno ) {
+		return '';
+	}
+
+	// 常量在个别构建下可能未定义，故并列数值兜底。
+	$tls = array( 35, 51, 53, 54, 58, 59, 60, 64, 66, 77, 83, 90, 91 );
+	if ( in_array( (int) $errno, $tls, true ) ) {
+		return 'tls';
+	}
+
+	switch ( (int) $errno ) {
+		case 28: // CURLE_OPERATION_TIMEDOUT
+			return 'timeout';
+		case 6:  // CURLE_COULDNT_RESOLVE_HOST
+		case 5:  // CURLE_COULDNT_RESOLVE_PROXY
+			return 'dns';
+		case 7:  // CURLE_COULDNT_CONNECT
+			return 'refused';
+		default:
+			return 'other';
+	}
+}
+
+/**
+ * 连 TLS 之前先确认 TCP 通不通。
+ *
+ * 分开探测的价值在于把三种完全不同的故障区分开：
+ *   DNS 解析不了      → 域名或本机 DNS 的问题
+ *   TCP 连不上/超时   → 对方封了出口 IP，或中间有防火墙丢包
+ *   TCP 通但 TLS 失败 → 才是真正的协议/密码套件问题
+ * 混在一起看，只会得到「反正连不上」这种没法处置的结论。
+ *
+ * @param string $url     目标地址。
+ * @param int    $timeout 连接超时秒数。
+ * @return array{ok:bool, reason:string, msg:string, ip:string}
+ */
+function sd_probe_tcp( $url, $timeout = 8 ) {
+	$parts  = parse_url( $url );
+	$host   = isset( $parts['host'] ) ? $parts['host'] : '';
+	$scheme = isset( $parts['scheme'] ) ? strtolower( $parts['scheme'] ) : 'https';
+	$port   = isset( $parts['port'] ) ? (int) $parts['port'] : ( 'http' === $scheme ? 80 : 443 );
+
+	if ( '' === $host ) {
+		return array( 'ok' => false, 'reason' => 'other', 'msg' => "URL 无法解析出主机名: {$url}", 'ip' => '' );
+	}
+
+	$ip = gethostbyname( $host );
+	if ( $ip === $host && ! filter_var( $host, FILTER_VALIDATE_IP ) ) {
+		// gethostbyname 解析失败时原样返回入参，这是它唯一的失败信号。
+		return array( 'ok' => false, 'reason' => 'dns', 'msg' => "DNS 解析失败: {$host}", 'ip' => '' );
+	}
+
+	$t0    = microtime( true );
+	$errno = 0;
+	$errstr = '';
+	$sock  = @stream_socket_client( "tcp://{$ip}:{$port}", $errno, $errstr, $timeout );
+	$ms    = (int) round( ( microtime( true ) - $t0 ) * 1000 );
+
+	if ( ! $sock ) {
+		/*
+		 * 区分「被拒」与「超时」：
+		 *   refused —— 收到 RST，对端或中间设备主动拒绝，说明路由是通的
+		 *   timeout —— 包被静默丢弃，这才是按 IP/地域封锁的典型表现
+		 * 两者的排查方向不同，不该都报成「连不上」。
+		 */
+		$is_refused = ( false !== stripos( $errstr, 'refused' ) || 111 === (int) $errno );
+		return array(
+			'ok'     => false,
+			'reason' => $is_refused ? 'refused' : 'timeout',
+			'msg'    => "TCP 连接失败 {$host}({$ip}):{$port} 耗时 {$ms}ms — " . ( '' !== $errstr ? $errstr : "errno {$errno}" ),
+			'ip'     => $ip,
+		);
+	}
+
+	fclose( $sock );
+	return array( 'ok' => true, 'reason' => '', 'msg' => "TCP 可达 {$ip}:{$port} ({$ms}ms)", 'ip' => $ip );
 }
 
 /**
@@ -267,30 +429,31 @@ function sd_fetch( $url ) {
  * @return array 与 sd_fetch() 相同的结构。
  */
 function sd_fetch_stream( $url ) {
-	$fail = function ( $msg ) use ( $url ) {
+	$fail = function ( $msg, $reason ) use ( $url ) {
 		return array(
 			'ok'      => false,
 			'code'    => 0,
 			'body'    => '',
 			'ctype'   => '',
 			'error'   => $msg,
+			'reason'  => $reason,
 			'final'   => $url,
 			'attempt' => 'stream',
 		);
 	};
 
 	if ( ! ini_get( 'allow_url_fopen' ) ) {
-		return $fail( 'allow_url_fopen=Off，无法使用流封装。可临时加参数执行：php -d allow_url_fopen=1 scripts/fetch-school-data.php <key>' );
+		return $fail( 'allow_url_fopen=Off，无法使用流封装。可临时加参数执行：php -d allow_url_fopen=1 scripts/fetch-school-data.php <key>', 'config' );
 	}
 	if ( ! extension_loaded( 'openssl' ) ) {
-		return $fail( 'openssl 扩展未加载，流封装无法处理 https' );
+		return $fail( 'openssl 扩展未加载，流封装无法处理 https', 'config' );
 	}
 
 	$ctx = stream_context_create(
 		array(
 			'http' => array(
 				'method'          => 'GET',
-				'timeout'         => 60,
+				'timeout'         => 40,
 				'follow_location' => 1,
 				'max_redirects'   => 6,
 				// 让 4xx/5xx 也返回响应体，否则 file_get_contents 直接返回 false，
@@ -323,7 +486,13 @@ function sd_fetch_stream( $url ) {
 	if ( false === $body ) {
 		$e   = error_get_last();
 		$msg = isset( $e['message'] ) ? preg_replace( '/^file_get_contents\([^)]*\):\s*/', '', $e['message'] ) : '未知错误';
-		return $fail( '流封装失败: ' . trim( $msg ) );
+		/*
+		 * 这里判为 tls 是有依据的推断，不是猜：
+		 * 能走到流封装这一轮，前提是 sd_probe_tcp() 已确认 TCP 可达，
+		 * 且 curl 那轮的失败不是 timeout（否则 sd_fetch 会提前返回）。
+		 * 也就是说端口通、不是超时，那么在 TLS/协议层失败是唯一剩下的解释。
+		 */
+		return $fail( '流封装失败: ' . trim( $msg ), 'tls' );
 	}
 
 	// 跟随重定向时 $http_response_header 会累积各跳的头，
@@ -339,12 +508,16 @@ function sd_fetch_stream( $url ) {
 		}
 	}
 
+	$ok = ( $code >= 200 && $code < 300 && '' !== $body );
+
 	return array(
-		'ok'      => ( $code >= 200 && $code < 300 && '' !== $body ),
+		'ok'      => $ok,
 		'code'    => $code,
 		'body'    => $body,
 		'ctype'   => $ctype,
-		'error'   => ( $code >= 200 && $code < 300 ) ? '' : ( 'HTTP ' . $code ),
+		'error'   => $ok ? '' : ( 'HTTP ' . $code ),
+		// 拿到状态码说明 TLS 已握手成功，剩下的都是对方的策略问题。
+		'reason'  => $ok ? '' : 'http',
 		'final'   => $url,
 		'attempt' => 'stream(OpenSSL)',
 	);
@@ -616,8 +789,17 @@ $total_ok   = 0;
 $total_fail = 0;
 
 foreach ( $SCHOOLS as $key => $school ) {
-	if ( '' !== $only && false === stripos( $key, $only ) ) {
-		continue;
+	if ( ! empty( $only_keys ) ) {
+		$matched = false;
+		foreach ( $only_keys as $k ) {
+			if ( false !== stripos( $key, $k ) ) {
+				$matched = true;
+				break;
+			}
+		}
+		if ( ! $matched ) {
+			continue;
+		}
 	}
 
 	echo "\n";
@@ -639,32 +821,49 @@ foreach ( $SCHOOLS as $key => $school ) {
 	if ( ! $home['ok'] ) {
 		echo "失败 (HTTP {$home['code']}) {$home['error']}\n";
 
-		// 针对失败原因给出可操作的处置建议，而不是只报错。
-		$hint = '';
-		if ( false !== stripos( $home['error'], 'protocol version' )
-			|| false !== stripos( $home['error'], 'SSL' )
-			|| false !== stripos( $home['error'], 'TLS' ) ) {
-			$hint = 'TLS 握手失败，且 curl(NSS) 与流封装(OpenSSL) 两条栈都不通。'
-				. '这通常意味着对方只接受本机 OpenSSL 版本不支持的 TLS 版本或密码套件。'
-				. '可先手工确认：openssl s_client -connect <域名>:443 -tls1_2 </dev/null'
-				. '；确认不通则在本地电脑上跑本脚本，或手工复制官网内容。';
-		} elseif ( false !== stripos( $home['error'], 'certificate' )
-			|| false !== stripos( $home['error'], 'verify failed' ) ) {
-			$hint = '证书校验失败。不要为此关闭校验 —— 采集到的内容会以真实院校名义发布，'
-				. '中途被替换而无察觉等同于发布伪造数据。请先更新系统根证书：yum update ca-certificates。';
-		} elseif ( false !== stripos( $home['error'], 'timed out' ) ) {
-			$hint = '连接超时。脚本已重试到 40 秒连接 / 90 秒总超时仍不通。'
-				. '可能是对方站点拦截了服务器 IP 或非浏览器请求。'
-				. '建议在本地电脑上跑本脚本，或手工复制官网内容。';
-		} elseif ( $home['code'] >= 400 ) {
-			$hint = "对方返回 HTTP {$home['code']}，属明确拒绝（可能针对 UA 或 IP）。建议手工复制官网内容。";
+		/*
+		 * 按结构化的 reason 分诊，不再解析报错文本。
+		 * 文本匹配的教训：追加的说明里含 "OpenSSL" 三个字母，
+		 * 就把一个纯粹的 TCP 超时判成了 TLS 问题，并开出完全错误的药方。
+		 */
+		$reason = isset( $home['reason'] ) ? $home['reason'] : 'other';
+		$hostn  = parse_url( $school['url'], PHP_URL_HOST );
+
+		switch ( $reason ) {
+			case 'timeout':
+			case 'refused':
+				$hint = "TCP 层就连不上 {$hostn}:443，与 TLS 无关 —— 换 TLS 栈、改 UA 都不会有帮助。"
+					. '最可能是对方按地域或 IP 段拦截了本服务器的出口。'
+					. '处置：在你自己的电脑上跑本脚本（家宽出口通常不在拦截名单里），'
+					. '或手工复制官网内容发来。';
+				break;
+
+			case 'dns':
+				$hint = "域名 {$hostn} 解析不了。先确认本机 DNS：nslookup {$hostn}；"
+					. '若本机 DNS 有问题，可临时改用 8.8.8.8 或 223.5.5.5。';
+				break;
+
+			case 'tls':
+				$hint = 'TCP 通但 TLS 握手失败，curl(NSS) 与流封装(OpenSSL) 两条栈都不通。'
+					. '说明对方只接受本机 OpenSSL 1.0.2 不支持的 TLS 版本或密码套件。'
+					. "手工确认：openssl s_client -connect {$hostn}:443 -tls1_2 </dev/null | head -5"
+					. '；确认不通则在本地电脑上跑，或手工复制官网内容。';
+				break;
+
+			case 'http':
+				$hint = "对方返回 HTTP {$home['code']}，属明确拒绝（针对 UA 或 IP）。"
+					. '这说明网络是通的，只是被策略挡了。建议手工复制官网内容。';
+				break;
+
+			default:
+				$hint = '未归类的失败。请把上面这行完整报错发来，便于定位。';
 		}
 
 		$summary[] = str_repeat( '-', 70 );
 		$summary[] = "【{$key}】{$school['name']}";
 		$summary[] = "  采集失败：HTTP {$home['code']} {$home['error']}";
-		$summary[] = '  尝试轮次：' . ( isset( $home['attempt'] ) ? $home['attempt'] : '?' )
-			. '（curl 2 轮 + 流封装 1 轮）';
+		$summary[] = '  失败阶段：' . ( isset( $home['attempt'] ) ? $home['attempt'] : '?' )
+			. '   故障类型：' . $reason;
 		if ( '' !== $hint ) {
 			$summary[] = '  处置建议：' . $hint;
 		}
