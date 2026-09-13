@@ -112,7 +112,7 @@ else
     echo "       要保留并同步到 GitHub："
     echo "         git add -A && git commit -m '说明改了什么' && git push origin ${BRANCH}"
     echo "       确认是误改、可丢弃："
-    echo "         git checkout -- <文件路径>"
+    echo "         git checkout -- 文件路径      # 例： git checkout -- scripts/schools.json"
     DRIFT=1
 fi
 
@@ -187,8 +187,10 @@ else
     echo "       [A] 配置 Personal Access Token（一次配置，长期有效）"
     echo "           1. 打开 https://github.com/settings/tokens"
     echo "           2. Generate new token (classic) → 勾选 repo → 生成并复制"
-    echo "           3. 在本机执行（把 <TOKEN> 换成刚复制的值）："
-    echo "              git remote set-url origin https://<TOKEN>@github.com/peterpeter250410/SakuraRyugaku.git"
+    echo "           3. 回到本机执行： bash scripts/sync-push.sh"
+    echo "              它会提示粘贴 Token（不回显、不进历史）并完成推送。"
+    echo "              不要手工拼 https://TOKEN@github.com/... 这类命令 ——"
+    echo "              尖括号占位符会被 bash 当成输入重定向而报错。"
     echo "           4. 重新运行本脚本确认"
     echo
     echo "       [B] 不配置凭据，把文件交给开发侧代为提交"

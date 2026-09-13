@@ -17,8 +17,11 @@
 #
 # 用法：
 #   bash scripts/publish-school.sh                      # 列出所有院校与当前状态
-#   bash scripts/publish-school.sh <slug> on            # 发布
-#   bash scripts/publish-school.sh <slug> off           # 下线
+#   bash scripts/publish-school.sh human-academy-japanese-school on    # 发布
+#   bash scripts/publish-school.sh human-academy-japanese-school off   # 下线
+#
+# 用法示例里一律写真实的 slug，不写 <slug> 这类尖括号占位符 ——
+# 直接粘贴时 bash 会把 < 当成输入重定向，报 "No such file or directory"。
 #
 # 发布前请确认该校的名称、所在地、学费均已对照官网核实 ——
 # 院校页冠以真实院校名称展示学费，未核实即公开等同于发布未经证实的数据。
@@ -45,12 +48,12 @@ if [ -n "$SLUG" ]; then
         on)  NEWVAL=1 ;;
         off) NEWVAL=0 ;;
         "")
-            c_red "缺少第二个参数。用法： bash scripts/publish-school.sh <slug> on|off"
+            c_red "缺少第二个参数。例： bash scripts/publish-school.sh human-academy-japanese-school on"
             exit 1
             ;;
         *)
             c_red "第二个参数必须是 on 或 off（当前: '${ACTION}'）"
-            echo "用法： bash scripts/publish-school.sh <slug> on|off"
+            echo "例： bash scripts/publish-school.sh human-academy-japanese-school on"
             exit 1
             ;;
     esac
@@ -90,7 +93,8 @@ list_schools() {
 if [ -z "$SLUG" ]; then
     list_schools
     echo
-    echo "用法： bash scripts/publish-school.sh <slug> on|off"
+    echo "用法： bash scripts/publish-school.sh 上面某一行的 slug on|off"
+    echo "例：   bash scripts/publish-school.sh human-academy-japanese-school on"
     exit 0
 fi
 
@@ -187,12 +191,15 @@ echo "------------------------------------------------------------"
 if [ "$NEWVAL" = "1" ]; then
     echo
     echo "【立刻做：请求编入索引】新页面不会自己被发现"
-    echo "  GSC 网址检查 https://search.google.com/search-console/inspect?resource_id=${ENC_ROOT}"
-    echo "  逐个提交："
+    echo "  注意：没有可直达某个网址的链接 —— /search-console/inspect?...&id=..."
+    echo "        这种深链会返回 Google 的 404 页。唯一入口是控制台顶部的搜索框。"
+    echo
+    echo "  1) 打开 https://search.google.com/search-console?resource_id=${ENC_ROOT}"
+    echo "  2) 把下面的地址逐个粘进页面顶部的搜索框，回车后点「请求编入索引」："
     for P in "" "zh/" "en/"; do
-        echo "    ${SITE_URL}/${P}schools/${SLUG}/"
+        echo "       ${SITE_URL}/${P}schools/${SLUG}/"
     done
-    echo "    ${SITE_URL}/schools/"
+    echo "       ${SITE_URL}/schools/"
     echo
     echo "【结构化数据】重点确认 about.url 指向校方官网而非本站"
     echo "  https://search.google.com/test/rich-results?url=${ENC_PAGE}"

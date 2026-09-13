@@ -19,7 +19,7 @@
 #
 # 用法：
 #   bash scripts/sync-push.sh                 # 自动挑选「应当入库」的未跟踪文件
-#   bash scripts/sync-push.sh <路径> [...]    # 只提交指定路径
+#   bash scripts/sync-push.sh 路径1 路径2      # 只提交指定路径
 # ============================================================
 
 set -u
@@ -78,7 +78,8 @@ else
             echo "$MODIFIED" | sed 's/^/       /'
             echo
             echo "  这些是代码改动，不自动提交。先看清楚改了什么： git diff"
-            echo "  确认要提交： bash scripts/sync-push.sh <具体文件路径>"
+            echo "  确认要提交： bash scripts/sync-push.sh 路径1 路径2"
+            echo "  例： bash scripts/sync-push.sh wp-content/themes/study-abroad-theme/style.css"
             exit 1
         fi
 
@@ -89,7 +90,7 @@ else
             echo "$OTHER_UNTRACKED" | head -15 | sed 's/^/       /'
             echo
             echo "  这些需要人工判断该不该入库： bash scripts/sync-check.sh"
-            echo "  确认要提交某些： bash scripts/sync-push.sh <路径> [...]"
+            echo "  确认要提交某些： bash scripts/sync-push.sh 路径1 路径2"
             exit 1
         fi
 

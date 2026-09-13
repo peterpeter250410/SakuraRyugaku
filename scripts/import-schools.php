@@ -249,7 +249,8 @@ if ( $force_published ) {
 	echo "  包括把此前刻意下线的院校重新公开。请确认这是你要的结果。\n";
 } else {
 	echo "\n已有院校的发布状态以数据库为准，本次不会被 JSON 改动（新建的院校按 JSON 取值）。\n";
-	echo "发布 / 下线请用： bash scripts/publish-school.sh <slug> on|off\n";
+	echo "发布 / 下线请用： bash scripts/publish-school.sh 院校slug on|off\n";
+	echo "例： bash scripts/publish-school.sh human-academy-japanese-school on\n";
 }
 echo "\n";
 
@@ -413,8 +414,12 @@ echo "  GSC 索引报告  https://search.google.com/search-console/index?resourc
 	. rawurlencode( $home ) . "\n";
 echo "  GSC 站点地图  https://search.google.com/search-console/sitemaps?resource_id="
 	. rawurlencode( $home ) . "\n";
-echo "  网址检查      https://search.google.com/search-console/inspect?resource_id="
-	. rawurlencode( $home ) . "&id=" . rawurlencode( sa_schools_url() ) . "\n";
+// 网址检查没有可用的直达链接：/search-console/inspect?...&id=... 会返回
+// Google 的 404 页。只能打开控制台后把地址粘进顶部搜索框。
+echo "  打开控制台    https://search.google.com/search-console?resource_id="
+	. rawurlencode( $home ) . "\n";
+echo "  然后把下面的地址粘进顶部搜索框，逐个「请求编入索引」：\n";
+echo "                " . sa_schools_url() . "\n";
 echo "\n";
 echo "  完整检查清单  bash scripts/seo-links.sh " . rtrim( $home, '/' ) . "\n";
 echo "  全量排查      bash scripts/seo-audit.sh " . rtrim( $home, '/' ) . "\n";

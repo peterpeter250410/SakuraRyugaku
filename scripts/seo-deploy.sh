@@ -394,12 +394,17 @@ cat <<LINKS
 【GSC 效果报告】—— 展现量 / 点击 / 平均排名
   https://search.google.com/search-console/performance/search-analytics?resource_id=${GSC_RES}
 
-【网址检查】—— 逐个语种确认收录状态，可「请求编入索引」
-  日文首页 https://search.google.com/search-console/inspect?resource_id=${GSC_RES}&id=$(enc "${SITE_URL}/")
-  中文首页 https://search.google.com/search-console/inspect?resource_id=${GSC_RES}&id=$(enc "${SITE_URL}/zh/")
-  英文首页 https://search.google.com/search-console/inspect?resource_id=${GSC_RES}&id=$(enc "${SITE_URL}/en/")
-  常见问题 https://search.google.com/search-console/inspect?resource_id=${GSC_RES}&id=$(enc "${SITE_URL}/faq/")
-  院校列表 https://search.google.com/search-console/inspect?resource_id=${GSC_RES}&id=$(enc "${SITE_URL}/schools/")
+【网址检查】—— 逐个确认收录状态，可「请求编入索引」
+  没有可直达某个网址的链接：/search-console/inspect?...&id=... 这种深链
+  会返回 Google 的 404 页。唯一可靠的入口是控制台顶部的搜索框。
+
+  先打开控制台： https://search.google.com/search-console?resource_id=${GSC_RES}
+  再把下面的地址逐个粘进顶部搜索框（每次一个，回车后点「请求编入索引」）：
+    ${SITE_URL}/
+    ${SITE_URL}/zh/
+    ${SITE_URL}/en/
+    ${SITE_URL}/faq/
+    ${SITE_URL}/schools/
 
 【site: 快查收录量】—— 不用登录，最快的粗略判断
   全站   https://www.google.com/search?q=$(enc "site:${HOST}")

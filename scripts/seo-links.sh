@@ -52,9 +52,15 @@ cat <<EOF
   预期: 能打开 XML，且包含 locales 分组（中英文页面）
 
 【URL 检查 —— 逐个语种验证收录状态】
-  日文首页: https://search.google.com/search-console/inspect?resource_id=$(enc "sc-domain:${HOST}")&id=$(enc "${SITE_URL}/")
-  中文首页: https://search.google.com/search-console/inspect?resource_id=$(enc "sc-domain:${HOST}")&id=$(enc "${SITE_URL}/zh/")
-  英文首页: https://search.google.com/search-console/inspect?resource_id=$(enc "sc-domain:${HOST}")&id=$(enc "${SITE_URL}/en/")
+  网址检查没有可用的直达链接：深链会 404，而且此前这里还用了
+  sc-domain: 格式的属性 ID —— 本站在 GSC 里是 URL 前缀属性
+  (${SITE_URL}/)，属性类型都不对。走控制台顶部搜索框是唯一可靠方式。
+
+  打开控制台: https://search.google.com/search-console?resource_id=$(enc "${SITE_URL}/")
+  把下面的地址逐个粘进顶部搜索框：
+    ${SITE_URL}/
+    ${SITE_URL}/zh/
+    ${SITE_URL}/en/
   预期: 三个都显示「网址在 Google 上」或可「请求编入索引」
 
 【hreflang 错误怎么看】
