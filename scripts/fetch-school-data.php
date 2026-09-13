@@ -132,28 +132,32 @@ $out_root = __DIR__ . '/school-data';
  */
 function sd_fetch( $url ) {
 	/*
-	 * 首轮实测的两类失败，各自需要不同的应对：
+	 * 实测遇到的两类失败，成因完全不同：
 	 *
-	 * 1. "Peer reports incompatible or unsupported protocol version"
-	 *    本机 OpenSSL 与对方 TLS 配置协商不上。对策：第二次尝试显式指定
-	 *    TLSv1.2，并放宽密码套件安全级别（CentOS 7 的 OpenSSL 1.0.2 对
-	 *    部分现代站点的套件组合会直接拒绝）。
+	 * 1. NSS error -12190 (SSL_ERROR_PROTOCOL_VERSION_ALERT)
+	 *    "Peer reports incompatible or unsupported protocol version"
+	 *
+	 *    这条报错来自 NSS，不是 OpenSSL —— CentOS 7 的 libcurl 链接的是
+	 *    NSS 而非 OpenSSL，`openssl version` 显示的 1.0.2k 是系统库，
+	 *    curl 根本没用它。所以最初写的
+	 *        CURLOPT_SSLVERSION => TLSv1.2
+	 *        CURLOPT_SSL_CIPHER_LIST => 'DEFAULT@SECLEVEL=1'
+	 *    对这个后端是无效的：后者是 OpenSSL 的密码套件语法，NSS 不认。
+	 *
+	 *    真正的出路是换一条 TLS 栈：PHP 的 https:// 流封装走 openssl 扩展，
+	 *    与 libcurl 的 NSS 完全独立。OpenSSL 1.0.2 支持 TLS 1.2，
+	 *    因此 curl 握不上手的站点，流封装往往可以。见 sd_fetch_stream()。
 	 *
 	 * 2. "Connection timed out after 15001 milliseconds"
-	 *    跨境访问日本站点，15 秒连接超时偏紧。对策：连接超时放宽到 25 秒，
-	 *    总超时放宽到 60 秒，并对超时类错误重试一次。
+	 *    跨境访问日本站点，15 秒连接超时偏紧；也可能是对方按 IP 或 UA
+	 *    静默丢包。对策：放宽超时，并换成常见浏览器 UA 再试一次。
 	 *
-	 * 逐级降级尝试，任一成功即返回，避免为了兼容性牺牲所有请求的速度。
+	 * 逐级降级，任一成功即返回，不让兼容性拖慢正常站点。
 	 */
 	$attempts = array(
 		// 第 1 轮：默认配置（绝大多数站点走这一轮）
 		array(),
-		// 第 2 轮：显式 TLSv1.2 + 放宽密码套件
-		array(
-			CURLOPT_SSLVERSION => 6, // CURL_SSLVERSION_TLSv1_2
-			CURLOPT_SSL_CIPHER_LIST => 'DEFAULT@SECLEVEL=1',
-		),
-		// 第 3 轮：更长超时 + 常见浏览器 UA
+		// 第 2 轮：更长超时 + 常见浏览器 UA
 		// 部分站点对非浏览器 UA 直接丢弃连接，表现为超时而非 403。
 		array(
 			CURLOPT_TIMEOUT        => 90,
@@ -183,7 +187,9 @@ function sd_fetch( $url ) {
 			CURLOPT_CONNECTTIMEOUT => 25,
 			CURLOPT_ENCODING       => '',
 			// 声明真实身份与用途，便于对方站点管理员识别。
-			CURLOPT_USERAGENT      => 'SakuraRyugakuBot/1.0 (+https://studyinjp.com/; partner school data collection)',
+			// 措辞不能写 partner —— 本站与这些院校之间没有任何合作关系，
+			// 而这个字符串是直接发到对方服务器日志里的。
+			CURLOPT_USERAGENT      => 'SakuraRyugakuBot/1.0 (+https://studyinjp.com/; public school information research)',
 			CURLOPT_HTTPHEADER     => array(
 				'Accept: text/html,application/xhtml+xml',
 				'Accept-Language: ja,en;q=0.8',
@@ -226,7 +232,148 @@ function sd_fetch( $url ) {
 		}
 	}
 
+	/*
+	 * curl 全轮失败后的最后一招：换 TLS 栈。
+	 *
+	 * 只在「连一个字节都没拿到」时才走这里（$code === 0）。若已经收到
+	 * HTTP 状态码，说明 TLS 握手是成功的，换栈没有意义。
+	 */
+	if ( 0 === $last['code'] ) {
+		$via_stream = sd_fetch_stream( $url );
+		if ( $via_stream['ok'] || 0 !== $via_stream['code'] ) {
+			return $via_stream;
+		}
+		// 两条栈都失败时，把两边的报错都留下，便于判断是共性问题还是栈特有。
+		$last['error'] = $last['error'] . ' | 流封装(OpenSSL)亦失败: ' . $via_stream['error'];
+	}
+
 	return $last;
+}
+
+/**
+ * 用 PHP 的 https:// 流封装抓取，绕开 libcurl 的 TLS 后端。
+ *
+ * 为什么这条路可能通而 curl 不通：
+ *   libcurl 与 php_openssl 是两套独立的 TLS 实现。CentOS 7 的 libcurl
+ *   链接 NSS，其 TLS 版本与密码套件支持停留在较旧的状态，遇到只接受
+ *   现代套件的站点会收到 protocol_version 告警（NSS -12190）；
+ *   而流封装走 openssl 扩展，OpenSSL 1.0.2 的 TLS 1.2 实现更完整。
+ *
+ * 刻意不关闭证书校验：抓回来的内容会被整理成公开页面上的院校事实信息，
+ * 一旦中途被替换而我们毫无察觉，等于以真实院校名义发布伪造数据。
+ * 校验失败就如实报错，让人去处理，不能用 verify_peer=false 换一个"能跑"。
+ *
+ * @param string $url 目标地址。
+ * @return array 与 sd_fetch() 相同的结构。
+ */
+function sd_fetch_stream( $url ) {
+	$fail = function ( $msg ) use ( $url ) {
+		return array(
+			'ok'      => false,
+			'code'    => 0,
+			'body'    => '',
+			'ctype'   => '',
+			'error'   => $msg,
+			'final'   => $url,
+			'attempt' => 'stream',
+		);
+	};
+
+	if ( ! ini_get( 'allow_url_fopen' ) ) {
+		return $fail( 'allow_url_fopen=Off，无法使用流封装。可临时加参数执行：php -d allow_url_fopen=1 scripts/fetch-school-data.php <key>' );
+	}
+	if ( ! extension_loaded( 'openssl' ) ) {
+		return $fail( 'openssl 扩展未加载，流封装无法处理 https' );
+	}
+
+	$ctx = stream_context_create(
+		array(
+			'http' => array(
+				'method'          => 'GET',
+				'timeout'         => 60,
+				'follow_location' => 1,
+				'max_redirects'   => 6,
+				// 让 4xx/5xx 也返回响应体，否则 file_get_contents 直接返回 false，
+				// 分不清「对方拒绝」和「网络不通」。
+				'ignore_errors'   => true,
+				'header'          => implode(
+					"\r\n",
+					array(
+						'User-Agent: SakuraRyugakuBot/1.0 (+https://studyinjp.com/; public school information research)',
+						'Accept: text/html,application/xhtml+xml',
+						'Accept-Language: ja,en;q=0.8',
+						// 不声明 gzip：流封装不会自动解压，拿到的会是二进制乱码。
+						'Accept-Encoding: identity',
+					)
+				),
+			),
+			'ssl'  => array(
+				'verify_peer'       => true,
+				'verify_peer_name'  => true,
+				'SNI_enabled'       => true,
+				'ciphers'           => 'HIGH:!aNULL:!MD5',
+			),
+		)
+	);
+
+	// $http_response_header 由 file_get_contents 注入到当前作用域。
+	$http_response_header = array();
+	$body                 = @file_get_contents( $url, false, $ctx );
+
+	if ( false === $body ) {
+		$e   = error_get_last();
+		$msg = isset( $e['message'] ) ? preg_replace( '/^file_get_contents\([^)]*\):\s*/', '', $e['message'] ) : '未知错误';
+		return $fail( '流封装失败: ' . trim( $msg ) );
+	}
+
+	// 跟随重定向时 $http_response_header 会累积各跳的头，
+	// 最终状态取最后一个 HTTP/ 行。
+	$code  = 0;
+	$ctype = '';
+	foreach ( $http_response_header as $h ) {
+		if ( preg_match( '#^HTTP/\S+\s+(\d{3})#', $h, $m ) ) {
+			$code  = (int) $m[1];
+			$ctype = ''; // 新一跳开始，重置 content-type
+		} elseif ( 0 === stripos( $h, 'content-type:' ) ) {
+			$ctype = trim( substr( $h, 13 ) );
+		}
+	}
+
+	return array(
+		'ok'      => ( $code >= 200 && $code < 300 && '' !== $body ),
+		'code'    => $code,
+		'body'    => $body,
+		'ctype'   => $ctype,
+		'error'   => ( $code >= 200 && $code < 300 ) ? '' : ( 'HTTP ' . $code ),
+		'final'   => $url,
+		'attempt' => 'stream(OpenSSL)',
+	);
+}
+
+/**
+ * 打印本机两条 TLS 栈的实现，便于一眼判断握手失败该往哪个方向查。
+ */
+function sd_print_tls_backends() {
+	$cv     = function_exists( 'curl_version' ) ? curl_version() : array();
+	$curl   = isset( $cv['ssl_version'] ) ? $cv['ssl_version'] : '（curl 扩展不可用）';
+	$ossl   = defined( 'OPENSSL_VERSION_TEXT' ) ? OPENSSL_VERSION_TEXT : '（openssl 扩展未加载）';
+	$fopen  = ini_get( 'allow_url_fopen' ) ? 'On' : 'Off';
+
+	echo "TLS 栈：\n";
+	echo "  curl        : {$curl}\n";
+	echo "  流封装      : {$ossl}\n";
+	echo "  allow_url_fopen: {$fopen}\n";
+	/*
+	 * 必须锚定在开头匹配，不能用 stripos($curl, 'nss')：
+	 * "OpenSSL/3.0.13" 里的 Ope[nSS]L 正好含子串 nss，
+	 * 那样写会在所有 OpenSSL 环境下误报（本项目实际踩到过）。
+	 * curl 报告后端的格式是 "NSS/3.53.1"、"OpenSSL/1.0.2k" 这样的前缀形式。
+	 */
+	if ( preg_match( '#^NSS/#i', $curl ) ) {
+		echo "  注意: curl 走 NSS，对部分现代站点会报 -12190（protocol version）。\n";
+		echo "        脚本会在 curl 完全失败时自动改用流封装(OpenSSL)重试。\n";
+	}
+	echo "\n";
 }
 
 /* -------------------------------------------------------------------------
@@ -454,6 +601,8 @@ if ( ! is_dir( $out_root ) && ! mkdir( $out_root, 0755, true ) ) {
 	exit( 1 );
 }
 
+sd_print_tls_backends();
+
 $summary   = array();
 $summary[] = '院校官网信息采集结果';
 $summary[] = '采集时间: ' . date( 'Y-m-d H:i:s' );
@@ -495,8 +644,14 @@ foreach ( $SCHOOLS as $key => $school ) {
 		if ( false !== stripos( $home['error'], 'protocol version' )
 			|| false !== stripos( $home['error'], 'SSL' )
 			|| false !== stripos( $home['error'], 'TLS' ) ) {
-			$hint = 'TLS 协商失败。本机 OpenSSL 偏旧，脚本已尝试 TLSv1.2 与放宽密码套件仍不通。'
-				. '可尝试：curl --tlsv1.3 手动验证；或升级 curl/openssl；或改为手工复制官网内容。';
+			$hint = 'TLS 握手失败，且 curl(NSS) 与流封装(OpenSSL) 两条栈都不通。'
+				. '这通常意味着对方只接受本机 OpenSSL 版本不支持的 TLS 版本或密码套件。'
+				. '可先手工确认：openssl s_client -connect <域名>:443 -tls1_2 </dev/null'
+				. '；确认不通则在本地电脑上跑本脚本，或手工复制官网内容。';
+		} elseif ( false !== stripos( $home['error'], 'certificate' )
+			|| false !== stripos( $home['error'], 'verify failed' ) ) {
+			$hint = '证书校验失败。不要为此关闭校验 —— 采集到的内容会以真实院校名义发布，'
+				. '中途被替换而无察觉等同于发布伪造数据。请先更新系统根证书：yum update ca-certificates。';
 		} elseif ( false !== stripos( $home['error'], 'timed out' ) ) {
 			$hint = '连接超时。脚本已重试到 40 秒连接 / 90 秒总超时仍不通。'
 				. '可能是对方站点拦截了服务器 IP 或非浏览器请求。'
@@ -508,7 +663,8 @@ foreach ( $SCHOOLS as $key => $school ) {
 		$summary[] = str_repeat( '-', 70 );
 		$summary[] = "【{$key}】{$school['name']}";
 		$summary[] = "  采集失败：HTTP {$home['code']} {$home['error']}";
-		$summary[] = '  尝试轮次：' . ( isset( $home['attempt'] ) ? $home['attempt'] : '?' ) . ' / 3';
+		$summary[] = '  尝试轮次：' . ( isset( $home['attempt'] ) ? $home['attempt'] : '?' )
+			. '（curl 2 轮 + 流封装 1 轮）';
 		if ( '' !== $hint ) {
 			$summary[] = '  处置建议：' . $hint;
 		}
