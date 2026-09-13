@@ -88,7 +88,10 @@ else
                 bad "sa-theme-${LC}.mo 过小 (${SIZE} 字节)，可能编译失败"
             fi
         else
-            bad "缺少 sa-theme-${LC}.mo —— ${LC} 语种不会生效"
+            # .mo 是构建产物，已不入库（由 .po 编译而来），全新克隆时本就没有。
+            # 生产环境的把关在 seo-deploy.sh 第 [2/7] 步：编译后仍缺失会直接失败。
+            warn "尚未编译 sa-theme-${LC}.mo —— 该语种会回退显示日文"
+            echo "         编译命令: bash scripts/i18n-build.sh compile"
         fi
     done
 
