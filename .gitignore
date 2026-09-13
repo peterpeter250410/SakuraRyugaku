@@ -93,3 +93,17 @@ Thumbs.db
 # 翻译编译状态标记（i18n-build.sh 用于判断 .po 是否变化以跳过重编译）
 # 属于本机构建状态，不应入库。
 /wp-content/themes/*/languages/.*.build
+
+# ============================================
+# 院校信息采集产物
+# ------------------------------------------------------------
+# scripts/fetch-school-data.php 抓下来的页面文本与 SUMMARY.txt。
+# 属于每台机器各自的中间产物，且体积随抓取页数增长。
+#
+# 曾经误入库一次：在开发环境跑测试时生成的 SUMMARY.txt 被 git add -A
+# 一并提交，导致生产服务器 merge 时报
+#   "untracked working tree files would be overwritten by merge"
+# —— 更糟的是，若合并成功会用开发环境的失败记录覆盖掉服务器上
+# 真实的采集结果。这类文件必须留在各自机器上。
+# ============================================
+/scripts/school-data/
