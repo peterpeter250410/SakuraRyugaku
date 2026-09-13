@@ -35,9 +35,9 @@ get_template_part(
 	'template-parts/site-page-head',
 	null,
 	array(
-		'title' => __( '対応院校一覧', 'sa-theme' ),
-		'sub'   => __( '語学学校から大学院まで、対応している日本の院校をご紹介します。', 'sa-theme' ),
-		'crumb' => __( '対応院校', 'sa-theme' ),
+		'title' => __( '日本の学校情報一覧', 'sa-theme' ),
+		'sub'   => __( '語学学校から大学院まで、日本の学校情報をまとめています。掲載内容は各校の公表資料に基づく参考情報です。', 'sa-theme' ),
+		'crumb' => __( '学校情報', 'sa-theme' ),
 	)
 );
 ?>
@@ -49,7 +49,7 @@ get_template_part(
 
 			<div class="sa-card" style="max-width:820px;margin:0 auto;text-align:center;">
 				<p class="sa-card__text">
-					<?php esc_html_e( '現在公開中の院校情報はありません。無料のマッチング診断では、より多くの提携校からご提案が可能です。', 'sa-theme' ); ?>
+					<?php esc_html_e( '現在公開中の学校情報はありません。無料のマッチング診断では、ご希望の条件に合う学校をご提案します。', 'sa-theme' ); ?>
 				</p>
 				<p style="margin-top:20px;">
 					<a href="<?php echo esc_url( sa_home_url( '/#lead-form' ) ); ?>" class="sa-btn sa-btn--primary" data-sa-cta="schools-empty">
@@ -147,6 +147,15 @@ get_template_part(
 			<?php endif; ?>
 
 		<?php endif; ?>
+
+		<?php
+		// 学校名を冠した情報を並べるページなので、一覧側にも関係性の全文開示が要る。
+		get_template_part(
+			'template-parts/relationship-disclosure',
+			null,
+			array( 'variant' => 'full' )
+		);
+		?>
 	</div>
 </section>
 

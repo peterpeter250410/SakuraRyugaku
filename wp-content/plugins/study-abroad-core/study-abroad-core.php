@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // ---------------------------------------------------------------------------
 // 常量
 // ---------------------------------------------------------------------------
-define( 'SA_CORE_VERSION', '0.3.0' );
+define( 'SA_CORE_VERSION', '0.4.0' );
 define( 'SA_CORE_FILE', __FILE__ );
 define( 'SA_CORE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SA_CORE_URL', plugin_dir_url( __FILE__ ) );

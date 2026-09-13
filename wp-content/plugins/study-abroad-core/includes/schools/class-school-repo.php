@@ -117,6 +117,7 @@ class SA_School_Repo {
 			'school_type'      => isset( $data['school_type'] ) ? sanitize_text_field( $data['school_type'] ) : '',
 			'region'           => isset( $data['region'] ) ? sanitize_text_field( $data['region'] ) : '',
 			'city'             => isset( $data['city'] ) ? sanitize_text_field( $data['city'] ) : '',
+			'official_url'     => self::sanitize_official_url( isset( $data['official_url'] ) ? $data['official_url'] : '' ),
 			'language_req'     => isset( $data['language_req'] ) ? sanitize_text_field( $data['language_req'] ) : '',
 			'min_education'    => isset( $data['min_education'] ) ? sanitize_text_field( $data['min_education'] ) : '',
 			'description_i18n' => self::encode_json_field( isset( $data['description_i18n'] ) ? $data['description_i18n'] : null ),
@@ -129,11 +130,25 @@ class SA_School_Repo {
 			'updated_at'       => $now,
 		);
 
-		$ok = $wpdb->insert(
-			SA_DB::table( 'schools' ),
-			$row,
-			array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s' )
+		/*
+		 * 格式数组按位置对应 $row 的键顺序，不是按键名匹配 ——
+		 * 少一个或错一位，后面所有字段都会用错误的类型写入。
+		 * $row 顺序：post_id(%d) / name..status 共 11 个 %s /
+		 *            published(%d) / sort_order(%d) / created_at(%s) / updated_at(%s)
+		 * 合计 16，与 $row 元素个数一致（下方断言兜底）。
+		 */
+		$formats = array_merge(
+			array( '%d' ),
+			array_fill( 0, 11, '%s' ),
+			array( '%d', '%d', '%s', '%s' )
 		);
+
+		if ( count( $formats ) !== count( $row ) ) {
+			// 字段与格式数量不一致说明有人改了 $row 却漏改格式，宁可失败也不要写脏数据。
+			return false;
+		}
+
+		$ok = $wpdb->insert( SA_DB::table( 'schools' ), $row, $formats );
 
 		if ( ! $ok ) {
 			return false;
@@ -163,6 +178,43 @@ class SA_School_Repo {
 		}
 
 		return $new_id;
+	}
+
+	/**
+	 * 清洗学校官网地址。
+	 *
+	 * 只接受 http / https：这个值会被输出成前台可点击的 <a href> 与
+	 * JSON-LD 的 about.url，若放行 javascript: 或 data: 协议，
+	 * 一个有院校编辑权限的账号就能借此在所有访客页面上执行脚本。
+	 *
+	 * 未带协议的输入（editor 常直接粘 "www.example.ac.jp"）补 https://，
+	 * 否则浏览器会把它当相对路径解析到本站下。
+	 *
+	 * @param mixed $url 原始输入。
+	 * @return string 合法的绝对 URL，或空字符串。
+	 */
+	private static function sanitize_official_url( $url ) {
+		$url = is_string( $url ) ? trim( $url ) : '';
+		if ( '' === $url ) {
+			return '';
+		}
+
+		if ( ! preg_match( '#^[a-zA-Z][a-zA-Z0-9+.\-]*:#', $url ) ) {
+			$url = 'https://' . ltrim( $url, '/' );
+		}
+
+		$clean = esc_url_raw( $url, array( 'http', 'https' ) );
+		if ( '' === $clean ) {
+			return '';
+		}
+
+		// esc_url_raw 对协议不在白名单时会剥掉协议而非返回空，需再确认一次。
+		$scheme = strtolower( (string) wp_parse_url( $clean, PHP_URL_SCHEME ) );
+		if ( ! in_array( $scheme, array( 'http', 'https' ), true ) ) {
+			return '';
+		}
+
+		return substr( $clean, 0, 255 );
 	}
 
 	/**
@@ -208,6 +260,13 @@ class SA_School_Repo {
 				$row[ $f ]   = sanitize_text_field( $data[ $f ] );
 				$formats[]   = '%s';
 			}
+		}
+
+		// 官网地址走独立的 URL 清洗，不能混进 $text_fields ——
+		// sanitize_text_field 不会拦截 javascript: 之类的协议。
+		if ( array_key_exists( 'official_url', $data ) ) {
+			$row['official_url'] = self::sanitize_official_url( $data['official_url'] );
+			$formats[]           = '%s';
 		}
 
 		if ( isset( $data['status'] ) ) {

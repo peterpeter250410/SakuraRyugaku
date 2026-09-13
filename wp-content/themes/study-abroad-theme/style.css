@@ -796,3 +796,73 @@ a { color: var(--sa-accent); text-decoration: none; }
 	opacity: 1;
 	font-weight: 700;
 }
+
+/* ============================================================
+   本站と掲載校の関係についての開示
+   ------------------------------------------------------------
+   提携関係が存在しないことを明示するブロック。
+   目立たせすぎて本文を圧迫しないが、灰色の細字で埋もれさせもしない ——
+   「一応書いてある」体裁だけ整えた開示は、開示として機能しない。
+   ============================================================ */
+.sa-disclosure--full {
+	margin: 44px 0 0;
+	padding: 20px 22px;
+	background: var(--sa-bg-soft);
+	border: 1px solid var(--sa-border);
+	border-left: 4px solid var(--sa-primary);
+	border-radius: var(--sa-radius);
+}
+.sa-disclosure__title {
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--sa-ink);
+	margin: 0 0 12px;
+	line-height: 1.6;
+}
+.sa-disclosure__list {
+	margin: 0;
+	padding-left: 20px;
+	list-style: disc;
+}
+.sa-disclosure__list li {
+	font-size: 14px;
+	line-height: 1.9;
+	color: var(--sa-text);
+	margin: 0 0 8px;
+}
+.sa-disclosure__list li:last-child { margin-bottom: 0; }
+
+/* 1 行版：ページ冒頭とフッターで使う */
+.sa-disclosure--compact {
+	font-size: 13px;
+	line-height: 1.8;
+	color: var(--sa-muted);
+	margin: 14px 0 0;
+}
+/* フッターは濃色背景なので、そこだけ可読性のため色を上書きする */
+.sa-footer .sa-disclosure--compact {
+	color: #94a3b8;
+	padding: 16px 0 0;
+	margin: 8px 0 0;
+	border-top: 1px solid rgba(255, 255, 255, .1);
+}
+
+@media (max-width: 640px) {
+	.sa-disclosure--full { padding: 16px 16px; margin-top: 32px; }
+	.sa-disclosure__title { font-size: 15px; }
+	.sa-disclosure__list li { font-size: 13.5px; }
+}
+
+/* スクリーンリーダー専用テキスト（外部リンクの但し書きなど）。
+   display:none だと読み上げからも消えるため、位置だけ画面外へ逃がす。 */
+.screen-reader-text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}

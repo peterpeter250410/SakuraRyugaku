@@ -197,13 +197,15 @@ get_header();
 	</div>
 </section>
 
-<!-- ============ 信任背书 ============ -->
+<!-- ============ 進学先の選択肢（旧「信任背书」）============
+     提携関係が存在しない以上、ここは「信頼の裏付け」ではなく
+     単なる進学先カテゴリの紹介。Trusted タグも外す。 -->
 <section class="sa-section">
 	<div class="sa-container">
 		<div class="sa-section__head">
-			<span class="sa-section__tag">Trusted</span>
-			<h2 class="sa-section__title"><?php esc_html_e( '対応する進学先', 'sa-theme' ); ?></h2>
-			<p class="sa-section__desc"><?php esc_html_e( '語学学校から大学院まで、幅広い進学先に対応。提携校は順次拡大中です。', 'sa-theme' ); ?></p>
+			<span class="sa-section__tag">Schools</span>
+			<h2 class="sa-section__title"><?php esc_html_e( '進学先の選択肢', 'sa-theme' ); ?></h2>
+			<p class="sa-section__desc"><?php esc_html_e( '語学学校・専門学校・大学・大学院まで、日本の主な進学先の情報をまとめています。掲載校は順次追加中です。', 'sa-theme' ); ?></p>
 		</div>
 
 		<!-- キャンパス・留学生活のイメージ（原生轮播，无依赖） -->

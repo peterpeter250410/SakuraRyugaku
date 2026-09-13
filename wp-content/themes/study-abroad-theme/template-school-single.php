@@ -48,7 +48,7 @@ get_header();
 		sa_breadcrumb(
 			array(
 				array( __( 'ホーム', 'sa-theme' ), sa_home_url( '/' ) ),
-				array( __( '対応院校', 'sa-theme' ), sa_schools_url() ),
+				array( __( '学校情報', 'sa-theme' ), sa_schools_url() ),
 				array( $sa_name, '' ),
 			)
 		);
@@ -75,6 +75,15 @@ get_header();
 				?>
 			</p>
 		<?php endif; ?>
+
+		<?php
+		// 冒頭には 1 行版のみ。全文は本文末尾（CTA 直前）に置く。
+		get_template_part(
+			'template-parts/relationship-disclosure',
+			null,
+			array( 'variant' => 'compact' )
+		);
+		?>
 	</div>
 </div>
 
@@ -103,6 +112,32 @@ get_header();
 
 				<?php if ( ! empty( $sa_school['min_education'] ) ) : ?>
 					<div><dt><?php esc_html_e( '最低学歴', 'sa-theme' ); ?></dt><dd><?php echo esc_html( sa_min_education_label( $sa_school['min_education'] ) ); ?></dd></div>
+				<?php endif; ?>
+
+				<?php
+				/*
+				 * 学校公式サイトへの導線。
+				 *
+				 * 本ページの学費・要件は各校の公表資料をまとめた参考情報にすぎず、
+				 * 当サイトは代理店でもないため、一次情報への経路を必ず示す。
+				 * 「最新情報は公式で」と書きながらリンクを出さないのは不親切なだけでなく、
+				 * 情報の出所を確認できないページとして品質評価上も不利になる。
+				 *
+				 * rel: nofollow は付けない。これは広告でも有料リンクでもなく、
+				 * 一次情報への正当な引用リンク。
+				 */
+				$sa_official = isset( $sa_school['official_url'] ) ? trim( (string) $sa_school['official_url'] ) : '';
+				if ( '' !== $sa_official ) :
+					?>
+					<div>
+						<dt><?php esc_html_e( '学校公式サイト', 'sa-theme' ); ?></dt>
+						<dd>
+							<a href="<?php echo esc_url( $sa_official ); ?>" target="_blank" rel="noopener">
+								<?php echo esc_html( preg_replace( '#^https?://#', '', untrailingslashit( $sa_official ) ) ); ?>
+								<span class="screen-reader-text"><?php esc_html_e( '（外部サイト・新しいタブで開きます）', 'sa-theme' ); ?></span>
+							</a>
+						</dd>
+					</div>
 				<?php endif; ?>
 			</dl>
 		</div>
@@ -169,9 +204,27 @@ get_header();
 			</p>
 		<?php endif; ?>
 
+		<?php
+		/*
+		 * 関係性の開示は本文の最後、CTA の直前に置く。
+		 *
+		 * ページ冒頭に全文を置くとファーストビューが説明文で埋まり、
+		 * 学校情報という本来のコンテンツが押し下げられる。
+		 * 一方で CTA（＝申し込み導線）より後ろに回すと、
+		 * 申し込みを検討する時点で読まれない可能性がある。
+		 * よって「本文の締め、かつ CTA の直前」が唯一妥当な位置。
+		 * ページ冒頭には別途 compact 版の 1 行を出している。
+		 */
+		get_template_part(
+			'template-parts/relationship-disclosure',
+			null,
+			array( 'variant' => 'full' )
+		);
+		?>
+
 		<!-- 内链：回列表 -->
 		<p class="sa-school-detail__back">
-			<a href="<?php echo esc_url( sa_schools_url() ); ?>">← <?php esc_html_e( '対応院校一覧に戻る', 'sa-theme' ); ?></a>
+			<a href="<?php echo esc_url( sa_schools_url() ); ?>">← <?php esc_html_e( '学校情報一覧に戻る', 'sa-theme' ); ?></a>
 		</p>
 	</div>
 </section>

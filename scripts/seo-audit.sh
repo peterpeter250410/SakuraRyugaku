@@ -199,6 +199,55 @@ else
     echo "         生成命令: php scripts/make-og-image.php"
 fi
 
+# ---------- A9. 虚假合作关系措辞 ----------
+#
+# 本站与刊载院校之间不存在代理或合作关系：实际业务只到「协助准备出願材料 +
+# 转交给院校」为止，入学审核与学费收取都由院校与学生直接完成。
+#
+# 因此「提携校」「合作院校」「指定校」「代办申请」这类措辞属于虚假陈述 ——
+# 在日本可能构成景品表示法上的优良误认表示，也给院校方要求下架的理由。
+#
+# 这种措辞最容易在写新文案时被无意带回来（读起来更"有实力"），
+# 所以固化成一条会失败的检查，而不是只写在文档里。
+head2 "A9. 是否出现暗示合作/代理关系的措辞"
+BAD_WORDS='提携校|合作院校|指定校|代办|代辦|申請代行|出願代行|partner school|Partner School'
+#
+# 三类排除：
+#   1. 纯注释行 —— 注释里必须写出这些词才能说明为什么禁止
+#   2. /languages/ —— .po 中的历史译文不影响前台输出，由 i18n-build 负责收敛
+#   3. 显式豁免 —— 后台「发布前核对清单」要把禁用词列给编辑看。
+#      这类位置在同一行末尾写 sa-audit-allow-partner-words。
+#      刻意用同行标记而不是上一行：跨行判断需要 -B1 之类的上下文匹配，
+#      管道一复杂就容易出现"看着过了其实没过"的假绿灯。
+HITS=$(grep -rnE "$BAD_WORDS" \
+        --include='*.php' \
+        "${THEME}" "${SITE_ROOT}/wp-content/plugins/study-abroad-core" 2>/dev/null \
+      | grep -v 'sa-audit-allow-partner-words' \
+      | grep -vE '^[^:]+:[0-9]+:[[:space:]]*(\*|//|#)' \
+      | grep -vE '/languages/' || true)
+if [ -z "$HITS" ]; then
+    ok "未发现暗示合作或代理关系的措辞"
+else
+    bad "发现暗示合作/代理关系的措辞（本站无代理关系，属虚假陈述）"
+    echo "$HITS" | head -10 | sed 's/^/         /'
+    echo "         替代写法：掲載校 / 学校情報 / 出願書類の準備・取次ぎ"
+fi
+
+# 关系开示组件是否仍被各页面引用（被误删会让所有开示同时消失）
+DISCLOSURE="${THEME}/template-parts/relationship-disclosure.php"
+if [ ! -f "$DISCLOSURE" ]; then
+    bad "缺少 template-parts/relationship-disclosure.php —— 全站关系开示已失效"
+else
+    USES=$(grep -rl "relationship-disclosure" --include='*.php' "${THEME}" 2>/dev/null \
+           | grep -v 'template-parts/relationship-disclosure.php' | wc -l | tr -d ' ')
+    # 期望：footer / template-schools / template-school-single / page-services
+    if [ "${USES:-0}" -ge 4 ]; then
+        ok "关系开示组件被 ${USES} 个模板引用"
+    else
+        bad "关系开示组件仅被 ${USES} 个模板引用（应至少 4：页脚 + 院校列表 + 院校详情 + 服务介绍）"
+    fi
+fi
+
 # ============================================================
 # [B] 线上站点检查
 # ============================================================

@@ -270,6 +270,8 @@ class SA_Admin_Menu {
 			'school_type'   => isset( $_POST['school_type'] ) ? sanitize_text_field( wp_unslash( $_POST['school_type'] ) ) : '',
 			'region'        => isset( $_POST['region'] ) ? sanitize_text_field( wp_unslash( $_POST['region'] ) ) : '',
 			'city'          => isset( $_POST['city'] ) ? sanitize_text_field( wp_unslash( $_POST['city'] ) ) : '',
+			// URL 清洗（协议白名单）在仓储层统一处理，这里只做 unslash，不要提前 sanitize_text_field。
+			'official_url'  => isset( $_POST['official_url'] ) ? wp_unslash( $_POST['official_url'] ) : '',
 			'language_req'  => isset( $_POST['language_req'] ) ? sanitize_text_field( wp_unslash( $_POST['language_req'] ) ) : '',
 			'min_education' => isset( $_POST['min_education'] ) ? sanitize_text_field( wp_unslash( $_POST['min_education'] ) ) : '',
 			'status'        => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
@@ -416,6 +418,18 @@ class SA_Admin_Menu {
 		self::form_text_row( 'school_type', __( '类型（如 university / language_school）', 'sa-core' ), $val( 'school_type' ) );
 		self::form_text_row( 'region', __( '地区（如 関東）', 'sa-core' ), $val( 'region' ) );
 		self::form_text_row( 'city', __( '城市（如 東京）', 'sa-core' ), $val( 'city' ) );
+
+		// 官网地址：前台会渲染成可点击链接，并作为结构化数据里该院校实体的 url。
+		echo '<tr><th><label for="sa-field-official_url">' . esc_html__( '学校官网', 'sa-core' ) . '</label></th><td>';
+		echo '<input type="url" class="regular-text" id="sa-field-official_url" name="official_url" value="'
+			. esc_attr( $val( 'official_url' ) ) . '" placeholder="https://www.example.ac.jp/" />';
+		echo '<p class="description">';
+		echo esc_html__( '本站与各院校之间不存在代理或合作关系，页面上的学费与募集要项只是依据公开资料整理的参考信息，因此必须给出一次信息源的链接。', 'sa-core' );
+		echo '<br>' . esc_html__( '该地址同时用于结构化数据：把院校实体的 url 指向学校自己的官网，而不是本站页面。留空则结构化数据中不输出 url。', 'sa-core' );
+		echo '<br>' . esc_html__( '仅接受 http / https，未填协议时自动补 https://。', 'sa-core' );
+		echo '</p>';
+		echo '</td></tr>';
+
 		self::form_text_row( 'language_req', __( '语言要求（如 JLPT N2）', 'sa-core' ), $val( 'language_req' ) );
 		self::form_text_row( 'min_education', __( '最低学历（如 high_school）', 'sa-core' ), $val( 'min_education' ) );
 		self::form_text_row( 'sort_order', __( '排序', 'sa-core' ), $val( 'sort_order' ) );
@@ -447,10 +461,13 @@ class SA_Admin_Menu {
 		echo '<div style="background:#fff8e1;border:1px solid #f0c36d;border-radius:6px;padding:12px 14px;max-width:820px;margin-bottom:12px;">';
 		echo '<strong>' . esc_html__( '发布前请务必核实：', 'sa-core' ) . '</strong>';
 		echo '<ul style="margin:8px 0 0 18px;list-style:disc;">';
-		echo '<li>' . esc_html__( '院校名称、所在地、语言要求是否与官方信息一致', 'sa-core' ) . '</li>';
+		echo '<li>' . esc_html__( '院校名称、所在地、语言要求是否与官方公开信息一致', 'sa-core' ) . '</li>';
 		echo '<li>' . esc_html__( '各专业学费是否为当前年度数据（页面会标注「目安」，但仍不应偏离实际）', 'sa-core' ) . '</li>';
-		echo '<li>' . esc_html__( '是否有权以本站名义展示该院校信息', 'sa-core' ) . '</li>';
+		echo '<li>' . esc_html__( '「学校官网」是否已填写：页面声明「以官方最新信息为准」，必须给出链接', 'sa-core' ) . '</li>';
+		echo '<li>' . esc_html__( '简介中是否出现「提携校」「合作院校」「指定校」「代办」等措辞 —— 本站与各院校之间不存在代理或合作关系，这类表述属于虚假陈述', 'sa-core' ) . '</li>'; // sa-audit-allow-partner-words 本行需列举禁用词本身。
+		echo '<li>' . esc_html__( '是否写入了尚未开设的校区或课程（如「2027年4月開校予定」），若写入必须明确标注为预定', 'sa-core' ) . '</li>';
 		echo '</ul>';
+		echo '<p style="margin:8px 0 0;">' . esc_html__( '页面会自动在正文末尾输出「本站与刊载院校的关系」声明（非代理、不代收学费、以官方为准），无需在简介里重复。', 'sa-core' ) . '</p>';
 		echo '<p style="margin:8px 0 0;">' . esc_html__( '未勾选时，该院校页面返回 404，不会被搜索引擎收录，也不会出现在 sitemap 与院校列表中。', 'sa-core' ) . '</p>';
 		echo '</div>';
 

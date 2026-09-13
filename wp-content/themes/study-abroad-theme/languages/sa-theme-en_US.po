@@ -9,7 +9,6 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Domain: sa-theme\n"
 
-
 #. Theme Name of the theme
 #: style.css
 msgid "Study Abroad Theme"
@@ -39,13 +38,6 @@ msgstr "Navigation"
 #: page-services.php:25
 msgid "サービス紹介"
 msgstr "Our Services"
-
-#: footer.php:29
-#: header.php:59
-#: inc/schools.php:403
-#: template-schools.php:38
-msgid "対応院校一覧"
-msgstr "Partner schools"
 
 #: footer.php:31
 #: inc/i18n.php:459
@@ -313,14 +305,6 @@ msgstr "Apply with support"
 msgid "書類準備から出願までサポート。"
 msgstr "From documents to submission, we are with you."
 
-#: front-page.php:205
-msgid "対応する進学先"
-msgstr "Where you can go"
-
-#: front-page.php:206
-msgid "語学学校から大学院まで、幅広い進学先に対応。提携校は順次拡大中です。"
-msgstr "From language schools to graduate programs. Our partner network keeps growing."
-
 #: front-page.php:213
 msgid "日本の大学キャンパスと留学生"
 msgstr "International students on a Japanese university campus"
@@ -515,10 +499,6 @@ msgstr "Around %s0,000 JPY per year (guide)"
 #: inc/schools.php:395
 msgid "%1$s（%2$s）"
 msgstr "%1$s (%2$s)"
-
-#: inc/schools.php:423
-msgid "語学学校から大学院まで、対応している日本の院校を一覧でご紹介します。学費・語学要件・所在地から比較し、気になる学校は無料でマッチング診断を受けられます。"
-msgstr "Browse the schools in Japan we work with, from language schools through to graduate programmes. Compare tuition, language requirements and location, then run a free match on any that interest you."
 
 #: inc/schools.php:448
 msgid "%1$s（%2$s）の基本情報・出願条件・学費目安をまとめました。無料のマッチング診断で、あなたの条件に合うか確認できます。"
@@ -884,10 +864,6 @@ msgstr "Data and expertise, all the way through."
 msgid "提供サービス"
 msgstr "What we do"
 
-#: page-services.php:37
-msgid "出願前の相談から入学後まで、留学のすべてをワンストップでサポートします。"
-msgstr "One place for everything, from your first question to your first day of class."
-
 #: page-services.php:43
 msgid "無料学校マッチング"
 msgstr "Free school matching"
@@ -1012,11 +988,6 @@ msgstr "Once every required (*) document is uploaded, submit using the button be
 msgid "提出する"
 msgstr "Submit"
 
-#: template-school-single.php:51
-#: template-schools.php:40
-msgid "対応院校"
-msgstr "Schools"
-
 #: template-school-single.php:59
 msgid "【未公開プレビュー】この院校ページはまだ公開されていません。管理者のみ閲覧できます。"
 msgstr "[Unpublished preview] This school page is not yet public. Visible to administrators only."
@@ -1084,10 +1055,6 @@ msgstr "Required"
 msgid "※ 学歴や国籍により追加書類を求められる場合があります。詳細は無料相談でご案内します。"
 msgstr "Note: additional documents may be requested depending on your academic background and nationality. We go through the full list in your free consultation."
 
-#: template-school-single.php:174
-msgid "対応院校一覧に戻る"
-msgstr "Back to all schools"
-
 #. translators: %s: 院校名
 #: template-school-single.php:184
 msgid "%s に出願できるか、無料で診断"
@@ -1096,14 +1063,6 @@ msgstr "Check your eligibility for %s, free"
 #: template-school-single.php:187
 msgid "予算・日本語レベル・希望専攻を入力するだけ。マッチ度をその場で確認できます。"
 msgstr "Enter your budget, Japanese level and intended major to see your match score right away."
-
-#: template-schools.php:39
-msgid "語学学校から大学院まで、対応している日本の院校をご紹介します。"
-msgstr "The schools in Japan we work with, from language schools to graduate programmes."
-
-#: template-schools.php:52
-msgid "現在公開中の院校情報はありません。無料のマッチング診断では、より多くの提携校からご提案が可能です。"
-msgstr "No school pages are published yet. Our free matching service can still recommend from a wider set of partner schools."
 
 #: template-schools.php:118
 msgid "学費"
@@ -1124,3 +1083,57 @@ msgstr "Still unsure which school suits you?"
 #: template-schools.php:156
 msgid "予算と希望専攻を入力するだけ。AIがその場で候補校を診断します。"
 msgstr "Enter your budget and intended major, and our AI shortlists schools instantly."
+
+msgid "日本の学校情報一覧"
+msgstr "Schools in Japan"
+
+msgid "学校情報"
+msgstr "Schools"
+
+msgid "学校情報一覧に戻る"
+msgstr "Back to all schools"
+
+msgid "語学学校から大学院まで、日本の学校情報をまとめています。掲載内容は各校の公表資料に基づく参考情報です。"
+msgstr "From language schools to graduate programs — information on schools across Japan. Compiled from each school's own published materials, for reference only."
+
+msgid "現在公開中の学校情報はありません。無料のマッチング診断では、ご希望の条件に合う学校をご提案します。"
+msgstr "No school pages are published yet. Our free matching tool can still suggest schools that fit your criteria."
+
+msgid "進学先の選択肢"
+msgstr "Where you can study"
+
+msgid "語学学校・専門学校・大学・大学院まで、日本の主な進学先の情報をまとめています。掲載校は順次追加中です。"
+msgstr "Language schools, vocational colleges, universities and graduate schools — information on the main study paths in Japan. More schools are being added."
+
+msgid "語学学校から大学院まで、日本の学校情報を一覧でまとめています。学費・語学要件・所在地から比較でき、気になる学校は無料でマッチング診断を受けられます。掲載内容は各校の公表資料に基づく参考情報です。"
+msgstr "Browse schools in Japan, from language schools to graduate programs. Compare by tuition, language requirements and location, and get a free match assessment for any school. Compiled from each school's published materials, for reference only."
+
+msgid "学校選びから出願書類の準備・取次ぎまで、留学の準備段階をサポートします。"
+msgstr "We support the preparation stage: choosing a school, preparing your application documents, and forwarding them to the school."
+
+msgid "学校公式サイト"
+msgstr "Official website"
+
+msgid "（外部サイト・新しいタブで開きます）"
+msgstr "(external site, opens in a new tab)"
+
+msgid "当サイトは掲載校の代理店ではありません。掲載情報は各校の公表資料に基づく参考情報です。"
+msgstr "We are not an agent for the schools listed here. This information is compiled from each school's published materials, for reference only."
+
+msgid "当サイトと掲載校の関係について"
+msgstr "Our relationship with the schools listed here"
+
+msgid "当サイトは、掲載している学校の代理店ではありません。学校から募集の委託を受けておらず、学校を代理する権限もありません。"
+msgstr "We are not an agent for the schools listed on this site. We hold no recruitment mandate from them and no authority to act on their behalf."
+
+msgid "当サイトが行うのは、出願書類の準備サポートと、学校への書類・基本情報のお取次ぎまでです。"
+msgstr "What we do is help you prepare your application documents, and forward those documents and your basic information to the school."
+
+msgid "入学審査および合否の判定は、各学校が行います。当サイトが合格を保証することはできません。"
+msgstr "Admission screening and the final decision are made by the school. We cannot guarantee admission."
+
+msgid "入学金・授業料などのお支払いは、学生ご本人と学校の間で直接お手続きいただきます。当サイトが学費をお預かりすることはありません。"
+msgstr "Enrollment fees and tuition are paid directly by you to the school. We never receive or hold tuition on a school's behalf."
+
+msgid "掲載内容は各校の公表資料をもとに整理した参考情報です。募集要項・学費・出願条件は変更される場合があります。お申し込み前に、必ず学校公式サイトで最新情報をご確認ください。"
+msgstr "The information here is compiled from each school's published materials and is provided for reference. Admission requirements, fees and conditions can change — always confirm the latest details on the school's official website before applying."

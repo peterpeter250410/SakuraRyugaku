@@ -90,8 +90,19 @@ class SA_Activator {
 		 * 唯一索引创建失败，甚至后续插入报 Duplicate entry。
 		 */
 		$columns = array(
-			'slug'      => 'ADD COLUMN slug VARCHAR(191) DEFAULT NULL AFTER name',
-			'published' => 'ADD COLUMN published TINYINT(1) NOT NULL DEFAULT 0 AFTER status',
+			'slug'         => 'ADD COLUMN slug VARCHAR(191) DEFAULT NULL AFTER name',
+			'published'    => 'ADD COLUMN published TINYINT(1) NOT NULL DEFAULT 0 AFTER status',
+			/*
+			 * official_url —— 学校官方网站。
+			 *
+			 * 本站与各校之间没有代理关系，页面上的学费、募集要项等只是依据
+			 * 各校公开资料整理的参考信息。既然如此，就必须把「以官方为准」
+			 * 这句话落到可点击的链接上，否则等于让用户自己去搜。
+			 * 同时它也是 JSON-LD 里 about.url 的取值来源：把实体的 url 指向
+			 * 学校自己的站点，而不是本站页面，才是对「这页是关于那所学校」
+			 * 的正确断言。
+			 */
+			'official_url' => "ADD COLUMN official_url VARCHAR(255) DEFAULT '' AFTER city",
 		);
 
 		foreach ( $columns as $col => $ddl ) {
@@ -202,6 +213,7 @@ class SA_Activator {
 			school_type VARCHAR(32) DEFAULT '',
 			region VARCHAR(64) DEFAULT '',
 			city VARCHAR(64) DEFAULT '',
+			official_url VARCHAR(255) DEFAULT '',
 			language_req VARCHAR(32) DEFAULT '',
 			min_education VARCHAR(64) DEFAULT '',
 			description_i18n LONGTEXT NULL,

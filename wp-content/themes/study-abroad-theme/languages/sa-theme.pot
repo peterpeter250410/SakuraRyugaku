@@ -1,5 +1,3 @@
-# Copyright (C) 2026 Study Abroad Team
-# This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
 "Project-Id-Version: Study Abroad Theme 0.2.0\n"
@@ -42,13 +40,6 @@ msgstr ""
 #: inc/i18n.php:456
 #: page-services.php:25
 msgid "サービス紹介"
-msgstr ""
-
-#: footer.php:29
-#: header.php:59
-#: inc/schools.php:403
-#: template-schools.php:38
-msgid "対応院校一覧"
 msgstr ""
 
 #: footer.php:31
@@ -232,7 +223,6 @@ msgstr ""
 
 #. translators: %s: privacy policy link
 #: front-page.php:120
-#, php-format
 msgid "%s に同意します。"
 msgstr ""
 
@@ -316,14 +306,6 @@ msgstr ""
 #: front-page.php:184
 #: page-services.php:74
 msgid "書類準備から出願までサポート。"
-msgstr ""
-
-#: front-page.php:205
-msgid "対応する進学先"
-msgstr ""
-
-#: front-page.php:206
-msgid "語学学校から大学院まで、幅広い進学先に対応。提携校は順次拡大中です。"
 msgstr ""
 
 #: front-page.php:213
@@ -509,27 +491,19 @@ msgstr ""
 
 #. translators: 1: 下限, 2: 上限（单位：万日元/年）
 #: inc/schools.php:330
-#, php-format
 msgid "年間 %1$s〜%2$s 万円（目安）"
 msgstr ""
 
 #. translators: %s: 金额（单位：万日元/年）
 #: inc/schools.php:335
-#, php-format
 msgid "年間 約%s 万円（目安）"
 msgstr ""
 
 #: inc/schools.php:395
-#, php-format
 msgid "%1$s（%2$s）"
 msgstr ""
 
-#: inc/schools.php:423
-msgid "語学学校から大学院まで、対応している日本の院校を一覧でご紹介します。学費・語学要件・所在地から比較し、気になる学校は無料でマッチング診断を受けられます。"
-msgstr ""
-
 #: inc/schools.php:448
-#, php-format
 msgid "%1$s（%2$s）の基本情報・出願条件・学費目安をまとめました。無料のマッチング診断で、あなたの条件に合うか確認できます。"
 msgstr ""
 
@@ -893,10 +867,6 @@ msgstr ""
 msgid "提供サービス"
 msgstr ""
 
-#: page-services.php:37
-msgid "出願前の相談から入学後まで、留学のすべてをワンストップでサポートします。"
-msgstr ""
-
 #: page-services.php:43
 msgid "無料学校マッチング"
 msgstr ""
@@ -1021,11 +991,6 @@ msgstr ""
 msgid "提出する"
 msgstr ""
 
-#: template-school-single.php:51
-#: template-schools.php:40
-msgid "対応院校"
-msgstr ""
-
 #: template-school-single.php:59
 msgid "【未公開プレビュー】この院校ページはまだ公開されていません。管理者のみ閲覧できます。"
 msgstr ""
@@ -1093,26 +1058,13 @@ msgstr ""
 msgid "※ 学歴や国籍により追加書類を求められる場合があります。詳細は無料相談でご案内します。"
 msgstr ""
 
-#: template-school-single.php:174
-msgid "対応院校一覧に戻る"
-msgstr ""
-
 #. translators: %s: 院校名
 #: template-school-single.php:184
-#, php-format
 msgid "%s に出願できるか、無料で診断"
 msgstr ""
 
 #: template-school-single.php:187
 msgid "予算・日本語レベル・希望専攻を入力するだけ。マッチ度をその場で確認できます。"
-msgstr ""
-
-#: template-schools.php:39
-msgid "語学学校から大学院まで、対応している日本の院校をご紹介します。"
-msgstr ""
-
-#: template-schools.php:52
-msgid "現在公開中の院校情報はありません。無料のマッチング診断では、より多くの提携校からご提案が可能です。"
 msgstr ""
 
 #: template-schools.php:118
@@ -1133,4 +1085,58 @@ msgstr ""
 
 #: template-schools.php:156
 msgid "予算と希望専攻を入力するだけ。AIがその場で候補校を診断します。"
+msgstr ""
+
+msgid "日本の学校情報一覧"
+msgstr ""
+
+msgid "学校情報"
+msgstr ""
+
+msgid "学校情報一覧に戻る"
+msgstr ""
+
+msgid "語学学校から大学院まで、日本の学校情報をまとめています。掲載内容は各校の公表資料に基づく参考情報です。"
+msgstr ""
+
+msgid "現在公開中の学校情報はありません。無料のマッチング診断では、ご希望の条件に合う学校をご提案します。"
+msgstr ""
+
+msgid "進学先の選択肢"
+msgstr ""
+
+msgid "語学学校・専門学校・大学・大学院まで、日本の主な進学先の情報をまとめています。掲載校は順次追加中です。"
+msgstr ""
+
+msgid "語学学校から大学院まで、日本の学校情報を一覧でまとめています。学費・語学要件・所在地から比較でき、気になる学校は無料でマッチング診断を受けられます。掲載内容は各校の公表資料に基づく参考情報です。"
+msgstr ""
+
+msgid "学校選びから出願書類の準備・取次ぎまで、留学の準備段階をサポートします。"
+msgstr ""
+
+msgid "学校公式サイト"
+msgstr ""
+
+msgid "（外部サイト・新しいタブで開きます）"
+msgstr ""
+
+msgid "当サイトは掲載校の代理店ではありません。掲載情報は各校の公表資料に基づく参考情報です。"
+msgstr ""
+
+msgid "当サイトと掲載校の関係について"
+msgstr ""
+
+msgid "当サイトは、掲載している学校の代理店ではありません。学校から募集の委託を受けておらず、学校を代理する権限もありません。"
+msgstr ""
+
+msgid "当サイトが行うのは、出願書類の準備サポートと、学校への書類・基本情報のお取次ぎまでです。"
+msgstr ""
+
+msgid "入学審査および合否の判定は、各学校が行います。当サイトが合格を保証することはできません。"
+msgstr ""
+
+msgid "入学金・授業料などのお支払いは、学生ご本人と学校の間で直接お手続きいただきます。当サイトが学費をお預かりすることはありません。"
+msgstr ""
+
+msgid "掲載内容は各校の公表資料をもとに整理した参考情報です。募集要項・学費・出願条件は変更される場合があります。お申し込み前に、必ず学校公式サイトで最新情報をご確認ください。"
 msgstr ""

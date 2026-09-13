@@ -56,7 +56,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					echo '<li><a href="#flow">' . esc_html__( '流れ', 'sa-theme' ) . '</a></li>';
 					// 院校列表页需要主导航入口，否则是只能靠 sitemap 发现的孤岛页面。
 					if ( function_exists( 'sa_schools_url' ) ) {
-						echo '<li><a href="' . esc_url( sa_schools_url() ) . '">' . esc_html__( '対応院校一覧', 'sa-theme' ) . '</a></li>';
+						echo '<li><a href="' . esc_url( sa_schools_url() ) . '">' . esc_html__( '日本の学校情報一覧', 'sa-theme' ) . '</a></li>';
 					}
 					echo '<li><a href="#faq">' . esc_html__( 'よくある質問', 'sa-theme' ) . '</a></li>';
 					echo '</ul>';

@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<?php if ( function_exists( 'sa_schools_url' ) ) : ?>
 						<?php // 院校列表页此前没有任何入口链接，是孤岛页面：只能靠 sitemap 被发现，
 						// 权重几乎无法传递。页脚与主导航都必须有入口。 ?>
-						<li><a href="<?php echo esc_url( sa_schools_url() ); ?>"><?php esc_html_e( '対応院校一覧', 'sa-theme' ); ?></a></li>
+						<li><a href="<?php echo esc_url( sa_schools_url() ); ?>"><?php esc_html_e( '日本の学校情報一覧', 'sa-theme' ); ?></a></li>
 					<?php endif; ?>
 					<li><a href="<?php echo esc_url( sa_home_url( '/about/' ) ); ?>"><?php esc_html_e( '私たちについて', 'sa-theme' ); ?></a></li>
 					<li><a href="<?php echo esc_url( sa_home_url( '/faq/' ) ); ?>"><?php esc_html_e( 'よくある質問', 'sa-theme' ); ?></a></li>
@@ -74,6 +74,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<?php
 			endif;
 		endif;
+		?>
+
+		<?php
+		// 全ページ共通の 1 行開示。学校名が出るページ以外でも立場を明示しておく。
+		get_template_part(
+			'template-parts/relationship-disclosure',
+			null,
+			array( 'variant' => 'compact' )
+		);
 		?>
 
 		<div class="sa-footer__bottom">

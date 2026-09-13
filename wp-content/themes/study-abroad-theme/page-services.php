@@ -34,7 +34,9 @@ get_template_part(
 		<div class="sa-section__head">
 			<span class="sa-section__tag">Services</span>
 			<h2 class="sa-section__title"><?php esc_html_e( '提供サービス', 'sa-theme' ); ?></h2>
-			<p class="sa-section__desc"><?php esc_html_e( '出願前の相談から入学後まで、留学のすべてをワンストップでサポートします。', 'sa-theme' ); ?></p>
+			<?php // 「留学のすべてをワンストップで」は過大表示。入学審査も学費の収受も
+			// 学校側が行い、当方の関与範囲は出願書類の準備と取次ぎまで。 ?>
+			<p class="sa-section__desc"><?php esc_html_e( '学校選びから出願書類の準備・取次ぎまで、留学の準備段階をサポートします。', 'sa-theme' ); ?></p>
 		</div>
 		<div class="sa-grid sa-grid--3">
 			<?php
@@ -99,6 +101,19 @@ while ( have_posts() ) :
 	}
 endwhile;
 ?>
+
+<!-- サービスの範囲＝関係性の開示。サービス紹介ページにこそ必要。 -->
+<section class="sa-section">
+	<div class="sa-container" style="max-width:820px;">
+		<?php
+		get_template_part(
+			'template-parts/relationship-disclosure',
+			null,
+			array( 'variant' => 'full' )
+		);
+		?>
+	</div>
+</section>
 
 <!-- CTA 内链回落地页表单 -->
 <section class="sa-cta-band">

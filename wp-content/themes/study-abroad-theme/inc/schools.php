@@ -400,7 +400,7 @@ add_filter(
 				unset( $parts['tagline'] );
 			}
 		} elseif ( sa_is_schools_archive() ) {
-			$parts['title'] = __( '対応院校一覧', 'sa-theme' );
+			$parts['title'] = __( '日本の学校情報一覧', 'sa-theme' );
 			unset( $parts['tagline'] );
 		}
 
@@ -420,7 +420,7 @@ add_action(
 	function () {
 		if ( sa_is_schools_archive() ) {
 			sa_set_meta_description(
-				__( '語学学校から大学院まで、対応している日本の院校を一覧でご紹介します。学費・語学要件・所在地から比較し、気になる学校は無料でマッチング診断を受けられます。', 'sa-theme' )
+				__( '語学学校から大学院まで、日本の学校情報を一覧でまとめています。学費・語学要件・所在地から比較でき、気になる学校は無料でマッチング診断を受けられます。掲載内容は各校の公表資料に基づく参考情報です。', 'sa-theme' )
 			);
 			return;
 		}
@@ -498,6 +498,21 @@ add_action(
 			'@type' => $org_type,
 			'name'  => $name,
 		);
+
+		/*
+		 * about.url は「その学校自身の URL」であって、本ページの URL ではない。
+		 *
+		 * ここに本ページの URL を入れると、この学校の公式所在地が
+		 * studyinjp.com であると宣言することになる。当サイトは代理店ですらなく、
+		 * 各校の公表資料をまとめているだけなので、それは端的に虚偽の主張になる。
+		 * 公式サイトが登録されている場合のみ url / sameAs を出し、
+		 * 未登録なら name と address だけに留める（推測で埋めない）。
+		 */
+		$official = isset( $school['official_url'] ) ? trim( (string) $school['official_url'] ) : '';
+		if ( '' !== $official ) {
+			$about['url']    = $official;
+			$about['sameAs'] = array( $official );
+		}
 
 		$locality = isset( $school['city'] ) ? trim( (string) $school['city'] ) : '';
 		$region   = isset( $school['region'] ) ? trim( (string) $school['region'] ) : '';
