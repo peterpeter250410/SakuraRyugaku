@@ -1145,3 +1145,24 @@ msgstr ""
 
 msgid "※ 学費は目安です。金額に含まれる費用は学校・コースにより異なります（各行の注記をご確認ください）。最新の金額は必ず学校公式サイトの募集要項でご確認ください。"
 msgstr ""
+
+msgid "お問い合わせフォーム"
+msgstr ""
+
+msgid "ご相談は無料です。"
+msgstr ""
+
+msgid "無料AI診断"
+msgstr ""
+
+msgid "無料診断"
+msgstr ""
+
+msgid "AI診断"
+msgstr ""
+
+msgid "料金"
+msgstr ""
+
+msgid "アクセス"
+msgstr ""

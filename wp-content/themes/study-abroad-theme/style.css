@@ -148,14 +148,47 @@ a { color: var(--sa-accent); text-decoration: none; }
 /* =========================================================
    Hero（落地页首屏）
    ========================================================= */
+/*
+ * Hero 背景图。
+ *
+ * 原来直接引用 1920x1080 的源图（336 KB），手机上也照样下载整张。
+ * 现在改为分档 + WebP：
+ *   窄屏取 1280w（88 KB WebP），宽屏取 1920w
+ *   支持 WebP 的浏览器走 image-set 的第一项，其余回落到 JPEG
+ *
+ * 两条 background 声明的顺序不能颠倒：不认识 image-set() 的旧浏览器
+ * 会忽略后一条、保留前一条的 url()；认识的则用后一条覆盖前一条。
+ * 这是 CSS 层叠天然提供的降级，不需要 @supports。
+ */
 .sa-hero {
 	position: relative;
 	/* 渐变遮罩叠加背景图；图片加载失败时渐变兜底，保证文字对比度 */
 	background:
 		linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
-		url("assets/images/hero-bg.jpg") center/cover no-repeat;
+		url("assets/images/hero-bg-1280w.jpg") center/cover no-repeat;
+	background:
+		linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
+		image-set(
+			url("assets/images/hero-bg-1280w.webp") type("image/webp"),
+			url("assets/images/hero-bg-1280w.jpg") type("image/jpeg")
+		) center/cover no-repeat;
 	background-color: #fff5f4;
 	overflow: hidden;
+}
+/* 宽屏才值得加载 1920w —— 窄屏用不到这些像素 */
+@media (min-width: 1281px) {
+	.sa-hero {
+		background:
+			linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
+			url("assets/images/hero-bg-1920w.jpg") center/cover no-repeat;
+		background:
+			linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
+			image-set(
+				url("assets/images/hero-bg-1920w.webp") type("image/webp"),
+				url("assets/images/hero-bg-1920w.jpg") type("image/jpeg")
+			) center/cover no-repeat;
+		background-color: #fff5f4;
+	}
 }
 /* 首屏光晕：左右两团柔和光斑，增强层次与特色 */
 .sa-hero::before,

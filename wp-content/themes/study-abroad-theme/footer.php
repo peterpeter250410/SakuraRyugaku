@@ -35,9 +35,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</div>
 			<div class="sa-footer__col">
 				<h4><?php esc_html_e( 'お問い合わせ', 'sa-theme' ); ?></h4>
+				<?php
+				/*
+				 * 这里曾经写着 info@example.com 与一行「LINE / WeChat / WhatsApp」。
+				 *
+				 * example.com 是 RFC 2606 保留给文档示例的域名，那个地址永远收不到邮件；
+				 * 三个聊天工具也只有名字、没有任何账号。留学咨询属于 YMYL 领域，
+				 * 挂一个打不通的联系方式，比不挂更伤信任 —— 用户按着联系不上，
+				 * 搜索质量评估也会把「联系方式是否真实可用」算进对机构的判断。
+				 *
+				 * 在拿到真实的邮箱与各聊天账号之前，一律指向表单页，
+				 * 那是当前确实能收到消息的唯一入口。
+				 * 补充真实联系方式时，直接在这里替换即可。
+				 */
+				?>
 				<ul>
-					<li><?php esc_html_e( 'メール', 'sa-theme' ); ?>: info@example.com</li>
-					<li>LINE / WeChat / WhatsApp</li>
+					<li>
+						<a href="<?php echo esc_url( sa_home_url( '/contact/' ) ); ?>">
+							<?php esc_html_e( 'お問い合わせフォーム', 'sa-theme' ); ?>
+						</a>
+					</li>
+					<?php
+					// 这里不要写「〇営業日以内に返信」之类的承诺 ——
+					// 实际的响应时效未经确认，写出来就是无法兑现的保证。
+					?>
+					<li><?php esc_html_e( 'ご相談は無料です。', 'sa-theme' ); ?></li>
 				</ul>
 			</div>
 		</div>

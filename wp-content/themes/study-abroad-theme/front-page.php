@@ -220,13 +220,21 @@ get_header();
 		$sa_img_dir  = get_template_directory() . '/assets/images/';
 		$sa_img_base = get_template_directory_uri() . '/assets/images/';
 
-		// 只渲染真实存在的图片：缺图时输出 <img> 会产生 404 请求与破图，
-		// 既损害用户体验，也是负面的页面质量信号。
+		/*
+		 * 只渲染真实存在的图片：缺图时输出 <img> 会产生 404 请求与破图，
+		 * 既损害用户体验，也是负面的页面质量信号。
+		 *
+		 * 检查的是派生文件（-960w.jpg）而不是源图 —— 页面引用的是
+		 * scripts/optimize-images.php 按显示尺寸生成的那些。源图存在
+		 * 但没跑过优化脚本时，检查源图会放行，结果输出一堆 404。
+		 * JPEG 作为 <picture> 的兜底必定会被请求，所以以它为准即可。
+		 */
 		$sa_slides = array_values(
 			array_filter(
 				$sa_slides,
 				function ( $slide ) use ( $sa_img_dir ) {
-					return file_exists( $sa_img_dir . $slide['file'] );
+					$stem = pathinfo( $slide['file'], PATHINFO_FILENAME );
+					return file_exists( $sa_img_dir . $stem . '-960w.jpg' );
 				}
 			)
 		);
@@ -242,17 +250,42 @@ get_header();
 							// 首帧属首屏内容：eager + 高优先级，避免拖慢 LCP；
 							// 其余帧懒加载。width/height 声明用于预留空间，抑制 CLS。
 							$sa_is_first = ( 0 === $sa_idx );
+							$sa_stem     = pathinfo( $slide['file'], PATHINFO_FILENAME );
+
+							/*
+							 * 尺寸必须与 CSS 的实际显示框一致：
+							 *   .sa-carousel 最大宽 960px、img 高 380px（object-fit: cover）
+							 *
+							 * 此前这里写的是 width="1200" height="675"，而源图其实是
+							 * 1200x900 —— 声明的比例（16:9）既不是源图比例（4:3），
+							 * 也不是显示比例（约 2.5:1），三者互不相符。
+							 * 现在改为引用按显示比例预生成的 960x380 / 1920x760 两档，
+							 * 不再下载会被裁掉的那部分像素。
+							 *
+							 * sizes：轮播容器最大 960px，窄屏时占满视口宽度。
+							 */
+							$sa_sizes = '(max-width: 960px) 100vw, 960px';
 							?>
-							<img src="<?php echo esc_url( $sa_img_base . $slide['file'] ); ?>"
-								alt="<?php echo esc_attr( $slide['alt'] ); ?>"
-								width="1200" height="675"
-								decoding="async"
-								<?php if ( $sa_is_first ) : ?>
-									loading="eager" fetchpriority="high"
-								<?php else : ?>
-									loading="lazy"
-								<?php endif; ?>
-							>
+							<picture>
+								<source
+									type="image/webp"
+									srcset="<?php echo esc_url( $sa_img_base . $sa_stem . '-960w.webp' ); ?> 960w,
+									        <?php echo esc_url( $sa_img_base . $sa_stem . '-1920w.webp' ); ?> 1920w"
+									sizes="<?php echo esc_attr( $sa_sizes ); ?>">
+								<img src="<?php echo esc_url( $sa_img_base . $sa_stem . '-960w.jpg' ); ?>"
+									srcset="<?php echo esc_url( $sa_img_base . $sa_stem . '-960w.jpg' ); ?> 960w,
+									        <?php echo esc_url( $sa_img_base . $sa_stem . '-1920w.jpg' ); ?> 1920w"
+									sizes="<?php echo esc_attr( $sa_sizes ); ?>"
+									alt="<?php echo esc_attr( $slide['alt'] ); ?>"
+									width="960" height="380"
+									decoding="async"
+									<?php if ( $sa_is_first ) : ?>
+										loading="eager" fetchpriority="high"
+									<?php else : ?>
+										loading="lazy"
+									<?php endif; ?>
+								>
+							</picture>
 						</div>
 					<?php endforeach; ?>
 				</div>

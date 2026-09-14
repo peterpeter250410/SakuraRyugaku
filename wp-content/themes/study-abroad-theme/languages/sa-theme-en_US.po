@@ -1142,3 +1142,24 @@ msgstr "Total approx. %s man yen"
 
 msgid "※ 学費は目安です。金額に含まれる費用は学校・コースにより異なります（各行の注記をご確認ください）。最新の金額は必ず学校公式サイトの募集要項でご確認ください。"
 msgstr "* Fees are indicative. What each figure includes varies by school and course — see the note on each row. Always confirm current figures in the school's own published admission guide."
+
+msgid "お問い合わせフォーム"
+msgstr "Contact form"
+
+msgid "ご相談は無料です。"
+msgstr "Consultations are free."
+
+msgid "無料AI診断"
+msgstr "Free AI assessment"
+
+msgid "無料診断"
+msgstr "Free assessment"
+
+msgid "AI診断"
+msgstr "AI assessment"
+
+msgid "料金"
+msgstr "Pricing"
+
+msgid "アクセス"
+msgstr "Access"

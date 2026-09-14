@@ -181,10 +181,20 @@ fi
 head2 "A8. 模板引用的图片是否存在"
 MISSING_IMG=0
 if [ -d "${THEME}/assets/images" ]; then
-    for img in slide-1.jpg slide-2.jpg slide-3.jpg; do
+    # 检查的是派生文件而不是源图。
+    # 页面引用的是 optimize-images.php 按显示尺寸生成的 -960w / -1920w，
+    # 只查源图会在「源图在、没跑过优化脚本」时误报齐全，而前台全是 404。
+    for img in slide-1-960w.jpg slide-2-960w.jpg slide-3-960w.jpg \
+               slide-1-960w.webp slide-2-960w.webp slide-3-960w.webp \
+               hero-bg-1280w.jpg hero-bg-1280w.webp \
+               hero-bg-1920w.jpg hero-bg-1920w.webp; do
         [ -f "${THEME}/assets/images/${img}" ] || { warn "缺少 assets/images/${img}"; MISSING_IMG=1; }
     done
-    [ "$MISSING_IMG" = "0" ] && ok "轮播图资源齐全"
+    if [ "$MISSING_IMG" = "0" ]; then
+        ok "轮播图与 hero 的各尺寸／WebP 派生文件齐全"
+    else
+        echo "         生成命令: php scripts/optimize-images.php"
+    fi
 else
     warn "assets/images/ 目录不存在 —— 首页轮播将不渲染（代码已做降级处理，不会出现破图）"
     echo "         补图命令: bash scripts/fetch-images.sh"
@@ -436,6 +446,32 @@ if [ "$ZH_CODE" = "200" ]; then
         bad "中文页 <title> 与日文页完全相同 —— 站点名称或标题未按语种区分"
     elif [ -n "$TITLE_ZH" ]; then
         ok "中文页 <title> 已与日文页区分"
+    fi
+
+    # 逐条比对导航链接。
+    #
+    # 上面那个 H1 对比只能说明「页面整体翻译生效了」，看不出单个菜单项漏没漏。
+    # 菜单项存在数据库里、不走 gettext，要靠 sa_content_label_map() 逐条映射，
+    # 而那是张硬编码的表 —— 在后台新增一个菜单项就会漏翻，且不会有任何报错。
+    # 实际发生过：手工加的「無料AI診断」「ご利用の流れ」在中文站一直显示日文。
+    #
+    # 判据是「同一链接在日文页与本页文字完全相同」，与字符种类无关 ——
+    # 只查假名会漏掉「無料AI診断」这种全由汉字与字母组成的标签。
+    NAV_CHECK="${SITE_ROOT}/scripts/lib/check-nav-i18n.php"
+    if [ -f "$NAV_CHECK" ] && command -v php >/dev/null 2>&1; then
+        for LC in zh en; do
+            NAV_OUT=$(php "$NAV_CHECK" "${SITE_URL}/" "${SITE_URL}/${LC}/" 2>&1)
+            NAV_RC=$?
+            case "$NAV_RC" in
+                0) ok "/${LC}/ 导航逐条已语种化（$(echo "$NAV_OUT" | head -1 | grep -o '[0-9]* 项')）" ;;
+                1) bad "/${LC}/ 导航有菜单项仍显示日文原文"
+                   echo "$NAV_OUT" | sed 's/^/         /' ;;
+                *) warn "/${LC}/ 导航检查未能完成"
+                   echo "$NAV_OUT" | head -3 | sed 's/^/         /' ;;
+            esac
+        done
+    else
+        warn "跳过导航逐条检查（缺少 scripts/lib/check-nav-i18n.php 或 php）"
     fi
 else
     info "中文页不可访问（${ZH_CODE}），跳过本项"
