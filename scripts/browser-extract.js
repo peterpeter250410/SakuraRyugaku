@@ -216,9 +216,75 @@
 		}
 	}
 
+	/* ---------------- 候选链接：找出本站的学费 / 募集要項页面 ---------------- */
+	/*
+	 * 为什么需要这一段：
+	 *
+	 * 各校官网的学费页路径毫无规律 —— /tuition/、/fee/、/admission/cost/、
+	 * /japanese/fees.html 都见过。凭猜测给出深层 URL 只会点出一堆 404。
+	 * 所以在首页跑一次本脚本，让它把像学费页的链接列出来，照着点即可。
+	 */
+	var LINK_WORDS = [
+		'学費', '学费', '費用', '授業料', '料金', '納入',
+		'募集', '出願', '入学', '願書', 'コース', '課程',
+		'tuition', 'fee', 'cost', 'admission', 'apply', 'course', 'program'
+	];
+
+	var links = document.querySelectorAll('a[href]');
+	var cands = [];
+	var seenHref = {};
+
+	for (var li = 0; li < links.length; li++) {
+		var el   = links[li];
+		var href = el.href; // 用 .href 而不是 getAttribute，浏览器会自动补成绝对地址
+		if (!href || href.indexOf('http') !== 0) { continue; }
+		if (seenHref[href]) { continue; }
+
+		/*
+		 * 判断是否同站要真正解析域名。
+		 *
+		 * 原先写的是 href.indexOf(location.hostname) !== -1 —— 子串匹配，
+		 * 形如 https://別サイト/?ref=本站域名 的链接会被误判为同站。
+		 *
+		 * 外部链接不丢弃、只标注：部分学校把学费页放在集团站或另一个域名下
+		 * （千駄ヶ谷就是 group.jp-sji.org 下分三个子路径），直接过滤会漏掉线索。
+		 */
+		var isExternal = false;
+		try {
+			isExternal = ( new URL(href).hostname !== location.hostname );
+		} catch (e) { /* URL 解析失败时按同站处理，宁可多列不要漏 */ }
+
+		var label = clean(el.innerText || el.textContent);
+		var hay   = (label + ' ' + href).toLowerCase();
+
+		var hit = false;
+		for (var lw = 0; lw < LINK_WORDS.length; lw++) {
+			if (hay.indexOf(LINK_WORDS[lw].toLowerCase()) !== -1) { hit = true; break; }
+		}
+		if (!hit) { continue; }
+
+		seenHref[href] = true;
+		cands.push((isExternal ? '[外部站点] ' : '') + (label || '(无文字)') + '\n      ' + href);
+	}
+
+	push('------------------------------------------------------------------');
+	push('【候选链接】看起来是学费 / 募集要項的页面，逐个打开后再跑一次本脚本');
+	if (cands.length === 0) {
+		push('  未找到 —— 可能本页就是学费页，或该站用了图片导航。');
+		push('  可手动在站内找「学費」「費用」「募集要項」「入学案内」等入口。');
+	} else {
+		for (var ci = 0; ci < cands.length && ci < 40; ci++) {
+			push('  ' + (ci + 1) + '. ' + cands[ci]);
+		}
+		if (cands.length > 40) {
+			push('  …（共 ' + cands.length + ' 条，只列前 40 条）');
+		}
+	}
 	push('');
+
 	push('==================================================================');
-	push('表格 ' + tableCount + ' 个，定义列表 ' + dlCount + ' 个，其余关键行 ' + lineCount + ' 条');
+	push('表格 ' + tableCount + ' 个，定义列表 ' + dlCount + ' 个，其余关键行 ' + lineCount
+		+ ' 条，候选链接 ' + cands.length + ' 条');
 	push('==================================================================');
 
 	var result = out.join('\n');
