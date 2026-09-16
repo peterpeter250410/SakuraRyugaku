@@ -150,15 +150,49 @@ get_header();
 			</div>
 		<?php endif; ?>
 
-		<!-- 募集専攻 -->
-		<?php if ( ! empty( $sa_programs ) ) : ?>
-			<h2 class="sa-school-detail__h2"><?php esc_html_e( '募集専攻・学費目安', 'sa-theme' ); ?></h2>
+		<!-- 募集コース -->
+		<?php
+		if ( ! empty( $sa_programs ) ) :
+			/*
+			 * 学費を公表していない学校がある。
+			 *
+			 * 日本語学校の中には、学費を募集要項の PDF にのみ記載し、
+			 * ウェブページには載せていないところが実在する。その場合に
+			 * 「学費（目安）」という列を出して中身を全部「—」にすると、
+			 * 見出しだけあって情報がない状態になり、かえって不親切になる。
+			 *
+			 * そこで、その学校のコースが一つも金額を持たないときは学費列ごと
+			 * 落とし、代わりに学校公式サイトで確認するよう促す。
+			 * 校名・コース・語学要件・修業年限といった確認済みの事実は
+			 * そのまま残るので、ページとしては十分に成立する。
+			 */
+			// 上の基本情報ブロックで代入済みだが、ブロックの並び替えで
+			// 未定義になると致命的エラーになるため、ここでも取り直す。
+			$sa_official = isset( $sa_school['official_url'] ) ? trim( (string) $sa_school['official_url'] ) : '';
+
+			$sa_has_tuition = false;
+			foreach ( $sa_programs as $sa_p ) {
+				if ( (int) $sa_p['tuition_min'] > 0 || (int) $sa_p['tuition_max'] > 0 ) {
+					$sa_has_tuition = true;
+					break;
+				}
+			}
+			?>
+			<h2 class="sa-school-detail__h2">
+				<?php
+				echo $sa_has_tuition
+					? esc_html__( '募集コース・学費目安', 'sa-theme' )
+					: esc_html__( '募集コース', 'sa-theme' );
+				?>
+			</h2>
 			<div class="sa-table-wrap">
 				<table class="sa-table">
 					<thead>
 						<tr>
-							<th><?php esc_html_e( '専攻', 'sa-theme' ); ?></th>
-							<th><?php esc_html_e( '学費（目安）', 'sa-theme' ); ?></th>
+							<th><?php esc_html_e( 'コース', 'sa-theme' ); ?></th>
+							<?php if ( $sa_has_tuition ) : ?>
+								<th><?php esc_html_e( '学費（目安）', 'sa-theme' ); ?></th>
+							<?php endif; ?>
 							<th><?php esc_html_e( '語学要件', 'sa-theme' ); ?></th>
 							<th><?php esc_html_e( '修業年限', 'sa-theme' ); ?></th>
 						</tr>
@@ -167,22 +201,24 @@ get_header();
 						<?php foreach ( $sa_programs as $sa_p ) : ?>
 							<tr>
 								<td><?php echo esc_html( sa_program_name( $sa_p ) ); ?></td>
-								<td>
-									<?php
-									$sa_t = sa_tuition_range(
-										$sa_p['tuition_min'],
-										$sa_p['tuition_max'],
-										isset( $sa_p['tuition_basis'] ) ? $sa_p['tuition_basis'] : 'year'
-									);
-									echo '' !== $sa_t ? esc_html( $sa_t ) : '—';
+								<?php if ( $sa_has_tuition ) : ?>
+									<td>
+										<?php
+										$sa_t = sa_tuition_range(
+											$sa_p['tuition_min'],
+											$sa_p['tuition_max'],
+											isset( $sa_p['tuition_basis'] ) ? $sa_p['tuition_basis'] : 'year'
+										);
+										echo '' !== $sa_t ? esc_html( $sa_t ) : '—';
 
-									// 该金额含哪些费用因校而异，通用脚注说不清楚，逐条给。
-									if ( ! empty( $sa_p['tuition_note'] ) ) {
-										echo '<br><small class="sa-tuition-note">'
-											. esc_html( $sa_p['tuition_note'] ) . '</small>';
-									}
-									?>
-								</td>
+										// 该金额含哪些费用因校而异，通用脚注说不清楚，逐条给。
+										if ( ! empty( $sa_p['tuition_note'] ) ) {
+											echo '<br><small class="sa-tuition-note">'
+												. esc_html( $sa_p['tuition_note'] ) . '</small>';
+										}
+										?>
+									</td>
+								<?php endif; ?>
 								<td><?php echo ! empty( $sa_p['language_req'] ) ? esc_html( $sa_p['language_req'] ) : '—'; ?></td>
 								<td><?php echo ! empty( $sa_p['duration'] ) ? esc_html( $sa_p['duration'] ) : '—'; ?></td>
 							</tr>
@@ -192,9 +228,22 @@ get_header();
 			</div>
 			<p class="sa-note">
 				<?php
-				// 「入学金・教材費は別途」と一律に書くのは誤り ——
-				// 総額に含めて公表している学校もある（含む／含まないは各行の注記で示す）。
-				esc_html_e( '※ 学費は目安です。金額に含まれる費用は学校・コースにより異なります（各行の注記をご確認ください）。最新の金額は必ず学校公式サイトの募集要項でご確認ください。', 'sa-theme' );
+				if ( $sa_has_tuition ) {
+					// 「入学金・教材費は別途」と一律に書くのは誤り ——
+					// 総額に含めて公表している学校もある（含む／含まないは各行の注記で示す）。
+					esc_html_e( '※ 学費は目安です。金額に含まれる費用は学校・コースにより異なります（各行の注記をご確認ください）。最新の金額は必ず学校公式サイトの募集要項でご確認ください。', 'sa-theme' );
+				} else {
+					// 金額を持たないことを曖昧にせず、はっきり書いて公式サイトへ送る。
+					esc_html_e( '※ この学校は学費をウェブサイト上で公開していないため、当ページには掲載していません。学費は学校公式サイトの募集要項、または学校へ直接お問い合わせのうえご確認ください。', 'sa-theme' );
+				}
+
+				if ( '' !== $sa_official ) {
+					echo '<br><a href="' . esc_url( $sa_official ) . '" target="_blank" rel="noopener">'
+						. esc_html__( '学校公式サイトで確認する', 'sa-theme' )
+						. '<span class="screen-reader-text">'
+						. esc_html__( '（外部サイト・新しいタブで開きます）', 'sa-theme' )
+						. '</span></a>';
+				}
 				?>
 			</p>
 		<?php endif; ?>

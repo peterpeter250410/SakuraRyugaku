@@ -1023,14 +1023,6 @@ msgstr "最低学历"
 msgid "学校紹介"
 msgstr "院校介绍"
 
-#: template-school-single.php:120
-msgid "募集専攻・学費目安"
-msgstr "招生专业与学费参考"
-
-#: template-school-single.php:125
-msgid "専攻"
-msgstr "专业"
-
 #: template-school-single.php:126
 msgid "学費（目安）"
 msgstr "学费（参考）"
@@ -1163,3 +1155,18 @@ msgstr "费用"
 
 msgid "アクセス"
 msgstr "交通位置"
+
+msgid "募集コース・学費目安"
+msgstr "招生课程与学费参考"
+
+msgid "募集コース"
+msgstr "招生课程"
+
+msgid "コース"
+msgstr "课程"
+
+msgid "※ この学校は学費をウェブサイト上で公開していないため、当ページには掲載していません。学費は学校公式サイトの募集要項、または学校へ直接お問い合わせのうえご確認ください。"
+msgstr "※ 该校未在官网上公开学费，因此本页不作刊载。学费请查阅学校官方网站的募集要项，或直接向学校咨询确认。"
+
+msgid "学校公式サイトで確認する"
+msgstr "前往学校官方网站确认"

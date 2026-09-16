@@ -1026,14 +1026,6 @@ msgstr ""
 msgid "学校紹介"
 msgstr ""
 
-#: template-school-single.php:120
-msgid "募集専攻・学費目安"
-msgstr ""
-
-#: template-school-single.php:125
-msgid "専攻"
-msgstr ""
-
 #: template-school-single.php:126
 msgid "学費（目安）"
 msgstr ""
@@ -1165,4 +1157,19 @@ msgid "料金"
 msgstr ""
 
 msgid "アクセス"
+msgstr ""
+
+msgid "募集コース・学費目安"
+msgstr ""
+
+msgid "募集コース"
+msgstr ""
+
+msgid "コース"
+msgstr ""
+
+msgid "※ この学校は学費をウェブサイト上で公開していないため、当ページには掲載していません。学費は学校公式サイトの募集要項、または学校へ直接お問い合わせのうえご確認ください。"
+msgstr ""
+
+msgid "学校公式サイトで確認する"
 msgstr ""

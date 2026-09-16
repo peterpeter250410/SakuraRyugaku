@@ -1023,14 +1023,6 @@ msgstr "Minimum education"
 msgid "学校紹介"
 msgstr "About the school"
 
-#: template-school-single.php:120
-msgid "募集専攻・学費目安"
-msgstr "Programmes and indicative tuition"
-
-#: template-school-single.php:125
-msgid "専攻"
-msgstr "Programme"
-
 #: template-school-single.php:126
 msgid "学費（目安）"
 msgstr "Tuition (guide)"
@@ -1163,3 +1155,18 @@ msgstr "Pricing"
 
 msgid "アクセス"
 msgstr "Access"
+
+msgid "募集コース・学費目安"
+msgstr "Courses and indicative fees"
+
+msgid "募集コース"
+msgstr "Courses offered"
+
+msgid "コース"
+msgstr "Course"
+
+msgid "※ この学校は学費をウェブサイト上で公開していないため、当ページには掲載していません。学費は学校公式サイトの募集要項、または学校へ直接お問い合わせのうえご確認ください。"
+msgstr "* This school does not publish its fees on its website, so they are not listed here. Please check the school's own admission guide, or contact the school directly."
+
+msgid "学校公式サイトで確認する"
+msgstr "Check the school's official website"
