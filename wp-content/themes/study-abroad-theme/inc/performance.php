@@ -56,7 +56,26 @@ function sa_enable_webfont() {
 /**
  * 构造当前语种的 Google Fonts URL。
  *
- * 字重与 style.css 实际用量对齐：400（正文）/ 600 / 700 / 800（标题与按钮）。
+ * 用可变字体的权重区间（wght@400..800），而不是逐个列出静态字重
+ * （曾经写作 wght@400;600;700;800）。
+ *
+ * 原因是 CSS 体积。Noto Sans JP 按 Unicode 区段拆成约 124 个子集，
+ * 列四个静态字重就要生成 4 × 124 = 496 个 @font-face 块；改成区间后
+ * 只有 124 个，因为可变字体一个 @font-face 就覆盖整个区间
+ * （返回的声明是 font-weight: 400 800）。
+ *
+ * 实测（2026-09，Chrome UA）：
+ *     wght@400;600;700;800  原始 459 KB / gzip 122 KB / 496 个 @font-face
+ *     wght@400..800         原始 115 KB / gzip  31 KB / 124 个 @font-face
+ * PageSpeed 报的「未使用的 CSS 118.4 KiB」即前者，改后约 31 KB。
+ *
+ * style.css 里实际用到 400 / 600 / 700 / 800，全都落在区间内，
+ * 因此视觉没有任何变化 —— 这一点比砍字重的方案重要：砍字重同样能减半，
+ * 但会改变标题与按钮的粗细。
+ *
+ * 老浏览器：Google Fonts 按 User-Agent 分发，不支持可变字体的 UA
+ * 会拿到静态回退。受影响的只有 2018 年前的版本，且最坏情况是中间字重
+ * 由浏览器合成，不会缺字。
  *
  * @return string 空字符串表示无需加载。
  */
@@ -68,7 +87,7 @@ function sa_webfont_url() {
 	if ( '' === $family ) {
 		return '';
 	}
-	return 'https://fonts.googleapis.com/css2?family=' . $family . ':wght@400;600;700;800&display=swap';
+	return 'https://fonts.googleapis.com/css2?family=' . $family . ':wght@400..800&display=swap';
 }
 
 /**

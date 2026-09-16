@@ -970,6 +970,17 @@ if [ -n "$JA_FONTS" ]; then
     else
         warn "字体未使用 display=swap，会出现文字不可见期（FOIT）"
     fi
+    # 可变字体的权重区间（wght@400..800）而非逐个列静态字重。
+    #
+    # Noto Sans JP 按 Unicode 区段拆成约 124 个子集，列四个静态字重就要
+    # 生成 496 个 @font-face；用区间只有 124 个，一个 @font-face 覆盖整段。
+    # 实测：wght@400;600;700;800 → gzip 122 KB；wght@400..800 → gzip 31 KB。
+    # 视觉完全相同，所以没有理由退回静态列举。
+    if echo "$JA_FONTS" | grep -qE 'wght@[0-9]+\.\.[0-9]+'; then
+        ok "字体使用可变字重区间（CSS 体积约为静态列举的 1/4）"
+    elif echo "$JA_FONTS" | grep -qE 'wght@[0-9]+(;[0-9]+)+'; then
+        warn "字体逐个列举静态字重 —— 改用区间（如 wght@400..800）可省约 90 KB CSS，且视觉不变"
+    fi
     # 异步加载检测：media="print" onload 手法可避免字体样式表阻塞首屏渲染。
     if grep -q "onload=\"this.media='all'\"\|onload='this.media=\"all\"'" "${TMP}/home.html" 2>/dev/null; then
         ok "字体样式表异步加载（不阻塞首屏渲染）"
