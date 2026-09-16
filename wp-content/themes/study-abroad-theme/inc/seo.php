@@ -276,6 +276,32 @@ function sa_organization_logo() {
 	}
 
 	if ( $attachment_id <= 0 ) {
+		/*
+		 * 两项都没配置时，回落到主题自带的标识图。
+		 *
+		 * 这与「拿 og 横幅充当 logo」是两回事：这张图就是本站的标识
+		 * （樱花形，由 scripts/make-logo.php 生成），只是没有经过媒体库上传。
+		 * 有了它，机构标识开箱即用，不必等谁去后台点一遍。
+		 *
+		 * 注意浏览器标签页的图标是另一回事 —— favicon 只能来自
+		 * 「设置→常规→站点图标」，主题文件替代不了，那一步仍需人工上传。
+		 */
+		$rel  = '/assets/images/site-icon-512.png';
+		$path = get_template_directory() . $rel;
+		if ( file_exists( $path ) ) {
+			$logo = array(
+				'@type' => 'ImageObject',
+				'url'   => get_template_directory_uri() . $rel,
+			);
+			// 尺寸从文件读，不照着文件名写死 —— 重新生成时换了尺寸，
+			// 文件名未必跟着改，写死就变成假数据。
+			$size = @getimagesize( $path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- 文件损坏时返回 false 即可，不需要报错。
+			if ( is_array( $size ) && ! empty( $size[0] ) && ! empty( $size[1] ) ) {
+				$logo['width']  = (int) $size[0];
+				$logo['height'] = (int) $size[1];
+			}
+			return $logo;
+		}
 		return array();
 	}
 

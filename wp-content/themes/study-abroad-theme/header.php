@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <header class="sa-header">
 	<div class="sa-container sa-header__inner">
 		<a href="<?php echo esc_url( sa_home_url( '/' ) ); ?>" class="sa-logo">
-			<span class="sa-logo__mark">●</span>
+			<?php sa_logo_mark(); ?>
 			<span><?php bloginfo( 'name' ); ?></span>
 		</a>
 
@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="sa-drawer" data-sa-drawer>
 			<div class="sa-drawer__head">
 				<a href="<?php echo esc_url( sa_home_url( '/' ) ); ?>" class="sa-logo">
-					<span class="sa-logo__mark">●</span>
+					<?php sa_logo_mark(); ?>
 					<span><?php bloginfo( 'name' ); ?></span>
 				</a>
 				<button class="sa-drawer__close" type="button" aria-label="<?php esc_attr_e( '閉じる', 'sa-theme' ); ?>" data-sa-drawer-close>&times;</button>

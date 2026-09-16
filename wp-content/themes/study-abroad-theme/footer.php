@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="sa-footer__top">
 			<div class="sa-footer__brand">
 				<a href="<?php echo esc_url( sa_home_url( '/' ) ); ?>" class="sa-logo">
-					<span class="sa-logo__mark">●</span>
+					<?php sa_logo_mark(); ?>
 					<span><?php bloginfo( 'name' ); ?></span>
 				</a>
 				<p><?php echo esc_html( get_bloginfo( 'description' ) ); ?></p>

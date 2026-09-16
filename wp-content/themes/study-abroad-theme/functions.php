@@ -32,6 +32,7 @@ require_once get_template_directory() . '/inc/i18n.php';
 // 立即引导语种（早于 WordPress 解析请求）。
 sa_bootstrap_locale();
 
+require_once get_template_directory() . '/inc/branding.php';
 require_once get_template_directory() . '/inc/seo.php';
 require_once get_template_directory() . '/inc/schools.php';
 require_once get_template_directory() . '/inc/sitemap.php';

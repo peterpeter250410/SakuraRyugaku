@@ -211,6 +211,19 @@ else
     warn "缺少分享图语种:${OG_MISSING} —— 该语种分享时无缩略图"
     echo "         生成命令: php scripts/make-og-image.php"
 fi
+# 品牌标识。logo-mark.svg 由页眉/页脚内联（inc/branding.php），
+# 缺失时会退回原来的「●」占位符 —— 页面不会坏，但也不会有人发现标识没了，
+# 所以在这里查一次。site-icon-512.png 还兼作 Organization.logo 的兜底。
+LOGO_MISSING=""
+for f in logo-mark.svg site-icon-512.png site-icon-192.png; do
+    [ -f "${THEME}/assets/images/${f}" ] || LOGO_MISSING="${LOGO_MISSING} ${f}"
+done
+if [ -z "$LOGO_MISSING" ]; then
+    ok "标识文件齐全（logo-mark.svg / site-icon-512 / 192）"
+else
+    warn "缺少标识文件:${LOGO_MISSING}"
+    echo "         生成命令: php scripts/make-logo.php"
+fi
 
 # ---------- A9. 虚假合作关系措辞 ----------
 #
@@ -629,7 +642,7 @@ if grep -q '"@type":"Organization"' "${TMP}/home.html" 2>/dev/null; then
             ok "Organization.logo 非 og 分享图"
         fi
     else
-        warn "Organization 无 logo —— 请在「外观→自定义→站点标识」或「设置→常规→站点图标」上传真实标识"
+        warn "Organization 无 logo —— 主题自带的 site-icon-512.png 也没读到，检查该文件是否随主题发布"
     fi
 
     if grep -q '"contactPoint"' "${TMP}/home.html" 2>/dev/null; then
@@ -641,6 +654,18 @@ if grep -q '"@type":"Organization"' "${TMP}/home.html" 2>/dev/null; then
     else
         warn "Organization 缺 contactPoint"
     fi
+fi
+
+# favicon。
+#
+# 与 Organization.logo 是两码事：结构化数据里的 logo 可以由主题文件兜底，
+# 但浏览器标签页的图标只能来自「设置→常规→站点图标」（WordPress 从那里
+# 输出 <link rel="icon">），主题文件替代不了。没设置的话标签页显示的是
+# 浏览器的默认灰球 —— 多标签页场景下用户认不出是哪个站。
+if grep -qE '<link[^>]+rel="(shortcut )?icon"' "${TMP}/home.html" 2>/dev/null; then
+    ok "已输出 favicon（站点图标已设置）"
+else
+    warn "未输出 favicon —— 请到「设置→常规→站点图标」上传 site-icon-512.png"
 fi
 
 # ---------- B9. robots.txt / sitemap ----------
