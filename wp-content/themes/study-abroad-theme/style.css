@@ -908,3 +908,52 @@ a { color: var(--sa-accent); text-decoration: none; }
 	line-height: 1.6;
 	color: var(--sa-muted);
 }
+
+/* =========================================================
+   404 ページ
+   ---------------------------------------------------------
+   専用テンプレートがなかった頃は index.php にフォールバックし、
+   記事が一件もないこのサイトでは空白ページになっていた。
+   訪問者は目的を持って来ているので、検索と主要導線で受け止める。
+   ========================================================= */
+.sa-404-search {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+.sa-404-search input[type="search"] {
+	flex: 1 1 240px;
+	min-width: 0;            /* flex 子要素が縮まずに溢れるのを防ぐ */
+	padding: 12px 14px;
+	font-size: 15px;
+	border: 1px solid var(--sa-border);
+	border-radius: 8px;
+	font-family: inherit;
+}
+.sa-404-search input[type="search"]:focus {
+	outline: 2px solid var(--sa-accent);
+	outline-offset: 1px;
+}
+
+.sa-404-links {
+	margin: 12px 0 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 12px;
+}
+.sa-404-links li { margin: 0; }
+.sa-404-links a {
+	display: inline-block;
+	padding: 8px 16px;
+	border: 1px solid var(--sa-border);
+	border-radius: 999px;
+	font-size: 14px;
+	color: var(--sa-text);
+	background: var(--sa-bg);
+}
+.sa-404-links a:hover {
+	border-color: var(--sa-primary);
+	color: var(--sa-primary);
+}

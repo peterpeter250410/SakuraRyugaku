@@ -1170,3 +1170,30 @@ msgstr "* This school does not publish its fees on its website, so they are not 
 
 msgid "学校公式サイトで確認する"
 msgstr "Check the school's official website"
+
+msgid "ページが見つかりません"
+msgstr "Page not found"
+
+msgid "お探しのページは移動または削除された可能性があります。"
+msgstr "The page you are looking for may have moved or been removed."
+
+msgid "サイト内を検索"
+msgstr "Search this site"
+
+msgid "キーワードで検索"
+msgstr "Search by keyword"
+
+msgid "検索"
+msgstr "Search"
+
+msgid "よく見られているページ"
+msgstr "Popular pages"
+
+msgid "お探しの学校ページは、現在公開されていないか、掲載を終了した可能性があります。掲載中の学校は一覧からご確認ください。"
+msgstr "The school page you are looking for may not be published yet, or may no longer be listed. You can see the schools currently listed on the index page."
+
+msgid "どの学校が自分に合うか、無料で診断できます"
+msgstr "Find out which school fits you — free assessment"
+
+msgid "予算と希望専攻を入力するだけ。入力は30秒です。"
+msgstr "Just enter your budget and intended field of study. Takes 30 seconds."

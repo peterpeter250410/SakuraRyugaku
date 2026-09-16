@@ -1173,3 +1173,30 @@ msgstr ""
 
 msgid "学校公式サイトで確認する"
 msgstr ""
+
+msgid "ページが見つかりません"
+msgstr ""
+
+msgid "お探しのページは移動または削除された可能性があります。"
+msgstr ""
+
+msgid "サイト内を検索"
+msgstr ""
+
+msgid "キーワードで検索"
+msgstr ""
+
+msgid "検索"
+msgstr ""
+
+msgid "よく見られているページ"
+msgstr ""
+
+msgid "お探しの学校ページは、現在公開されていないか、掲載を終了した可能性があります。掲載中の学校は一覧からご確認ください。"
+msgstr ""
+
+msgid "どの学校が自分に合うか、無料で診断できます"
+msgstr ""
+
+msgid "予算と希望専攻を入力するだけ。入力は30秒です。"
+msgstr ""

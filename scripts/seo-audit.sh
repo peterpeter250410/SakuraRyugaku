@@ -674,6 +674,44 @@ for slug in privacy thanks; do
     fi
 done
 
+# ---------- B10b. 404 页面 ----------
+#
+# 只查状态码是不够的：空白的 404 与有内容的 404 都返回 404，
+# 从状态码上完全看不出区别。此前主题没有 404.php，WordPress 会回落到
+# index.php —— 那是文章列表模板，而本站没有任何文章，结果是一个
+# 状态码正确但内容全空的页面，访客只能关掉浏览器。
+#
+# 因此除状态码外还要确认：页面确实渲染了导航与可用的出口链接。
+head2 "B10b. 404 页面是否可用"
+NF_URL="${SITE_URL}/__nonexistent-page-check__/"
+NF_CODE=$(status_of "$NF_URL")
+if [ "$NF_CODE" != "404" ]; then
+    bad "不存在的地址返回 ${NF_CODE}（应为 404；返回 200 会产生可被收录的软 404）"
+else
+    ok "不存在的地址正确返回 404"
+    fetch "$NF_URL" "${TMP}/404.html"
+    NF_TXT=$(tr '\n' ' ' < "${TMP}/404.html" 2>/dev/null)
+    NF_BYTES=$(wc -c < "${TMP}/404.html" 2>/dev/null || echo 0)
+
+    # 正文里应当有指向主要页面的链接，否则就是个死胡同
+    NF_LINKS=$(printf '%s' "$NF_TXT" | grep -o 'href="[^"]*/\(schools\|faq\|services\|contact\)/"' | wc -l | tr -d ' ')
+    if [ "${NF_BYTES:-0}" -lt 2000 ]; then
+        bad "404 页面仅 ${NF_BYTES} 字节 —— 可能回落到了空模板（缺少 404.php？）"
+    elif [ "${NF_LINKS:-0}" -lt 2 ]; then
+        warn "404 页面缺少通往主要页面的出口链接（仅 ${NF_LINKS} 条）"
+    else
+        ok "404 页面有内容（${NF_BYTES} 字节）且含 ${NF_LINKS} 条出口链接"
+    fi
+
+    # 各语种的 404 也要能正常渲染，不能只有日文版有
+    for LC in zh en; do
+        LC_CODE=$(status_of "${SITE_URL}/${LC}/__nonexistent-page-check__/")
+        [ "$LC_CODE" = "404" ] \
+            && ok "/${LC}/ 的 404 正常" \
+            || bad "/${LC}/ 不存在的地址返回 ${LC_CODE}（应为 404）"
+    done
+fi
+
 # ---------- B12. 性能 ----------
 head2 "B11. 性能指标（服务端侧）"
 read -r TTFB TOTAL SIZE <<EOF
