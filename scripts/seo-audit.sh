@@ -715,9 +715,15 @@ if [ "$SM_CODE" = "200" ]; then
         [ -n "$SUB_SM" ] || continue
 
         fetch "$SUB_SM" "${TMP}/sub-sitemap.xml"
-        # 注意：grep -c 在零匹配时打印 0 但退出码为 1，写成 `|| echo 0` 会得到两行「0」。
-        URL_N=$(grep -c '<url>' "${TMP}/sub-sitemap.xml" 2>/dev/null | head -1)
-        LM_N=$(grep -c '<lastmod>' "${TMP}/sub-sitemap.xml" 2>/dev/null | head -1)
+        # 必须用 grep -o | wc -l 而不是 grep -c。
+        #
+        # grep -c 数的是「匹配的行数」，而 WP_Sitemaps_Renderer 用
+        # SimpleXMLElement::asXML() 输出，整份 XML 只有一行 ——
+        # 于是无论多少条 URL，grep -c 永远返回 1。
+        # 第一版就是这么写的，线上 8 所院校 × 3 语种的 sitemap 被报成「1/1 条」，
+        # 看上去像是只收录了一个页面，实际只是计数方式错了。
+        URL_N=$(grep -o '<url>' "${TMP}/sub-sitemap.xml" 2>/dev/null | wc -l | tr -d ' ')
+        LM_N=$(grep -o '<lastmod>' "${TMP}/sub-sitemap.xml" 2>/dev/null | wc -l | tr -d ' ')
         [ -n "$URL_N" ] || URL_N=0
         [ -n "$LM_N" ] || LM_N=0
 
@@ -725,6 +731,9 @@ if [ "$SM_CODE" = "200" ]; then
             warn "${SM_GROUP} 子 sitemap 无 URL 条目: ${SUB_SM}"
         elif [ "$LM_N" -eq 0 ]; then
             warn "${SM_GROUP} 子 sitemap 的 ${URL_N} 条 URL 均无 lastmod —— 爬虫无法判断重抓优先级"
+            echo "         来源: ${SUB_SM}"
+        elif [ "$LM_N" -lt "$URL_N" ]; then
+            warn "${SM_GROUP} 子 sitemap 仅 ${LM_N}/${URL_N} 条有 lastmod —— 其余条目的更新时间为空，查 updated_at / post_modified"
             echo "         来源: ${SUB_SM}"
         else
             ok "${SM_GROUP} 子 sitemap 含 lastmod（${LM_N}/${URL_N} 条）"
@@ -797,19 +806,47 @@ else
     # 正文里应当有指向主要页面的链接，否则就是个死胡同
     NF_LINKS=$(printf '%s' "$NF_TXT" | grep -o 'href="[^"]*/\(schools\|faq\|services\|contact\)/"' | wc -l | tr -d ' ')
     if [ "${NF_BYTES:-0}" -lt 2000 ]; then
-        bad "404 页面仅 ${NF_BYTES} 字节 —— 可能回落到了空模板（缺少 404.php？）"
+        bad "404 页面仅 ${NF_BYTES} 字节 —— 没有走到主题的 404.php"
+        # 只报字节数的话，下一步查什么全靠猜。把实际内容与来源摆出来：
+        # 关键是分清「WordPress 渲染了但内容为空」和「请求根本没到 WordPress」。
+        if grep -qi 'nginx\|openresty' "${TMP}/404.html" 2>/dev/null; then
+            echo "         实际是 Web 服务器自带的错误页 —— 请求没有交给 WordPress。"
+            echo "         查 nginx 站点配置里是否有 try_files ... =404，或安全规则拦掉了该路径。"
+        elif grep -qi 'wp-content\|wp-includes' "${TMP}/404.html" 2>/dev/null; then
+            echo "         页面含 WordPress 资源，说明已进入 WordPress，问题出在模板层。"
+        else
+            echo "         既非 WordPress 页面也非 nginx 默认页，可能是 CDN／WAF 返回的。"
+        fi
+        echo "         响应开头:"
+        head -c 300 "${TMP}/404.html" 2>/dev/null | tr -d '\r' | sed 's/^/           /'
+        echo ""
+        echo "         对照用（换一个不含下划线的路径，排除安全规则误伤）:"
+        echo "           curl -sS -o /tmp/nf.html -w '%{http_code} %{size_download}\\n' ${SITE_URL}/no-such-page/ && head -c 300 /tmp/nf.html"
     elif [ "${NF_LINKS:-0}" -lt 2 ]; then
         warn "404 页面缺少通往主要页面的出口链接（仅 ${NF_LINKS} 条）"
     else
         ok "404 页面有内容（${NF_BYTES} 字节）且含 ${NF_LINKS} 条出口链接"
     fi
 
-    # 各语种的 404 也要能正常渲染，不能只有日文版有
+    # 各语种的 404 也要能正常渲染，不能只有日文版有。
+    #
+    # 此前这里只看状态码。结果日文版 404 掉进了一个 143 字节的空壳，
+    # 而 zh / en 两项照样报「正常」—— 因为状态码确实是 404。
+    # 状态码对、内容是空的，正是最难发现的一种坏法，所以正文也要查。
     for LC in zh en; do
-        LC_CODE=$(status_of "${SITE_URL}/${LC}/__nonexistent-page-check__/")
-        [ "$LC_CODE" = "404" ] \
-            && ok "/${LC}/ 的 404 正常" \
-            || bad "/${LC}/ 不存在的地址返回 ${LC_CODE}（应为 404）"
+        LC_URL="${SITE_URL}/${LC}/__nonexistent-page-check__/"
+        LC_CODE=$(status_of "$LC_URL")
+        if [ "$LC_CODE" != "404" ]; then
+            bad "/${LC}/ 不存在的地址返回 ${LC_CODE}（应为 404）"
+        else
+            fetch "$LC_URL" "${TMP}/404-${LC}.html"
+            LC_BYTES=$(wc -c < "${TMP}/404-${LC}.html" 2>/dev/null || echo 0)
+            if [ "${LC_BYTES:-0}" -lt 2000 ]; then
+                bad "/${LC}/ 的 404 仅 ${LC_BYTES} 字节 —— 状态码对但内容是空的"
+            else
+                ok "/${LC}/ 的 404 正常（${LC_BYTES} 字节）"
+            fi
+        fi
     done
 fi
 
