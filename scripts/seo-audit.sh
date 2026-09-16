@@ -637,6 +637,43 @@ if [ "$SM_CODE" = "200" ]; then
     else
         warn "sitemap 未发现多语种分组 —— 中英文页面可能未被提交"
     fi
+
+    # lastmod 检查。
+    #
+    # 核心自带的 posts/taxonomies 提供者本来就会输出 lastmod；
+    # 本站自定义的 schools / locales 两个提供者不会，是主题补上的。
+    # 没有 lastmod，爬虫无从判断该优先重抓哪个 URL，改过的页面要更久才会被重新收录。
+    #
+    # 因此这里专挑自定义分组来验：核心分组通过不代表主题的代码是对的。
+    for SM_GROUP in schools locales; do
+        SUB_SM=$(grep -o "<loc>[^<]*wp-sitemap-${SM_GROUP}-[^<]*\.xml</loc>" "${TMP}/sitemap.xml" 2>/dev/null \
+            | head -1 | sed 's/<[^>]*>//g')
+        [ -n "$SUB_SM" ] || continue
+
+        fetch "$SUB_SM" "${TMP}/sub-sitemap.xml"
+        # 注意：grep -c 在零匹配时打印 0 但退出码为 1，写成 `|| echo 0` 会得到两行「0」。
+        URL_N=$(grep -c '<url>' "${TMP}/sub-sitemap.xml" 2>/dev/null | head -1)
+        LM_N=$(grep -c '<lastmod>' "${TMP}/sub-sitemap.xml" 2>/dev/null | head -1)
+        [ -n "$URL_N" ] || URL_N=0
+        [ -n "$LM_N" ] || LM_N=0
+
+        if [ "$URL_N" -eq 0 ]; then
+            warn "${SM_GROUP} 子 sitemap 无 URL 条目: ${SUB_SM}"
+        elif [ "$LM_N" -eq 0 ]; then
+            warn "${SM_GROUP} 子 sitemap 的 ${URL_N} 条 URL 均无 lastmod —— 爬虫无法判断重抓优先级"
+            echo "         来源: ${SUB_SM}"
+        else
+            ok "${SM_GROUP} 子 sitemap 含 lastmod（${LM_N}/${URL_N} 条）"
+            # 格式必须是 W3C Datetime，写错 Google 会整条忽略
+            LM_SAMPLE=$(grep -o '<lastmod>[^<]*</lastmod>' "${TMP}/sub-sitemap.xml" 2>/dev/null \
+                | head -1 | sed 's/<[^>]*>//g')
+            if printf '%s' "$LM_SAMPLE" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}([+-][0-9]{2}:[0-9]{2}|Z))?$'; then
+                ok "${SM_GROUP} lastmod 格式合法: ${LM_SAMPLE}"
+            else
+                bad "${SM_GROUP} lastmod 格式非法「${LM_SAMPLE}」—— 需要 W3C Datetime，否则 Google 会忽略"
+            fi
+        fi
+    done
 else
     bad "wp-sitemap.xml → ${SM_CODE}"
 fi

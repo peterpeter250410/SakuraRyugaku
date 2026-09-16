@@ -125,17 +125,56 @@ if ( class_exists( 'WP_Sitemaps_Provider' ) ) {
 
 			$url_list = array();
 
-			// 语种首页。
-			$url_list[] = array( 'loc' => sa_url( home_url( '/' ), $locale_key ) );
-
 			$query = new WP_Query( $this->build_query_args( $page_num ) );
+
+			/*
+			 * lastmod 取自 post_modified。
+			 *
+			 * 核心自带的 posts 提供者本来就会输出 lastmod，但这份语种清单是
+			 * 主题自建的提供者，不补就没有。有更新时间，爬虫才能判断该优先
+			 * 重抓哪一个；页面越多越见效。
+			 *
+			 * changefreq 与 priority 不写 —— Google 已明确表示两者一律忽略，
+			 * 写了不会被读取，只留下日后说不出依据的数字。
+			 *
+			 * 用 post_modified_gmt 并显式按 GMT 解析。另一个字段 post_modified
+			 * 是站点本地时间，两者取错就会输出差一个时区的 lastmod。
+			 */
+			$post_gmt_ts = function ( $post ) {
+				if ( empty( $post->post_modified_gmt ) || '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
+					return 0;
+				}
+				return (int) strtotime( $post->post_modified_gmt . ' GMT' );
+			};
+
+			$post_lastmod = function ( $post ) use ( $post_gmt_ts ) {
+				$ts = $post_gmt_ts( $post );
+				return $ts > 0 ? wp_date( DATE_W3C, $ts ) : '';
+			};
+
+			// 各语种首页。它的 lastmod 取该语种下所有页面中最新的更新时间 ——
+			// 首页的内容就是这些页面的集合。
+			$home_entry = array( 'loc' => sa_url( home_url( '/' ), $locale_key ) );
+			$newest     = 0;
+			foreach ( $query->posts as $post ) {
+				$newest = max( $newest, $post_gmt_ts( $post ) );
+			}
+			if ( $newest > 0 ) {
+				$home_entry['lastmod'] = wp_date( DATE_W3C, $newest );
+			}
+			$url_list[] = $home_entry;
 
 			foreach ( $query->posts as $post ) {
 				$permalink = get_permalink( $post );
 				if ( ! $permalink ) {
 					continue;
 				}
-				$url_list[] = array( 'loc' => sa_url( $permalink, $locale_key ) );
+				$entry = array( 'loc' => sa_url( $permalink, $locale_key ) );
+				$lm    = $post_lastmod( $post );
+				if ( '' !== $lm ) {
+					$entry['lastmod'] = $lm;
+				}
+				$url_list[] = $entry;
 			}
 
 			wp_reset_postdata();
@@ -265,16 +304,62 @@ if ( class_exists( 'WP_Sitemaps_Provider' ) ) {
 
 			$url_list = array();
 
-			// 列表页本身也要收录（详情页的入口）。
+			/*
+			 * 为什么要输出 lastmod。
+			 *
+			 * WordPress 核心的自定义 sitemap 提供者只输出 loc。院校页共
+			 * 8 所 × 3 语种 = 24 个 URL，各校的更新节奏又不一样（改过学费的
+			 * 和没改的混在一起）。没有 lastmod，爬虫无从判断该优先重抓哪一个，
+			 * 改过的那几所要更久才会被重新收录。
+			 *
+			 * 渲染器接受 lastmod / changefreq / priority 三个字段，但
+			 * changefreq 与 priority 不写 —— Google 已明确表示两者一律忽略。
+			 * 写了也不会被读取，反而留下一堆日后说不出依据的数字。
+			 *
+			 * 格式为 W3C Datetime（ISO 8601）。
+			 *
+			 * updated_at 由 SA_DB::now() 写入，值是 current_time('mysql', true)，
+			 * 即 GMT。所以这里显式按 GMT 解析：WordPress 会把 PHP 默认时区设为
+			 * UTC，不加后缀眼下也能得出同样的结果，但那是巧合 —— 一旦有插件
+			 * 调用 date_default_timezone_set()，全部 lastmod 就会整体偏移时差。
+			 */
+			$to_gmt_ts = function ( $mysql_datetime ) {
+				if ( empty( $mysql_datetime ) || '0000-00-00 00:00:00' === $mysql_datetime ) {
+					return 0;
+				}
+				return (int) strtotime( $mysql_datetime . ' GMT' );
+			};
+
+			$lastmod = function ( $row ) use ( $to_gmt_ts ) {
+				$ts = $to_gmt_ts( isset( $row['updated_at'] ) ? $row['updated_at'] : '' );
+				return $ts > 0 ? wp_date( DATE_W3C, $ts ) : '';
+			};
+
+			// 列表页本身也收录（进入详情页的入口）。
+			// 它的 lastmod 取已上架院校中最新的更新时间 —— 列表的内容就是这些院校的
+			// 集合，任何一所变了，列表页也就变了。
 			if ( 1 === (int) $page_num ) {
-				$url_list[] = array( 'loc' => sa_schools_url( $locale_key ) );
+				$entry  = array( 'loc' => sa_schools_url( $locale_key ) );
+				$newest = 0;
+				foreach ( $schools as $school ) {
+					$newest = max( $newest, $to_gmt_ts( isset( $school['updated_at'] ) ? $school['updated_at'] : '' ) );
+				}
+				if ( $newest > 0 ) {
+					$entry['lastmod'] = wp_date( DATE_W3C, $newest );
+				}
+				$url_list[] = $entry;
 			}
 
 			foreach ( $schools as $school ) {
 				if ( empty( $school['slug'] ) ) {
 					continue;
 				}
-				$url_list[] = array( 'loc' => sa_school_url( $school['slug'], $locale_key ) );
+				$entry = array( 'loc' => sa_school_url( $school['slug'], $locale_key ) );
+				$lm    = $lastmod( $school );
+				if ( '' !== $lm ) {
+					$entry['lastmod'] = $lm;
+				}
+				$url_list[] = $entry;
 			}
 
 			return $url_list;
