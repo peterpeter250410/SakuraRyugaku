@@ -174,7 +174,7 @@
   },
 
     {
-    "_comment": "京進ランゲージアカデミー（KLA）—— 学费来自官网 /ja/admissions/tuition/（2026-09 抓取），经三重核验：税抜小計×10% = 表列消費税；小計+税 = 表列合計；且「6か月分 544,500 + 半年後 434,500 = 979,000」与一年一括完全相等。含検定料・入学金（均为一次性），故记为初年度年额。⚠ region/city 留空：学费页没有校舎信息，需再抓一次 /ja/ 或学校案内页才能填。官网有简体中文版 /cn/，对中国学生是实际便利。",
+    "_comment": "京進ランゲージアカデミー（KLA）—— 学费来自官网 /ja/admissions/tuition/（2026-09 抓取），经三重核验：税抜小計×10% = 表列消費税；小計+税 = 表列合計；且「6か月分 544,500 + 半年後 434,500 = 979,000」与一年一括完全相等。含検定料・入学金（均为一次性），故记为初年度年额。校舎は新宿・OLJ・名古屋北・琵琶湖・京都中央・大阪浪花・大阪中央・神戸の8校（2026-09 官网确认）。官网有简体中文版 /cn/，对中国学生是实际便利。",
     "slug": "kyoshin-language-academy",
     "name": "京進ランゲージアカデミー",
     "name_i18n": {
@@ -184,17 +184,17 @@
     },
     "official_url": "https://www.kla.ac/ja/",
     "school_type": "language",
-    "region": "",
-    "city": "",
+    "region": "関東・中部・関西",
+    "city": "東京（新宿）・名古屋・京都・大阪・神戸ほか",
     "language_req": "",
     "min_education": "",
     "status": "active",
     "published": false,
     "sort_order": 26,
     "description_i18n": {
-      "ja": "京進ランゲージアカデミー（KLA）は、進学目標別に大学・大学院・専門学校・美術の各コースと短期コースを設置しています。\n\n初年度の学費は合計979,000円（税込）で、検定料・入学金・学費・施設費・活動／教材費・保険／健康診断費と消費税を含みます。6か月ごとの分割払いも可能で、初回544,000円台、半年後に434,500円（税込）となり、合計額は一括払いと同じです。\n\n※ 検定料は出願時に支払い、在留資格認定証明書の交付申請後は返金されません。6か月以内に退学した場合、学費等の返金はありません。\n\n（2026年9月時点の公表情報）",
-      "zh": "京进语言学院（KLA）按升学目标设有大学、大学院、专门学校、美术各方向课程，以及短期课程。\n\n首年学费合计 979,000 日元（含税），包含检定料、入学金、学费、设施费、活动／教材费、保险与健康检查费以及消费税。也可按半年分期：首期 544,500 日元，半年后 434,500 日元（含税），总额与一次性缴纳相同。\n\n※ 检定料在报名时支付，在留资格认定证明书申请提交后不予退还。入学 6 个月以内退学的，学费等不予退还。\n\n官网设有简体中文版页面。（截至 2026 年 9 月的公开信息）",
-      "en": "Kyoshin Language Academy (KLA) offers goal-specific tracks for university, graduate school, vocational school and art school admissions, plus short-term courses.\n\nFirst-year fees total 979,000 yen including tax, covering the screening fee, enrolment fee, tuition, facility fee, activity/materials fee, insurance and health check, and consumption tax. Payment in two instalments is available: 544,500 yen initially and 434,500 yen (tax included) after six months, giving the same total as paying in full.\n\nNote: the screening fee is paid at application and is not refunded once the Certificate of Eligibility application has been filed. No refund of tuition is made if a student withdraws within six months.\n\n(Per information published as of September 2026.)"
+      "ja": "京進ランゲージアカデミー（KLA）は、新宿校・OLJ校・名古屋北校・琵琶湖校・京都中央校・大阪浪花校・大阪中央校・神戸校に校舎を置き、進学目標別に大学・大学院・専門学校・美術の各コースと短期コースを設置しています。\n\n初年度の学費は合計979,000円（税込）で、検定料・入学金・学費・施設費・活動／教材費・保険／健康診断費と消費税を含みます。6か月ごとの分割払いも可能で、初回544,000円台、半年後に434,500円（税込）となり、合計額は一括払いと同じです。\n\n※ 検定料は出願時に支払い、在留資格認定証明書の交付申請後は返金されません。6か月以内に退学した場合、学費等の返金はありません。\n\n（2026年9月時点の公表情報）",
+      "zh": "京进语言学院（KLA）在新宿校、OLJ 校、名古屋北校、琵琶湖校、京都中央校、大阪浪花校、大阪中央校、神户校设有校区，按升学目标设有大学、大学院、专门学校、美术各方向课程，以及短期课程。\n\n首年学费合计 979,000 日元（含税），包含检定料、入学金、学费、设施费、活动／教材费、保险与健康检查费以及消费税。也可按半年分期：首期 544,500 日元，半年后 434,500 日元（含税），总额与一次性缴纳相同。\n\n※ 检定料在报名时支付，在留资格认定证明书申请提交后不予退还。入学 6 个月以内退学的，学费等不予退还。\n\n官网设有简体中文版页面。（截至 2026 年 9 月的公开信息）",
+      "en": "Kyoshin Language Academy (KLA) has campuses at Shinjuku, OLJ, Nagoya-Kita, Biwako, Kyoto-Chuo, Osaka-Naniwa, Osaka-Chuo and Kobe, and offers goal-specific tracks for university, graduate school, vocational school and art school admissions, plus short-term courses.\n\nFirst-year fees total 979,000 yen including tax, covering the screening fee, enrolment fee, tuition, facility fee, activity/materials fee, insurance and health check, and consumption tax. Payment in two instalments is available: 544,500 yen initially and 434,500 yen (tax included) after six months, giving the same total as paying in full.\n\nNote: the screening fee is paid at application and is not refunded once the Certificate of Eligibility application has been filed. No refund of tuition is made if a student withdraws within six months.\n\n(Per information published as of September 2026.)"
     },
     "programs": [
       {
