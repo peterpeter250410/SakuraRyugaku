@@ -252,6 +252,44 @@ else
     echo "         performance.php: ${HERO_PRE}"
 fi
 
+# 首屏的昂贵绘制属性。
+#
+# 这一条来自一次实测教训：报告显示渲染阻塞请求只有 style.css（190 毫秒）、
+# 首屏所需资源 473 毫秒就齐备，FCP 却是 5,100 毫秒 —— 那 4.6 秒全在栅格化上。
+# 元凶是 hero 上两个 filter: blur(60px) 的光晕，外加 sticky 头部的
+# backdrop-filter。这类开销在网络面板里完全看不见，只有掉到低端机 + CPU
+# 降速时才暴露，所以固化成检查。
+#
+# 判据：大半径 filter: blur() 一律报错；backdrop-filter 必须限制在
+# min-width 媒体查询内（即只给大屏），否则手机首屏要付这笔钱。
+CSS_FILE="${THEME}/style.css"
+if [ -f "$CSS_FILE" ]; then
+    BIG_BLUR=$(grep -nE '[^-]filter: *blur\( *([2-9][0-9]|[0-9]{3,})px' "$CSS_FILE" 2>/dev/null | grep -v '^\s*[0-9]*: *\*' || true)
+    if [ -n "$BIG_BLUR" ]; then
+        bad "style.css 存在大半径 filter: blur() —— 低端机上会拖慢首次绘制数秒"
+        printf '%s\n' "$BIG_BLUR" | sed 's/^/         /'
+    else
+        ok "首屏无大半径 filter: blur()"
+    fi
+
+    # backdrop-filter 出现的行号，与所有 @media (min-width: 的行号比较
+    BF_LINES=$(grep -n 'backdrop-filter' "$CSS_FILE" 2>/dev/null | grep -v '原本还有\|比 filter 更贵' | cut -d: -f1 || true)
+    BF_UNSCOPED=0
+    for L in $BF_LINES; do
+        # 该行之前最近的一个 @media 是否为 min-width
+        LAST_MEDIA=$(head -n "$L" "$CSS_FILE" | grep -n '@media' | tail -1)
+        case "$LAST_MEDIA" in
+            *min-width*) ;;
+            *) BF_UNSCOPED=$((BF_UNSCOPED+1)) ;;
+        esac
+    done
+    if [ "$BF_UNSCOPED" -gt 0 ]; then
+        warn "有 ${BF_UNSCOPED} 处 backdrop-filter 未限制在 min-width 媒体查询内 —— 手机首屏也要付合成层开销"
+    else
+        ok "backdrop-filter 仅在大屏启用"
+    fi
+fi
+
 # A10. 无障碍：地标与 ARIA
 #
 # 这三项都来自 Lighthouse 的实测报告（无障碍 94 分），且都是新写模板时

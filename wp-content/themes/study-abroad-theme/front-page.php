@@ -265,7 +265,19 @@ get_header();
 							 *
 							 * sizes：轮播容器最大 960px，窄屏时占满视口宽度。
 							 */
-							$sa_sizes = '(max-width: 960px) 100vw, 960px';
+							/*
+							 * 减去 .sa-container 左右各 20px 的 padding。
+							 *
+							 * 原本写的是 100vw，比实际显示宽度多报 40px，浏览器因此
+							 * 会挑更大的候选图。PageSpeed 的「改进图片传送」正是这一条
+							 * （实际显示 556 宽，却取了更大的文件，约 20 KiB 浪费）。
+							 *
+							 * 没有再加 640w 候选：手机上 .sa-carousel__slide img 的高度是
+							 * 220px，按 2 倍屏算需要 440 物理像素，而按 960:380 比例生成的
+							 * 640w 只有 253 高 —— object-fit: cover 会把它放大，反而更糊。
+							 * 现有的 960w（380 高）已经是偏紧的一档。
+							 */
+							$sa_sizes = '(max-width: 1000px) calc(100vw - 40px), 960px';
 							?>
 							<picture>
 								<source

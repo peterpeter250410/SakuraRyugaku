@@ -213,6 +213,27 @@ add_filter(
 			return array_values( $hints );
 		}
 
+		/*
+		 * 两个域名都由这里输出（header.php 原本硬编码过一份，已移除）。
+		 *
+		 * 顺序有讲究：先连 googleapis（取样式表），样式表里再指向 gstatic
+		 * （取字体文件）。gstatic 必须带 crossorigin —— 字体是匿名跨域请求，
+		 * 不带的话预连接的是另一个连接池，等于白连一次。
+		 *
+		 * 先去重再追加：主题或插件可能已经加过，重复的 preconnect 在
+		 * PageSpeed 的「预连接的源」里会各占一行，也浪费连接数。
+		 */
+		$hints = array_values(
+			array_filter(
+				$hints,
+				function ( $hint ) {
+					$url = is_array( $hint ) && isset( $hint['href'] ) ? $hint['href'] : $hint;
+					return false === strpos( (string) $url, 'fonts.g' );
+				}
+			)
+		);
+
+		$hints[] = 'https://fonts.googleapis.com';
 		$hints[] = array(
 			'href'        => 'https://fonts.gstatic.com',
 			'crossorigin' => 'anonymous',

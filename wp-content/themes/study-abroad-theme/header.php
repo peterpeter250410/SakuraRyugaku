@@ -16,8 +16,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="theme-color" content="#d4372c">
 	<meta name="format-detection" content="telephone=no">
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<?php
+	/*
+	 * 字体域名的 preconnect 不在这里硬编码。
+	 *
+	 * 此前这里写死了 googleapis 与 gstatic 两条，而 inc/performance.php 的
+	 * wp_resource_hints 过滤器又会再加一条 gstatic —— PageSpeed 的「预连接的源」
+	 * 里因此出现了三条、其中两条是同一个 gstatic。
+	 *
+	 * 更要紧的是硬编码这条永远存在：英文站不加载网络字体（sa_webfont_family()
+	 * 对 en_US 返回空），却照样对两个字体域名发起 DNS + TCP + TLS，
+	 * 在受限链路上白占连接。
+	 *
+	 * 现在统一由 performance.php 按当前语种是否真的用字体来决定，
+	 * wp_head() 会输出。
+	 */
+	?>
 	<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>

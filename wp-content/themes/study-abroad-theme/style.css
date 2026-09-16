@@ -60,6 +60,18 @@ body {
 		linear-gradient(180deg, #fdf9f8 0%, #f8fafc 42%, #ffffff 100%);
 	background-attachment: fixed;
 }
+/*
+ * 手机上取消 background-attachment: fixed。
+ *
+ * fixed 会让这三层渐变脱离普通的滚动合成 —— 浏览器不能把背景当作可平移的
+ * 位图缓存，滚动时要反复重绘整个视口。在 4 倍降速的 CPU 上这笔开销很实在，
+ * 而视觉收益只是一个「背景不随页面滚动」的细节，小屏上几乎察觉不到。
+ *
+ * 桌面端保持 fixed：那边没有 CPU 降速，分数也已经是 93。
+ */
+@media (max-width: 1024px) {
+	body { background-attachment: scroll; }
+}
 
 /* 极淡的樱花点缀纹样，铺在内容下方（纯 SVG data-URI，无外链） */
 body::before {
@@ -80,9 +92,24 @@ a { color: var(--sa-accent); text-decoration: none; }
    ========================================================= */
 .sa-header {
 	position: sticky; top: 0; z-index: 100;
-	background: rgba(255,255,255,.92);
-	backdrop-filter: saturate(180%) blur(10px);
+	background: rgba(255,255,255,.96);
 	border-bottom: 1px solid var(--sa-border);
+}
+/*
+ * 毛玻璃只在大屏启用。
+ *
+ * backdrop-filter 比 filter 更贵：它要把已经合成好的背景回读出来再处理，
+ * 并且会强制这个元素独立成层。而这是个 sticky 头部，始终在首屏内，
+ * 首次绘制就得付这笔钱。
+ *
+ * 底色是 96% 不透明的白，本来就几乎挡住了背后的内容，模糊的实际观感极弱 ——
+ * 拿它换 4 倍降速 CPU 上的首屏时间是划算的。桌面端保留原样。
+ */
+@media (min-width: 1025px) {
+	.sa-header {
+		background: rgba(255,255,255,.92);
+		backdrop-filter: saturate(180%) blur(10px);
+	}
 }
 .sa-header__inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
 .sa-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; color: var(--sa-ink); }
@@ -223,19 +250,39 @@ a { color: var(--sa-accent); text-decoration: none; }
 	}
 }
 /* 首屏光晕：左右两团柔和光斑，增强层次与特色 */
+/*
+ * 光晕不再用 filter: blur()。
+ *
+ * 原来是 filter: blur(60px) 套在 480×480 与 420×420 两个元素上。
+ * blur 是按面积做的多遍卷积，半径越大越贵，而且会强制生成合成层 ——
+ * 在 PageSpeed 模拟的 Moto G Power（CPU 4 倍降速）上，这是首屏唯一的重活。
+ *
+ * 实测佐证（2026-09-16 的报告）：
+ *   - 渲染阻塞请求只有 style.css 一个，190 毫秒；网络依赖树显示
+ *     HTML 327ms、style.css 473ms —— 首屏所需的一切 0.5 秒内就齐了，
+ *     而 FCP 是 5,100 毫秒。那 4.6 秒不在网络上。
+ *   - 「长时间运行的主线程任务：发现了 2 项」。
+ *     TBT 为 0 不矛盾 —— TBT 只统计 FCP 之后的阻塞，之前的一概不计。
+ *   - 埋点的 requestIdleCallback 超时设的是 3000ms，三个请求恰好落在
+ *     2,947 / 3,166 / 3,175ms，说明浏览器连续忙了 3 秒都没等到空闲。
+ *   - 同一份代码桌面端 93 分、手机端 67 分，差别就是 CPU 降速。
+ *
+ * 替代做法：径向渐变本身就是柔和的，把透明过渡点往内收（70% → 100%）
+ * 并略微放大元素，得到的视觉与模糊后接近，但栅格化只是一次渐变填充。
+ */
 .sa-hero::before,
 .sa-hero::after {
 	content: "";
 	position: absolute; z-index: 0; border-radius: 50%;
-	filter: blur(60px); pointer-events: none;
+	pointer-events: none;
 }
 .sa-hero::before {
-	width: 480px; height: 480px; top: -160px; right: -120px;
-	background: radial-gradient(circle, rgba(212,55,44,.28), transparent 70%);
+	width: 620px; height: 620px; top: -230px; right: -190px;
+	background: radial-gradient(circle closest-side, rgba(212,55,44,.26), rgba(212,55,44,.10) 45%, transparent 100%);
 }
 .sa-hero::after {
-	width: 420px; height: 420px; bottom: -180px; left: -120px;
-	background: radial-gradient(circle, rgba(31,111,235,.22), transparent 70%);
+	width: 560px; height: 560px; bottom: -250px; left: -190px;
+	background: radial-gradient(circle closest-side, rgba(31,111,235,.20), rgba(31,111,235,.08) 45%, transparent 100%);
 }
 .sa-hero__inner { position: relative; z-index: 1; }
 .sa-hero__inner { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; padding: 64px 20px; }
@@ -276,7 +323,12 @@ a { color: var(--sa-accent); text-decoration: none; }
    ========================================================= */
 .sa-section { padding: 72px 0; position: relative; }
 /* soft 区块用半透明白，让底层和风渐变/樱花纹样若隐若现 */
-.sa-section--soft { background: rgba(247,248,250,.72); backdrop-filter: blur(2px); }
+/*
+ * 这里原本还有 backdrop-filter: blur(2px)。
+ * 它背后是 body 的三层渐变 —— 渐变本身没有细节，模糊 2px 在视觉上等于没做，
+ * 却照样要回读背景、独立成层。属于只付代价、不产生效果的一条，直接去掉。
+ */
+.sa-section--soft { background: rgba(247,248,250,.72); }
 .sa-section__head { text-align: center; max-width: 720px; margin: 0 auto 48px; }
 .sa-section__tag { color: var(--sa-primary); font-weight: 600; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
 .sa-section__title { font-size: 34px; font-weight: 800; color: var(--sa-ink); margin: 8px 0 12px; }
