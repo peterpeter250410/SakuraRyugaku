@@ -246,6 +246,58 @@ function sa_share_image() {
 	return '';
 }
 
+/**
+ * Organization 结构化数据里的 logo。
+ *
+ * 为什么不复用 sa_share_image()：
+ *
+ *   此前 Organization.logo 直接取的是 sa_share_image()，而它的最终兜底是
+ *   assets/images/og-default.jpg —— 一张 1200×630 的社交分享大图。
+ *   那是营销 banner，不是标识。Google 会把这个值用在知识面板等位置，
+ *   等于告诉它「本机构的 logo 就是这张横幅」，是一条错误断言；
+ *   而且 og 图按语种有三个版本，同一个机构不可能有三个 logo。
+ *
+ *   所以这里只认真正的标识资源：站点标识（自定义 Logo）与站点图标。
+ *   两者都没有配置时返回空，宁可不输出 logo —— 缺字段只是少一个可选信号，
+ *   填错字段是给搜索引擎一个错的事实。
+ *
+ *   尺寸从附件本身读，不写死：get_site_icon_url( 512 ) 在原图小于 512 时
+ *   返回的是原图，此时硬写 512×512 同样是假数据。
+ *
+ * @return array<string,mixed> ImageObject 结构；无可用标识时为空数组。
+ */
+function sa_organization_logo() {
+	$attachment_id = (int) get_theme_mod( 'custom_logo' );
+
+	if ( $attachment_id <= 0 ) {
+		// 站点图标（设置 → 常规 → 站点图标）。它本身就是标识用途的方形图，
+		// 满足 Google 对 logo 的最小尺寸要求（112×112）。
+		$attachment_id = (int) get_option( 'site_icon' );
+	}
+
+	if ( $attachment_id <= 0 ) {
+		return array();
+	}
+
+	$src = wp_get_attachment_image_src( $attachment_id, 'full' );
+	if ( ! $src || empty( $src[0] ) ) {
+		return array();
+	}
+
+	$logo = array(
+		'@type' => 'ImageObject',
+		'url'   => $src[0],
+	);
+
+	// 宽高只在确实读到时才写。SVG 等类型可能取不到尺寸。
+	if ( ! empty( $src[1] ) && ! empty( $src[2] ) ) {
+		$logo['width']  = (int) $src[1];
+		$logo['height'] = (int) $src[2];
+	}
+
+	return $logo;
+}
+
 /* -------------------------------------------------------------------------
  * head 输出
  * ---------------------------------------------------------------------- */
@@ -328,25 +380,101 @@ add_action(
 		}
 
 		// --- JSON-LD: Organization ---
+		/*
+		 * @id 用固定的 home_url( '/#organization' )，不带语种前缀：
+		 * 机构只有一个，三个语种页面描述的是同一个实体。带上前缀会让
+		 * 搜索引擎把它读成三家不同的机构，反而稀释信号。
+		 */
+		$org_id = home_url( '/#organization' );
+
+		/*
+		 * name 固定取默认语种的站点名，不能用 get_bloginfo( 'name' )。
+		 *
+		 * blogname 被 option_blogname 过滤器按语种覆盖了（见 inc/i18n.php），
+		 * 三个语种下会分别返回「日本留学サポート」「日本留学官网」
+		 * 「Study in Japan」。配上同一个 @id，等于声称一个实体同时叫三个
+		 * 不同的名字 —— 这是自相矛盾的断言。
+		 *
+		 * 因此主名取默认语种（日本的机构，日文名为准），其余语种的叫法
+		 * 放进 alternateName：机构确实以这些名称对外呈现，这正是该字段的用途。
+		 */
+		$org_default_locale = sa_default_locale();
+		$org_name           = sa_locale_field( $org_default_locale, 'site_name', '' );
+		if ( '' === $org_name ) {
+			// 该语种未配置 site_name 时回退到数据库原值。
+			$org_name = get_bloginfo( 'name' );
+		}
+
+		$org_alt = array();
+		foreach ( array_keys( sa_locales() ) as $org_lk ) {
+			if ( $org_lk === $org_default_locale ) {
+				continue;
+			}
+			$alt = sa_locale_field( $org_lk, 'site_name', '' );
+			if ( '' !== $alt && $alt !== $org_name && ! in_array( $alt, $org_alt, true ) ) {
+				$org_alt[] = $alt;
+			}
+		}
+
 		$org = array(
 			'@context' => 'https://schema.org',
 			'@type'    => 'Organization',
-			'name'     => get_bloginfo( 'name' ),
+			'@id'      => $org_id,
+			'name'     => $org_name,
 			'url'      => home_url( '/' ),
 		);
-		if ( $share_image ) {
-			$org['logo'] = $share_image;
+		if ( ! empty( $org_alt ) ) {
+			$org['alternateName'] = $org_alt;
 		}
+
+		$org_logo = sa_organization_logo();
+		if ( ! empty( $org_logo ) ) {
+			$org['logo'] = $org_logo;
+		}
+
+		/*
+		 * contactPoint。
+		 *
+		 * 只写此刻确实成立的三件事：可联系的入口、联系目的、可受理的语言。
+		 *
+		 * 不写 telephone 与 email —— 站内目前没有任何真实的电话或邮箱
+		 * （见 footer.php 里的说明，原先那个 info@example.com 是 RFC 2606
+		 * 的文档保留域名，永远收不到信）。留学咨询属于 YMYL 领域，
+		 * 在结构化数据里挂一个打不通的号码，比不挂更伤信任。
+		 *
+		 * 副作用要说清楚：Google 的「企业联系信息」富媒体结果要求 telephone，
+		 * 少了这个字段就不会触发那一项。这是有意的取舍 —— 拿到真实号码后
+		 * 在这里补 'telephone' => '+81-...' 即可，其余不必改动。
+		 */
+		$org['contactPoint'] = array(
+			'@type'             => 'ContactPoint',
+			'contactType'       => 'customer support',
+			'url'               => sa_home_url( '/contact/' ),
+			// 三个语种的页面与咨询表单均已上线，这一项可由站点本身验证。
+			'availableLanguage' => array_values(
+				array_map(
+					function ( $key ) {
+						return sa_locale_field( $key, 'hreflang', $key );
+					},
+					array_keys( sa_locales() )
+				)
+			),
+		);
+
 		$org = apply_filters( 'sa_schema_organization', $org );
 		echo '<script type="application/ld+json">' . wp_json_encode( $org, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
 
 		// --- JSON-LD: WebSite ---
+		// publisher 指回上面的 Organization @id，把两个节点连成一张图；
+		// 否则它们是两条互不相干的声明，搜索引擎得自己猜是不是同一家。
 		$site = array(
 			'@context'   => 'https://schema.org',
 			'@type'      => 'WebSite',
+			'@id'        => sa_home_url( '/#website' ),
 			'name'       => get_bloginfo( 'name' ),
 			'url'        => sa_home_url( '/' ),
 			'inLanguage' => sa_locale_field( $cur, 'hreflang', 'ja' ),
+			'publisher'  => array( '@id' => $org_id ),
 		);
 		$site = apply_filters( 'sa_schema_website', $site );
 		echo '<script type="application/ld+json">' . wp_json_encode( $site, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";

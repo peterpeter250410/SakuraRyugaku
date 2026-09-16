@@ -604,6 +604,45 @@ done
 LD_COUNT=$(grep -o 'application/ld+json' "${TMP}/home.html" | wc -l | tr -d ' ')
 info "JSON-LD 块数量: ${LD_COUNT}"
 
+# Organization 节点的细项。
+#
+# logo 只允许是真正的标识（站点标识或站点图标）。此前这里取的是
+# og-default.jpg —— 一张 1200×630 的社交分享横幅，而且按语种有三个版本。
+# 把横幅当 logo 交给 Google，是给它一个错的事实。
+if grep -q '"@type":"Organization"' "${TMP}/home.html" 2>/dev/null; then
+    if grep -q '"@id":"[^"]*#organization"' "${TMP}/home.html" 2>/dev/null; then
+        ok "Organization 有 @id（可被 WebSite.publisher 引用）"
+    else
+        warn "Organization 缺 @id —— 与 WebSite 节点无法关联"
+    fi
+
+    if grep -q '"publisher":{"@id":"[^"]*#organization"}' "${TMP}/home.html" 2>/dev/null; then
+        ok "WebSite.publisher 指向 Organization"
+    else
+        warn "WebSite 未通过 publisher 关联 Organization"
+    fi
+
+    if grep -q '"logo":' "${TMP}/home.html" 2>/dev/null; then
+        if grep -qE '"logo":\{[^}]*"url":"[^"]*og-default' "${TMP}/home.html" 2>/dev/null; then
+            bad "Organization.logo 指向 og 分享图 —— 那是营销横幅不是标识，须改用站点标识/站点图标"
+        else
+            ok "Organization.logo 非 og 分享图"
+        fi
+    else
+        warn "Organization 无 logo —— 请在「外观→自定义→站点标识」或「设置→常规→站点图标」上传真实标识"
+    fi
+
+    if grep -q '"contactPoint"' "${TMP}/home.html" 2>/dev/null; then
+        ok "Organization 含 contactPoint"
+        # 拿到真实号码前不应出现 telephone；出现了多半是被示例值污染
+        if grep -qE '"telephone":"(\+?81-?)?0*(00|1234|000)' "${TMP}/home.html" 2>/dev/null; then
+            bad "contactPoint.telephone 疑似示例号码 —— 结构化数据里挂打不通的号码比不挂更伤信任"
+        fi
+    else
+        warn "Organization 缺 contactPoint"
+    fi
+fi
+
 # ---------- B9. robots.txt / sitemap ----------
 head2 "B8. robots.txt 与 sitemap"
 fetch "${SITE_URL}/robots.txt" "${TMP}/robots.txt"
