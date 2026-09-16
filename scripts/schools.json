@@ -72,6 +72,51 @@
   },
 
   {
+    "_comment": "ISI日本語学校 —— 数据来自官网 /ja/course/tuition-fee/（2026-09 抓取）。学费为「初年度 年間学費」即年额，非课程总额。五个校舎分组的金额均经算术核验：合計 = 検定料+入学金+授業料+教材費+施設運営管理費，五列全部自洽，无需反推。短期コース（10週間単位）官网有两组数值不同、表头相同的表，无法判断区别（可能是不同年度或不同入学期），故未录入。",
+    "slug": "isi-japanese-language-school",
+    "name": "ISI日本語学校",
+    "name_i18n": {
+      "ja": "ISI日本語学校",
+      "zh": "ISI 日本语学校",
+      "en": "ISI Language School"
+    },
+    "official_url": "https://www.isi-education.com/ja/",
+    "school_type": "language",
+    "region": "関東",
+    "city": "東京（新宿・池袋・高田馬場・渋谷原宿）ほか",
+    "language_req": "",
+    "min_education": "",
+    "status": "active",
+    "published": false,
+    "sort_order": 15,
+    "description_i18n": {
+      "ja": "ISI日本語学校は、東京（新宿本校・新宿プライム校・池袋校・高田馬場進学校・高田馬場キャリア校・渋谷原宿キャリア校）のほか、大阪・京都・長野に校舎を置く日本語学校です。\n\n長期コースは、大学・大学院進学を目指す「進学日本語コース」と、日本での就職を目指す「日本語キャリアコース」の2種類です。学費は校舎によって異なり、初年度の年間合計は905,000円（長野校）から1,115,000円（新宿プライム校）となっています。このほか10週間単位の短期コース、平日夜間のイブニングコースも設置されています。\n\n※ 検定料は出願時にお支払いいただきます。在学中に次年度の学費が改定される場合があります（2026年9月時点の公表情報）。",
+      "zh": "ISI 日本语学校在东京（新宿本校、新宿 Prime 校、池袋校、高田马场升学校、高田马场 Career 校、涩谷原宿 Career 校）以及大阪、京都、长野设有校区。\n\n长期课程分两类：面向大学与大学院升学的「升学日语课程」，以及面向在日就职的「日语 Career 课程」。学费因校区而异，首年年度合计为 905,000 日元（长野校）至 1,115,000 日元（新宿 Prime 校）。此外还设有以 10 周为单位的短期课程，以及平日夜间的 Evening 课程。\n\n※ 检定料在报名时支付。在读期间次年度学费可能调整（截至 2026 年 9 月的公开信息）。",
+      "en": "ISI Language School has campuses in Tokyo (Shinjuku Main, Shinjuku Prime, Ikebukuro, Takadanobaba Academic, Takadanobaba Career and Shibuya-Harajuku Career) as well as Osaka, Kyoto and Nagano.\n\nTwo long-term tracks are offered: an Academic Japanese course for those aiming at university or graduate school, and a Japanese Career course for those seeking employment in Japan. Fees vary by campus, with first-year totals ranging from 905,000 yen (Nagano) to 1,115,000 yen (Shinjuku Prime). Short-term courses in 10-week blocks and weekday evening courses are also available.\n\nNote: the application screening fee is paid at the time of application, and fees for subsequent years may be revised (per information published as of September 2026)."
+    },
+    "programs": [
+      {
+        "name": "進学日本語コース",
+        "name_i18n": { "zh": "升学日语课程", "en": "Academic Japanese course" },
+        "duration": "長期",
+        "tuition_min": 905000,
+        "tuition_max": 1115000,
+        "tuition_basis": "year",
+        "tuition_note": "初年度の年間合計。検定料・入学金・授業料・教材費・施設運営管理費を含む。校舎により異なる（長野校 905,000円／池袋・高田馬場進学・大阪・京都 1,015,000円／新宿本校 1,065,000円／新宿プライム校 1,115,000円）。次年度以降は改定される場合あり。"
+      },
+      {
+        "name": "日本語キャリアコース",
+        "name_i18n": { "zh": "日语 Career 课程（就职方向）", "en": "Japanese Career course" },
+        "duration": "長期",
+        "tuition_min": 1055000,
+        "tuition_max": 1055000,
+        "tuition_basis": "year",
+        "tuition_note": "初年度の年間合計。検定料・入学金・授業料・教材費・施設運営管理費を含む。高田馬場キャリア校・渋谷原宿キャリア校。次年度以降は改定される場合あり。"
+      }
+    ]
+  },
+
+  {
     "_comment": "千駄ヶ谷グループ 1/3 —— 学费在官网由 JS 动态渲染，静态 HTML 抓不到，故 tuition 全为 0，页面不显示学费行。补齐学费前不要发布。",
     "slug": "sendagaya-japanese-school",
     "name": "千駄ヶ谷日本語学校",
