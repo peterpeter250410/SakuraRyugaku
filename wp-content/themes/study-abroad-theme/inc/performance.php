@@ -294,3 +294,61 @@ add_action(
 	},
 	100
 );
+
+/* -------------------------------------------------------------------------
+ * 首屏背景图 preload
+ * ---------------------------------------------------------------------- */
+
+/**
+ * 预加载 hero 背景图。
+ *
+ * 为什么需要：
+ *
+ *   .sa-hero 的背景是 CSS background-image。浏览器的 preload scanner 只扫
+ *   HTML，扫不到 CSS 里的 url() —— 它必须先下载完整个 style.css、解析、
+ *   算出该元素用哪张图，才知道要去取这张图。于是形成一条串行链：
+ *       HTML → style.css → 解析 CSS → 下载背景图
+ *   三次往返之后首屏大图才开始下载。改成 <img> 可以绕开，但首屏这张图是
+ *   铺满区块的装饰背景，用 <img> 得额外套定位，得不偿失。
+ *   用 preload 把它提到 HTML 里声明，链路就变成两条并行的。
+ *
+ *   实测参考：PageSpeed 手机端 LCP 6.1s，比 FCP 只晚 0.5s —— 说明图片
+ *   本身不是大头，但这 0.5s 里有一部分就是上面这条串行链。
+ *
+ * media 必须与 style.css 里的三档断点严格一致，否则会预载一张
+ * 页面根本不会用的图 —— 在慢速链路上白占带宽，反而拖慢 LCP。
+ *
+ * 只输出 WebP：不支持 WebP 的浏览器会忽略带 type 的 preload，回落到
+ * CSS 原本的路径，行为不变。当前主流浏览器均支持。
+ */
+add_action(
+	'wp_head',
+	function () {
+		if ( ! is_front_page() ) {
+			return;
+		}
+
+		$base = get_template_directory_uri() . '/assets/images/';
+		$dir  = get_template_directory() . '/assets/images/';
+
+		// 与 style.css 的 .sa-hero 三档断点一一对应
+		$variants = array(
+			'hero-bg-640w.webp'  => '(max-width: 640px)',
+			'hero-bg-1280w.webp' => '(min-width: 641px) and (max-width: 1280px)',
+			'hero-bg-1920w.webp' => '(min-width: 1281px)',
+		);
+
+		foreach ( $variants as $file => $media ) {
+			// 文件不存在就不输出 —— preload 一个 404 只会浪费一次请求。
+			if ( ! file_exists( $dir . $file ) ) {
+				continue;
+			}
+			printf(
+				'<link rel="preload" as="image" href="%s" type="image/webp" media="%s">' . "\n",
+				esc_url( $base . $file ),
+				esc_attr( $media )
+			);
+		}
+	},
+	2
+);

@@ -279,8 +279,22 @@ get_header();
 									alt="<?php echo esc_attr( $slide['alt'] ); ?>"
 									width="960" height="380"
 									decoding="async"
+									<?php
+									/*
+									 * 第一张不加 fetchpriority="high"。
+									 *
+									 * 轮播整块在 .sa-hero 之下，任何视口下都不在首屏内，
+									 * 手机上更是远在折叠线以下。给它 high 优先级，等于
+									 * 在受限带宽上跟真正的 LCP 元素（hero 背景图）抢线，
+									 * 两张图一起变慢。
+									 *
+									 * 保留 eager 而不是改 lazy：桌面端视口高，轮播可能
+									 * 刚好露出上边缘，lazy 会让它明显后到。默认优先级
+									 * 意味着浏览器会排在 high 之后取它，正是想要的次序。
+									 */
+									?>
 									<?php if ( $sa_is_first ) : ?>
-										loading="eager" fetchpriority="high"
+										loading="eager"
 									<?php else : ?>
 										loading="lazy"
 									<?php endif; ?>

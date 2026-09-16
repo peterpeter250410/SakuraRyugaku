@@ -56,7 +56,7 @@ $img_dir = dirname( __DIR__ ) . '/wp-content/themes/study-abroad-theme/assets/im
 $targets = array(
 	'hero-bg.jpg' => array(
 		'ratio'   => 1920 / 1080,
-		'widths'  => array( 1280, 1920 ),
+		'widths'  => array( 640, 1280, 1920 ),
 		'quality' => array( 'jpg' => 82, 'webp' => 80 ),
 	),
 	'slide-1.jpg' => array(

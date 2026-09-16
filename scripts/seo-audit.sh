@@ -225,6 +225,33 @@ else
     echo "         生成命令: php scripts/make-logo.php"
 fi
 
+# hero 背景图：CSS 用的档位与 preload 声明的档位必须一致。
+#
+# .sa-hero 的背景是 CSS background-image，preload scanner 扫不到，
+# 所以 inc/performance.php 里按断点显式 preload 了对应的 webp。
+# 两处一旦不同步，就会预载一张页面根本不会用的图 —— 慢速链路上白占带宽，
+# 反而拖慢 LCP，而且页面看起来完全正常，不会有任何报错。
+HERO_CSS=$(grep -o 'hero-bg-[0-9]*w\.webp' "${THEME}/style.css" 2>/dev/null | sort -u | tr '\n' ' ')
+HERO_PRE=$(grep -o "hero-bg-[0-9]*w\.webp" "${THEME}/inc/performance.php" 2>/dev/null | sort -u | tr '\n' ' ')
+if [ -z "$HERO_PRE" ]; then
+    warn "inc/performance.php 未 preload hero 背景图 —— LCP 要等 CSS 解析完才开始下载"
+elif [ "$HERO_CSS" = "$HERO_PRE" ]; then
+    ok "hero 背景图档位一致（CSS 与 preload 均为: ${HERO_CSS})"
+    # 声明了就必须真的存在
+    HERO_LOST=""
+    for h in $HERO_CSS; do
+        [ -f "${THEME}/assets/images/${h}" ] || HERO_LOST="${HERO_LOST} ${h}"
+    done
+    if [ -n "$HERO_LOST" ]; then
+        bad "hero 背景图文件缺失:${HERO_LOST} —— preload 会打到 404"
+        echo "         生成命令: php scripts/optimize-images.php"
+    fi
+else
+    bad "hero 背景图档位不一致 —— preload 可能预载了页面用不到的图"
+    echo "         style.css      : ${HERO_CSS}"
+    echo "         performance.php: ${HERO_PRE}"
+fi
+
 # ---------- A9. 虚假合作关系措辞 ----------
 #
 # 本站与刊载院校之间不存在代理或合作关系：实际业务只到「协助准备出願材料 +

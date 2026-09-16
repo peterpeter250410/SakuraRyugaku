@@ -198,6 +198,30 @@ a { color: var(--sa-accent); text-decoration: none; }
 		background-color: #fff5f4;
 	}
 }
+/*
+ * 手机：640w（WebP 35 KB，1280w 是 90 KB）。
+ *
+ * 必须放在默认规则之后 —— 默认那条没有媒体查询，靠层叠顺序覆盖。
+ *
+ * 这一档是看了 PageSpeed 手机端报告补的：此前 360px 宽的手机也在下载
+ * 1280px 的图。按 DPR 2 算，640px 逻辑宽度需要 1280 物理像素才刚好，
+ * 但首屏背景上还压着一层不透明度 .92 的渐变遮罩，细节本来就看不清，
+ * 为它多花 55 KB 不划算。
+ */
+@media (max-width: 640px) {
+	.sa-hero {
+		background:
+			linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
+			url("assets/images/hero-bg-640w.jpg") center/cover no-repeat;
+		background:
+			linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
+			image-set(
+				url("assets/images/hero-bg-640w.webp") type("image/webp"),
+				url("assets/images/hero-bg-640w.jpg") type("image/jpeg")
+			) center/cover no-repeat;
+		background-color: #fff5f4;
+	}
+}
 /* 首屏光晕：左右两团柔和光斑，增强层次与特色 */
 .sa-hero::before,
 .sa-hero::after {
