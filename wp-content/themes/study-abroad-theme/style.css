@@ -427,7 +427,18 @@ a { color: var(--sa-accent); text-decoration: none; }
 .sa-footer__brand .sa-logo { color: #fff; }
 .sa-footer a { color: #cbd5e1; }
 .sa-footer a:hover { color: #fff; }
-.sa-footer__col h4 { color: #fff; font-size: 15px; margin: 0 0 12px; }
+/*
+ * 页脚列标题原本是 <h4>，改成了 <h2>。
+ *
+ * 原因是标题层级：页面正文的最后一个标题是 h2，直接跳到 h4 会漏掉 h3，
+ * 读屏软件按层级浏览时会认为中间少了一层结构（Lighthouse 的
+ * 「标题元素未按降序显示」）。页脚是 contentinfo 地标内的次级区块，h2 才是对的。
+ *
+ * 视觉必须保持不变 —— 层级是语义问题，不该让页脚标题变成正文大标题那么大。
+ * 选择器同时保留 h4，兼容可能遗留的旧标记。
+ */
+.sa-footer__col h4,
+.sa-footer__col .sa-footer__col-title { color: #fff; font-size: 15px; font-weight: 700; margin: 0 0 12px; }
 .sa-footer__col ul { list-style: none; padding: 0; margin: 0; }
 .sa-footer__col li { margin-bottom: 8px; font-size: 14px; }
 .sa-footer__bottom { border-top: 1px solid rgba(255,255,255,.1); padding-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 13px; color: #94a3b8; }

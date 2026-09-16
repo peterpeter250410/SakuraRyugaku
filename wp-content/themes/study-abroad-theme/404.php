@@ -27,6 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 get_header();
 ?>
+<main id="sa-main">
 
 <div class="sa-page-head">
 	<div class="sa-container">
@@ -100,5 +101,6 @@ get_header();
 	</div>
 </section>
 
+</main>
 <?php
 get_footer();

@@ -104,17 +104,47 @@
 	window.saSession = function () { return SK; };
 	window.saUtm = function () { return UTM; };
 
-	// -------- auto events --------
-	// pageview
-	send('pageview');
-
-	// 落地页视图（页面含 [data-sa-lp] 时）
-	var lp = document.querySelector('[data-sa-lp]');
-	if (lp) {
-		send('lp_view', { lp_variant: lp.getAttribute('data-sa-lp') || '' });
+	// -------- 自动事件的发送时机 --------
+	/*
+	 * 页面加载期间的埋点一律推迟到「load 之后 + 浏览器空闲」再发。
+	 *
+	 * 起因是 PageSpeed 手机端的实测：本脚本在解析时立即发出 3 个
+	 * POST /sa/v1/track（pageview + lp_view + form_impression），
+	 * 每个都要走完整的 WordPress REST 引导。关键请求链因此被拉到
+	 * 1,925 毫秒，而同一份报告里 LCP 的「元素渲染延迟」是 1,940 毫秒 ——
+	 * 两个数字对得上：首屏就卡在这几个埋点请求后面。
+	 *
+	 * 埋点是旁路数据，永远不该跟首屏渲染抢带宽和主线程。推迟之后
+	 * 数据一条不少，只是晚几百毫秒入库。
+	 *
+	 * 用户主动触发的事件（点击、表单输入）不走这里 —— 那些发生在
+	 * 加载完成之后，本来就不在关键路径上。
+	 */
+	function whenIdle(fn) {
+		var run = function () {
+			if (typeof window.requestIdleCallback === 'function') {
+				// timeout 兜底：页面长期繁忙时也不会一直不发。
+				window.requestIdleCallback(fn, { timeout: 3000 });
+			} else {
+				setTimeout(fn, 1);
+			}
+		};
+		if (document.readyState === 'complete') {
+			run();
+		} else {
+			window.addEventListener('load', run);
+		}
 	}
 
-	// 感谢页/转化确认视图（页面含 [data-sa-thanks] 时）
+	// -------- auto events --------
+	/*
+	 * thanks_view 不推迟。
+	 *
+	 * 它是转化确认事件，业务上比性能重要：万一用户在 load 后立刻关掉
+	 * 标签页，推迟发送就会丢掉一条转化记录（fetch 的 keepalive 只能保住
+	 * 「已发出」的请求，还没发出的救不回来）。
+	 * 而感谢页是转化完成后的页面，且本身 noindex，不是要优化的对象。
+	 */
 	var thanks = document.querySelector('[data-sa-thanks]');
 	if (thanks) {
 		send('thanks_view', {});
@@ -123,20 +153,40 @@
 		}
 	}
 
+	whenIdle(function () {
+		// pageview
+		send('pageview');
+
+		// 落地页视图（页面含 [data-sa-lp] 时）
+		var lp = document.querySelector('[data-sa-lp]');
+		if (lp) {
+			send('lp_view', { lp_variant: lp.getAttribute('data-sa-lp') || '' });
+		}
+	});
+
 	// 表单曝光（IntersectionObserver）
 	var form = document.querySelector('[data-sa-form]');
 	if (form && 'IntersectionObserver' in window) {
-		var seen = false;
-		var io = new IntersectionObserver(function (entries) {
-			entries.forEach(function (entry) {
-				if (entry.isIntersecting && !seen) {
-					seen = true;
-					send('form_impression', { form_id: form.getAttribute('data-sa-form') });
-					io.disconnect();
-				}
+		/*
+		 * 观察器本身也放到空闲时再挂。
+		 *
+		 * 表单若落在首屏内，观察器一挂上就会立刻判定为「已曝光」并发请求 ——
+		 * 那又回到关键路径上了（首页的 data-sa-form 就在 hero 里，正是这种情况）。
+		 * 元素位置不会因为晚挂几百毫秒而改变，曝光判定结果完全一致。
+		 */
+		whenIdle(function () {
+			var seen = false;
+			var io = new IntersectionObserver(function (entries) {
+				entries.forEach(function (entry) {
+					if (entry.isIntersecting && !seen) {
+						seen = true;
+						send('form_impression', { form_id: form.getAttribute('data-sa-form') });
+						io.disconnect();
+					}
+				});
 			});
+			io.observe(form);
 		});
-		io.observe(form);
 
 		// 首次输入 -> form_start
 		var started = false;

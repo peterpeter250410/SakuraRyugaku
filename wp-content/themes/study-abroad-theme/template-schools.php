@@ -30,6 +30,9 @@ $sa_schools = class_exists( 'SA_School_Repo' )
 	: array();
 
 get_header();
+?>
+<main id="sa-main">
+<?php
 
 get_template_part(
 	'template-parts/site-page-head',
@@ -184,5 +187,6 @@ get_template_part(
 	</div>
 </section>
 
+</main>
 <?php
 get_footer();

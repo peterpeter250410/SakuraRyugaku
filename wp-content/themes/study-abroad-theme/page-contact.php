@@ -17,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 sa_set_meta_description( __( '桜留学へのお問い合わせ。メール・LINE・WeChat・WhatsApp でご相談いただけます。無料の学校マッチングもこちらから。', 'sa-theme' ) );
 
 get_header();
+?>
+<main id="sa-main">
+<?php
 
 get_template_part(
 	'template-parts/site-page-head',
@@ -67,5 +70,6 @@ get_template_part(
 	</div>
 </section>
 
+</main>
 <?php
 get_footer();

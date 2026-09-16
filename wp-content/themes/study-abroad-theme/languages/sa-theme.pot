@@ -1204,3 +1204,9 @@ msgstr ""
 #. translators: %s: 搜索关键词
 msgid "「%s」の検索結果"
 msgstr ""
+
+msgid "スライド切り替え"
+msgstr ""
+
+msgid "スライド %d"
+msgstr ""

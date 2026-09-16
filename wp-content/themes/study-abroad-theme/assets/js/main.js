@@ -408,11 +408,14 @@
 
 		var dots = [];
 		if (dotsWrap) {
+			// 按钮文案由 PHP 传入（data-dot-label，含 %d 占位符），
+			// 否则日文/中文页面上读屏也会读出英文的 "slide 1"。
+			var dotLabel = dotsWrap.getAttribute('data-dot-label') || 'slide %d';
 			Array.prototype.forEach.call(slides, function (s, i) {
 				var dot = document.createElement('button');
 				dot.type = 'button';
 				dot.className = 'sa-carousel__dot';
-				dot.setAttribute('aria-label', 'slide ' + (i + 1));
+				dot.setAttribute('aria-label', dotLabel.replace('%d', i + 1));
 				dot.addEventListener('click', function () { go(i); restart(); });
 				dotsWrap.appendChild(dot);
 				dots.push(dot);

@@ -1201,3 +1201,9 @@ msgstr "Just enter your budget and intended field of study. Takes 30 seconds."
 #. translators: %s: 搜索关键词
 msgid "「%s」の検索結果"
 msgstr "Search results for \"%s\""
+
+msgid "スライド切り替え"
+msgstr "Change slide"
+
+msgid "スライド %d"
+msgstr "Slide %d"

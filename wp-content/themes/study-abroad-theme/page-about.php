@@ -17,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 sa_set_meta_description( __( '桜留学（SakuraRyugaku）は、赴日留学を志す学生のための留学エージェントです。データに基づく学校マッチングと専任アドバイザーで、最適な進学をサポートします。', 'sa-theme' ) );
 
 get_header();
+?>
+<main id="sa-main">
+<?php
 
 get_template_part(
 	'template-parts/site-page-head',
@@ -68,5 +71,6 @@ get_template_part(
 	</div>
 </section>
 
+</main>
 <?php
 get_footer();

@@ -1201,3 +1201,9 @@ msgstr "只需填写预算与意向专业，30 秒完成。"
 #. translators: %s: 搜索关键词
 msgid "「%s」の検索結果"
 msgstr "「%s」的搜索结果"
+
+msgid "スライド切り替え"
+msgstr "切换轮播图"
+
+msgid "スライド %d"
+msgstr "第 %d 张"

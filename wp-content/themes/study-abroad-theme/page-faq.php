@@ -199,6 +199,9 @@ foreach ( $sa_faq_groups as $sa_group ) {
 }
 
 get_header();
+?>
+<main id="sa-main">
+<?php
 
 get_template_part(
 	'template-parts/site-page-head',
@@ -272,5 +275,6 @@ if ( function_exists( 'sa_output_faq_schema' ) ) {
 	</div>
 </section>
 
+</main>
 <?php
 get_footer();

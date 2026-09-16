@@ -17,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 sa_set_meta_description( __( '日本留学の学校マッチングから出願書類サポートまで。予算と希望専攻に合わせて最適な進学ルートをご提案する、桜留学のサービス内容をご紹介します。', 'sa-theme' ) );
 
 get_header();
+?>
+<main id="sa-main">
+<?php
 
 get_template_part(
 	'template-parts/site-page-head',
@@ -124,5 +127,6 @@ endwhile;
 	</div>
 </section>
 
+</main>
 <?php
 get_footer();

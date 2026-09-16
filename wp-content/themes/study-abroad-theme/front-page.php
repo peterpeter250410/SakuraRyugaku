@@ -37,6 +37,7 @@ $faqs = array(
 
 get_header();
 ?>
+<main id="sa-main">
 
 <!-- 落地页视图埋点标记 -->
 <div data-sa-lp="<?php echo esc_attr( $lp_variant ); ?>"></div>
@@ -307,7 +308,31 @@ get_header();
 			<?php if ( count( $sa_slides ) > 1 ) : ?>
 				<button type="button" class="sa-carousel__prev" aria-label="<?php esc_attr_e( '前へ', 'sa-theme' ); ?>">‹</button>
 				<button type="button" class="sa-carousel__next" aria-label="<?php esc_attr_e( '次へ', 'sa-theme' ); ?>">›</button>
-				<div class="sa-carousel__dots" aria-hidden="true"></div>
+				<?php
+				/*
+				 * 这里原本挂着 aria-hidden="true"。
+				 *
+				 * 容器里装的是 main.js 生成的 <button>（带 aria-label="slide N"），
+				 * 是真正可聚焦的导航控件。aria-hidden 会把它们整体从无障碍树上摘掉 ——
+				 * 键盘能 Tab 到，读屏软件却读不出来，是比不加还糟的状态。
+				 * Lighthouse 的「[aria-hidden=true] 元素包含可聚焦的下级元素」正是这一条。
+				 *
+				 * 圆点是轮播的合法控件，该做的是让它可访问，而不是藏起来。
+				 */
+				?>
+				<?php
+				/*
+				 * role 用 group 而不是 tablist：tablist 要求子元素都是 role="tab"，
+				 * 而 main.js 生成的是普通 <button>，标成 tablist 反而会引入一条新的
+				 * ARIA 违规。group 对子元素没有要求。
+				 *
+				 * data-dot-label 把按钮文案交给 PHP 翻译 —— main.js 里原本硬编码
+				 * 'slide ' + N，日文和中文页面上也读作英文。
+				 */
+				?>
+				<div class="sa-carousel__dots" role="group"
+					aria-label="<?php esc_attr_e( 'スライド切り替え', 'sa-theme' ); ?>"
+					data-dot-label="<?php esc_attr_e( 'スライド %d', 'sa-theme' ); ?>"></div>
 			<?php endif; ?>
 		</div>
 			<?php
@@ -357,5 +382,6 @@ if ( function_exists( 'sa_output_faq_schema' ) ) {
 	</div>
 </section>
 
+</main>
 <?php
 get_footer();

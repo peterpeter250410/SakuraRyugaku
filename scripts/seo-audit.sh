@@ -252,6 +252,49 @@ else
     echo "         performance.php: ${HERO_PRE}"
 fi
 
+# A10. 无障碍：地标与 ARIA
+#
+# 这三项都来自 Lighthouse 的实测报告（无障碍 94 分），且都是新写模板时
+# 极容易再犯的：
+#   - 每个页面模板都要有 <main>，读屏用户靠它一键跳到正文
+#   - aria-hidden 不能套在含可聚焦元素的容器上（键盘能 Tab 到、读屏读不到）
+#   - role="tablist" 要求子元素是 role="tab"，用错反而新增一条违规
+head2 "A10. 无障碍：地标与 ARIA"
+MAIN_MISSING=""
+for f in "${THEME}"/front-page.php "${THEME}"/index.php "${THEME}"/page.php \
+         "${THEME}"/page-*.php "${THEME}"/template-*.php "${THEME}"/404.php; do
+    [ -f "$f" ] || continue
+    N_OPEN=$(grep -c '<main' "$f" 2>/dev/null || true)
+    N_CLOSE=$(grep -c '</main>' "$f" 2>/dev/null || true)
+    if [ "${N_OPEN:-0}" -ne 1 ] || [ "${N_CLOSE:-0}" -ne 1 ]; then
+        MAIN_MISSING="${MAIN_MISSING} $(basename "$f")(${N_OPEN:-0}/${N_CLOSE:-0})"
+    fi
+done
+if [ -z "$MAIN_MISSING" ]; then
+    ok "各页面模板均有且仅有一个 <main> 地标"
+else
+    bad "模板的 <main> 数量异常（开/闭）:${MAIN_MISSING}"
+fi
+
+# aria-hidden 套在含 button/a/input 的容器上
+if grep -rn 'aria-hidden="true"' "${THEME}"/*.php "${THEME}"/template-parts/*.php 2>/dev/null \
+    | grep -qiE 'aria-hidden="true"[^>]*>\s*<(button|a |input|select)'; then
+    bad "发现 aria-hidden=\"true\" 直接包裹可聚焦元素 —— 键盘可达但读屏不可见"
+else
+    ok "未发现 aria-hidden 包裹可聚焦元素"
+fi
+
+# tablist 必须配 tab
+if grep -rq 'role="tablist"' "${THEME}" 2>/dev/null; then
+    if grep -rq 'role="tab"' "${THEME}" 2>/dev/null; then
+        ok "role=tablist 有对应的 role=tab"
+    else
+        bad "存在 role=\"tablist\" 但找不到 role=\"tab\" —— ARIA 结构不完整"
+    fi
+else
+    ok "未使用 role=tablist（无需配套 tab）"
+fi
+
 # ---------- A9. 虚假合作关系措辞 ----------
 #
 # 本站与刊载院校之间不存在代理或合作关系：实际业务只到「协助准备出願材料 +

@@ -343,8 +343,18 @@ add_action(
 			if ( ! file_exists( $dir . $file ) ) {
 				continue;
 			}
+			/*
+			 * fetchpriority="high" 是必须的，不是锦上添花。
+			 *
+			 * preload 只解决「什么时候被发现」，不改变优先级 —— 图片的默认
+			 * 优先级是 Low，浏览器会排在 CSS、脚本之后才取它。
+			 * Lighthouse 对此有一条专门的审核项（「应将 fetchpriority=high
+			 * 应用于图片预加载请求」），上一版漏了这个属性，那一项是不通过的。
+			 *
+			 * 全站只有这一处用 high：优先级是相对的，标得越多越等于没标。
+			 */
 			printf(
-				'<link rel="preload" as="image" href="%s" type="image/webp" media="%s">' . "\n",
+				'<link rel="preload" as="image" href="%s" type="image/webp" media="%s" fetchpriority="high">' . "\n",
 				esc_url( $base . $file ),
 				esc_attr( $media )
 			);

@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<p><?php echo esc_html( get_bloginfo( 'description' ) ); ?></p>
 			</div>
 			<div class="sa-footer__col">
-				<h4><?php esc_html_e( 'ナビゲーション', 'sa-theme' ); ?></h4>
+				<h2 class="sa-footer__col-title"><?php esc_html_e( 'ナビゲーション', 'sa-theme' ); ?></h2>
 				<ul>
 					<li><a href="<?php echo esc_url( sa_home_url( '/services/' ) ); ?>"><?php esc_html_e( 'サービス紹介', 'sa-theme' ); ?></a></li>
 					<?php if ( function_exists( 'sa_schools_url' ) ) : ?>
@@ -34,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</ul>
 			</div>
 			<div class="sa-footer__col">
-				<h4><?php esc_html_e( 'お問い合わせ', 'sa-theme' ); ?></h4>
+				<h2 class="sa-footer__col-title"><?php esc_html_e( 'お問い合わせ', 'sa-theme' ); ?></h2>
 				<?php
 				/*
 				 * 这里曾经写着 info@example.com 与一行「LINE / WeChat / WhatsApp」。
