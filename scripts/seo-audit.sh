@@ -810,8 +810,14 @@ else
         # 只报字节数的话，下一步查什么全靠猜。把实际内容与来源摆出来：
         # 关键是分清「WordPress 渲染了但内容为空」和「请求根本没到 WordPress」。
         if grep -qi 'nginx\|openresty' "${TMP}/404.html" 2>/dev/null; then
-            echo "         实际是 Web 服务器自带的错误页 —— 请求没有交给 WordPress。"
-            echo "         查 nginx 站点配置里是否有 try_files ... =404，或安全规则拦掉了该路径。"
+            echo "         返回的是 Web 服务器自带的错误页。两种成因，按可能性排："
+            echo "           1) fastcgi_intercept_errors on + error_page 404 ——"
+            echo "              请求其实到了 WordPress，是 nginx 把 PHP 返回的 404 响应体换成了自己的。"
+            echo "              特征：伪静态正常（本脚本 B1b 若为 OK 即属此类），只有错误页被替换。"
+            echo "           2) 请求根本没进 WordPress —— try_files 末尾是 =404，或安全规则拦了该路径。"
+            echo "              特征：伪静态本身也不通。"
+            echo "         查看合并后的实际配置："
+            echo "           nginx -T 2>/dev/null | grep -nE 'fastcgi_intercept_errors|error_page|try_files'"
         elif grep -qi 'wp-content\|wp-includes' "${TMP}/404.html" 2>/dev/null; then
             echo "         页面含 WordPress 资源，说明已进入 WordPress，问题出在模板层。"
         else
