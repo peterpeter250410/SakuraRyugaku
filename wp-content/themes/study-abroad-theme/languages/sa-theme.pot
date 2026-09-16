@@ -1200,3 +1200,7 @@ msgstr ""
 
 msgid "予算と希望専攻を入力するだけ。入力は30秒です。"
 msgstr ""
+
+#. translators: %s: 搜索关键词
+msgid "「%s」の検索結果"
+msgstr ""

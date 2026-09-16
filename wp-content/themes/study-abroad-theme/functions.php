@@ -121,6 +121,38 @@ add_filter(
 				$parts['tagline'] = $tagline;
 			}
 		}
+
+		/*
+		 * 404 与搜索结果页的标题改用主题的翻译。
+		 *
+		 * WordPress 核心对这两类页面的标题是硬编码的（见 general-template.php
+		 * 的 wp_get_document_title()）：
+		 *     is_404()    → __( 'Page not found' )
+		 *     is_search() → __( 'Search Results for &#8220;%s&#8221;' )
+		 * 用的都是核心 textdomain。核心的语言包与本主题的 .mo 是两回事 ——
+		 * 核心没装对应语种的语言包时，这两个字符串就原样输出英文。
+		 *
+		 * 实测就是这样：日文站的 404 页标题是
+		 *     <title>Page not found – 日本留学サポート</title>
+		 * 站点名走的是本主题的 option_blogname 过滤器，所以是日文；
+		 * 前半截来自核心，所以是英文。一个标题里两种语言。
+		 *
+		 * 改用 sa-theme textdomain 后，翻译由主题自己的 .po 保证，
+		 * 不再依赖服务器上装没装核心语言包。
+		 *
+		 * 这个问题此前看不见：nginx 的 fastcgi_intercept_errors 把 404 的
+		 * 响应体整个换掉了，页面根本没机会显示出来。
+		 */
+		if ( is_404() ) {
+			$parts['title'] = __( 'ページが見つかりません', 'sa-theme' );
+		} elseif ( is_search() ) {
+			$parts['title'] = sprintf(
+				/* translators: %s: 搜索关键词 */
+				__( '「%s」の検索結果', 'sa-theme' ),
+				get_search_query()
+			);
+		}
+
 		return $parts;
 	}
 );
