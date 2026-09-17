@@ -1013,6 +1013,30 @@ if [ -n "$HERO_URL" ]; then
     fi
 fi
 
+# hero 背景图的 preload 是否真的输出了。
+#
+# 它是 LCP 元素，而 CSS background-image 不会被 preload scanner 发现 ——
+# 全靠 inc/performance.php 在 wp_head 里显式输出这条 preload。
+# 一旦它没输出（is_front_page() 判断失效、文件不存在被跳过、被其他插件
+# 干掉），页面照常显示，只是 LCP 悄悄变慢几秒，没有任何报错。
+#
+# fetchpriority 同样要查：preload 只解决「何时被发现」，图片的默认优先级
+# 是 Low，缺了这个属性浏览器会排在其他资源之后才取它。
+if grep -q '<link rel="preload"[^>]*hero-bg' "${TMP}/home.html" 2>/dev/null; then
+    ok "hero 背景图已 preload"
+    if grep -q '<link rel="preload"[^>]*hero-bg[^>]*fetchpriority="high"' "${TMP}/home.html" 2>/dev/null; then
+        ok "preload 带 fetchpriority=high"
+    else
+        bad "hero preload 缺 fetchpriority=high —— 图片默认优先级为 Low，会排在其他资源之后"
+    fi
+    # media 必须覆盖当前视口，否则等于没预载
+    PRE_N=$(grep -o '<link rel="preload"[^>]*hero-bg[^>]*>' "${TMP}/home.html" 2>/dev/null | wc -l | tr -d ' ')
+    info "hero preload 条数: ${PRE_N}（三档断点各一条）"
+else
+    bad "首页未输出 hero 背景图的 preload —— LCP 元素要等 CSS 解析完才开始下载"
+    echo "         检查 inc/performance.php 的 wp_head 钩子与 is_front_page() 判断"
+fi
+
 head2 "B11. 性能指标（服务端侧）"
 read -r TTFB TOTAL SIZE <<EOF
 $(curl -sS -o /dev/null -w '%{time_starttransfer} %{time_total} %{size_download}' -L --max-time 30 \
