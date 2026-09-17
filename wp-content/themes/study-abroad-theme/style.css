@@ -183,72 +183,54 @@ a { color: var(--sa-accent); text-decoration: none; }
 /* =========================================================
    Hero（落地页首屏）
    ========================================================= */
-/*
- * Hero 背景图。
- *
- * 原来直接引用 1920x1080 的源图（336 KB），手机上也照样下载整张。
- * 现在改为分档 + WebP：
- *   窄屏取 1280w（88 KB WebP），宽屏取 1920w
- *   支持 WebP 的浏览器走 image-set 的第一项，其余回落到 JPEG
- *
- * 两条 background 声明的顺序不能颠倒：不认识 image-set() 的旧浏览器
- * 会忽略后一条、保留前一条的 url()；认识的则用后一条覆盖前一条。
- * 这是 CSS 层叠天然提供的降级，不需要 @supports。
- */
 .sa-hero {
 	position: relative;
-	/* 渐变遮罩叠加背景图；图片加载失败时渐变兜底，保证文字对比度 */
-	background:
-		linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
-		url("assets/images/hero-bg-1280w.jpg") center/cover no-repeat;
-	background:
-		linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
-		image-set(
-			url("assets/images/hero-bg-1280w.webp") type("image/webp"),
-			url("assets/images/hero-bg-1280w.jpg") type("image/jpeg")
-		) center/cover no-repeat;
+	/* 图片加载失败时这个底色兜底，保证文字始终有对比度 */
 	background-color: #fff5f4;
 	overflow: hidden;
 }
-/* 宽屏才值得加载 1920w —— 窄屏用不到这些像素 */
-@media (min-width: 1281px) {
-	.sa-hero {
-		background:
-			linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
-			url("assets/images/hero-bg-1920w.jpg") center/cover no-repeat;
-		background:
-			linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
-			image-set(
-				url("assets/images/hero-bg-1920w.webp") type("image/webp"),
-				url("assets/images/hero-bg-1920w.jpg") type("image/jpeg")
-			) center/cover no-repeat;
-		background-color: #fff5f4;
-	}
-}
+
 /*
- * 手机：640w（WebP 35 KB，1280w 是 90 KB）。
+ * 首屏大图改用 <img> 元素，不再是 CSS background-image。
  *
- * 必须放在默认规则之后 —— 默认那条没有媒体查询，靠层叠顺序覆盖。
+ * 原因：这张图是 LCP 元素，而 CSS 背景图对 LCP 天生不利 ——
+ *   1. 浏览器的 preload scanner 只扫 HTML，扫不到 CSS 里的 url()，
+ *      必须等样式表下载并解析完才知道要取哪张图；
+ *   2. 背景图的加载优先级低于 <img>，会排在其他资源之后。
+ * 此前靠在 <head> 里手写三条 media 分档的 preload 绕开第 1 点，
+ * 但那是在给一个结构性问题打补丁，而且 preload 的档位与 CSS 的媒体查询
+ * 必须逐条对齐，任一处改动都可能悄悄失配。
  *
- * 这一档是看了 PageSpeed 手机端报告补的：此前 360px 宽的手机也在下载
- * 1280px 的图。按 DPR 2 算，640px 逻辑宽度需要 1280 物理像素才刚好，
- * 但首屏背景上还压着一层不透明度 .92 的渐变遮罩，细节本来就看不清，
- * 为它多花 55 KB 不划算。
+ * 换成 <img srcset sizes fetchpriority="high"> 之后：档位由浏览器按
+ * sizes 自行选择（不用再维护两套断点），preload scanner 原生就能发现它，
+ * 优先级也由 fetchpriority 直接指定。手写的 preload 随之移除，
+ * 避免与 srcset 选出的候选不一致导致重复下载。
+ *
+ * 层次（由下至上）：图片 → 渐变遮罩 → 光晕 → 内容。
+ * 渐变遮罩挂在 __bg 的 ::after 上，因为 .sa-hero 的 ::before/::after
+ * 已被两团光晕占用。
  */
-@media (max-width: 640px) {
-	.sa-hero {
-		background:
-			linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
-			url("assets/images/hero-bg-640w.jpg") center/cover no-repeat;
-		background:
-			linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%),
-			image-set(
-				url("assets/images/hero-bg-640w.webp") type("image/webp"),
-				url("assets/images/hero-bg-640w.jpg") type("image/jpeg")
-			) center/cover no-repeat;
-		background-color: #fff5f4;
-	}
+.sa-hero__bg {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
 }
+.sa-hero__bg img {
+	width: 100%;
+	height: 100%;
+	/* 与原先 background-size: cover + center 等价 */
+	object-fit: cover;
+	object-position: center;
+	display: block;
+}
+.sa-hero__bg::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(135deg, rgba(255,245,244,.92) 0%, rgba(238,244,255,.92) 100%);
+}
+
 /* 首屏光晕：左右两团柔和光斑，增强层次与特色 */
 /*
  * 光晕不再用 filter: blur()。
@@ -273,7 +255,8 @@ a { color: var(--sa-accent); text-decoration: none; }
 .sa-hero::before,
 .sa-hero::after {
 	content: "";
-	position: absolute; z-index: 0; border-radius: 50%;
+	/* z-index 1：压在 __bg（0）之上、内容（2）之下，与改版前的观感一致 */
+	position: absolute; z-index: 1; border-radius: 50%;
 	pointer-events: none;
 }
 .sa-hero::before {
@@ -284,7 +267,7 @@ a { color: var(--sa-accent); text-decoration: none; }
 	width: 560px; height: 560px; bottom: -250px; left: -190px;
 	background: radial-gradient(circle closest-side, rgba(31,111,235,.20), rgba(31,111,235,.08) 45%, transparent 100%);
 }
-.sa-hero__inner { position: relative; z-index: 1; }
+.sa-hero__inner { position: relative; z-index: 2; }
 .sa-hero__inner { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; padding: 64px 20px; }
 .sa-hero__badge { display: inline-block; background: rgba(212,55,44,.1); color: var(--sa-primary); font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 20px; margin-bottom: 20px; }
 .sa-hero__title { font-size: 44px; line-height: 1.25; color: var(--sa-ink); margin: 0 0 20px; font-weight: 800; }

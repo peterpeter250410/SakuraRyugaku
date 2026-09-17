@@ -1013,28 +1013,40 @@ if [ -n "$HERO_URL" ]; then
     fi
 fi
 
-# hero 背景图的 preload 是否真的输出了。
+# 首屏大图必须是 <img> 且带 fetchpriority=high。
 #
-# 它是 LCP 元素，而 CSS background-image 不会被 preload scanner 发现 ——
-# 全靠 inc/performance.php 在 wp_head 里显式输出这条 preload。
-# 一旦它没输出（is_front_page() 判断失效、文件不存在被跳过、被其他插件
-# 干掉），页面照常显示，只是 LCP 悄悄变慢几秒，没有任何报错。
+# 它是 LCP 元素。曾经用 CSS background-image，对 LCP 有两个结构性劣势：
+# preload scanner 扫不到 CSS 里的 url()，且背景图优先级低于 <img>。
+# 当时靠在 <head> 手写三条 media 分档的 preload 绕开，现已改为真正的
+# <img srcset sizes fetchpriority="high">，并移除了那段 preload。
 #
-# fetchpriority 同样要查：preload 只解决「何时被发现」，图片的默认优先级
-# 是 Low，缺了这个属性浏览器会排在其他资源之后才取它。
-if grep -q '<link rel="preload"[^>]*hero-bg' "${TMP}/home.html" 2>/dev/null; then
-    ok "hero 背景图已 preload"
-    if grep -q '<link rel="preload"[^>]*hero-bg[^>]*fetchpriority="high"' "${TMP}/home.html" 2>/dev/null; then
-        ok "preload 带 fetchpriority=high"
+# 这里查三件事，任一不满足 LCP 都会悄悄变慢几秒而页面看不出异常：
+#   1. hero 用的是 <img>，不是又退回了 background-image
+#   2. 带 fetchpriority="high"（图片默认优先级是 Low）
+#   3. 没有 loading="lazy"（首屏图懒加载是 LCP 的经典错误）
+if grep -q 'class="sa-hero__bg"' "${TMP}/home.html" 2>/dev/null; then
+    ok "首屏大图使用 <img> 元素（preload scanner 可原生发现）"
+
+    HERO_IMG=$(sed -n 's/.*\(<img[^>]*hero-bg[^>]*>\).*/\1/p' "${TMP}/home.html" 2>/dev/null | head -1)
+    if printf '%s' "$HERO_IMG" | grep -q 'fetchpriority="high"'; then
+        ok "首屏大图带 fetchpriority=high"
     else
-        bad "hero preload 缺 fetchpriority=high —— 图片默认优先级为 Low，会排在其他资源之后"
+        bad "首屏大图缺 fetchpriority=high —— 图片默认优先级为 Low，会排在其他资源之后"
     fi
-    # media 必须覆盖当前视口，否则等于没预载
-    PRE_N=$(grep -o '<link rel="preload"[^>]*hero-bg[^>]*>' "${TMP}/home.html" 2>/dev/null | wc -l | tr -d ' ')
-    info "hero preload 条数: ${PRE_N}（三档断点各一条）"
+
+    if printf '%s' "$HERO_IMG" | grep -q 'loading="lazy"'; then
+        bad "首屏大图被标为 loading=lazy —— 首屏图片懒加载会直接拖垮 LCP"
+    else
+        ok "首屏大图未被懒加载"
+    fi
+
+    # 改回 <img> 之后手写的 preload 就多余了：preload 按 media 选档、
+    # <img> 按 sizes 选档，两套规则选出不同候选就会下载两张图。
+    if grep -q '<link rel="preload"[^>]*hero-bg' "${TMP}/home.html" 2>/dev/null; then
+        warn "同时存在 hero 的 preload 与 <img> —— 两者选档规则不同，可能重复下载"
+    fi
 else
-    bad "首页未输出 hero 背景图的 preload —— LCP 元素要等 CSS 解析完才开始下载"
-    echo "         检查 inc/performance.php 的 wp_head 钩子与 is_front_page() 判断"
+    bad "未找到 .sa-hero__bg —— 首屏大图可能退回了 CSS background-image（LCP 会慢几秒）"
 fi
 
 head2 "B11. 性能指标（服务端侧）"

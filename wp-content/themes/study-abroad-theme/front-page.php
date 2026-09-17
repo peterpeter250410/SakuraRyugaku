@@ -44,6 +44,46 @@ get_header();
 
 <!-- ============ HERO + 表单 ============ -->
 <section class="sa-hero">
+	<?php
+	/*
+	 * 首屏大图。此前是 .sa-hero 的 CSS background-image，现改为真正的 <img>。
+	 *
+	 * 动机是 LCP：这张图就是 LCP 元素，而 CSS 背景图对 LCP 有两个结构性劣势 ——
+	 * preload scanner 只扫 HTML 扫不到 CSS 里的 url()，且背景图的加载优先级
+	 * 低于 <img>。原先靠在 <head> 里手写三条 media 分档的 preload 绕开前者，
+	 * 那是给结构性问题打补丁，还得让 preload 的断点与 CSS 媒体查询逐条对齐。
+	 *
+	 * 改成 <img> 之后：档位交给 srcset + sizes，浏览器自己按视口挑，
+	 * 不必再维护两套断点；preload scanner 原生就能发现它；优先级用
+	 * fetchpriority="high" 直接指定。手写的 preload 已一并移除，
+	 * 否则它选中的档位可能与 srcset 选出的不同，变成下载两张图。
+	 *
+	 * alt 留空 + aria-hidden：这是纯装饰性底图，内容全在它上层的文字里，
+	 * 让读屏软件念一遍图片描述只会干扰。
+	 *
+	 * 不写 loading 属性（即默认 eager）：首屏图片绝不能懒加载。
+	 */
+	$sa_hero_base = get_template_directory_uri() . '/assets/images/';
+	?>
+	<div class="sa-hero__bg" aria-hidden="true">
+		<picture>
+			<source
+				type="image/webp"
+				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-640w.webp' ); ?> 640w,
+				        <?php echo esc_url( $sa_hero_base . 'hero-bg-1280w.webp' ); ?> 1280w,
+				        <?php echo esc_url( $sa_hero_base . 'hero-bg-1920w.webp' ); ?> 1920w"
+				sizes="100vw">
+			<img src="<?php echo esc_url( $sa_hero_base . 'hero-bg-1280w.jpg' ); ?>"
+				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-640w.jpg' ); ?> 640w,
+				        <?php echo esc_url( $sa_hero_base . 'hero-bg-1280w.jpg' ); ?> 1280w,
+				        <?php echo esc_url( $sa_hero_base . 'hero-bg-1920w.jpg' ); ?> 1920w"
+				sizes="100vw"
+				alt=""
+				width="1920" height="1080"
+				fetchpriority="high"
+				decoding="async">
+		</picture>
+	</div>
 	<div class="sa-container sa-hero__inner">
 		<div class="sa-hero__copy">
 			<span class="sa-hero__badge"><?php esc_html_e( '無料・最短即日マッチング', 'sa-theme' ); ?></span>

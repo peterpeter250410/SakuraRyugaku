@@ -181,7 +181,7 @@ add_action(
  * 字体样式表异步加载。
  *
  * 用 media="print" + onload 切回 all 的经典手法：浏览器以最低优先级下载，
- * 不阻塞首屏渲染；配合 font-display:swap，文字立即以系统字体显示。
+ * 不阻塞首屏渲染；配合 font-display:optional，文字立即以系统字体显示且不会再重绘。
  */
 add_filter(
 	'style_loader_tag',
@@ -363,72 +363,17 @@ add_action(
 );
 
 /* -------------------------------------------------------------------------
- * 首屏背景图 preload
+ * 首屏大图
+ *
+ * 这里曾有一段 wp_head 钩子，按三档媒体查询手写 hero 背景图的 preload。
+ * 它存在的唯一理由是：当时首屏大图是 CSS background-image，
+ * preload scanner 扫不到 CSS 里的 url()，只能在 HTML 里替它声明一次。
+ *
+ * 现在 front-page.php 已改用真正的 <img srcset sizes fetchpriority="high">，
+ * 浏览器原生就能发现并高优先级加载它，这段补丁失去意义，且有害 ——
+ * preload 按 media 选档，<img> 按 sizes 选档，两套规则一旦选出不同候选，
+ * 就会下载两张图。因此整段移除。
  * ---------------------------------------------------------------------- */
-
-/**
- * 预加载 hero 背景图。
- *
- * 为什么需要：
- *
- *   .sa-hero 的背景是 CSS background-image。浏览器的 preload scanner 只扫
- *   HTML，扫不到 CSS 里的 url() —— 它必须先下载完整个 style.css、解析、
- *   算出该元素用哪张图，才知道要去取这张图。于是形成一条串行链：
- *       HTML → style.css → 解析 CSS → 下载背景图
- *   三次往返之后首屏大图才开始下载。改成 <img> 可以绕开，但首屏这张图是
- *   铺满区块的装饰背景，用 <img> 得额外套定位，得不偿失。
- *   用 preload 把它提到 HTML 里声明，链路就变成两条并行的。
- *
- *   实测参考：PageSpeed 手机端 LCP 6.1s，比 FCP 只晚 0.5s —— 说明图片
- *   本身不是大头，但这 0.5s 里有一部分就是上面这条串行链。
- *
- * media 必须与 style.css 里的三档断点严格一致，否则会预载一张
- * 页面根本不会用的图 —— 在慢速链路上白占带宽，反而拖慢 LCP。
- *
- * 只输出 WebP：不支持 WebP 的浏览器会忽略带 type 的 preload，回落到
- * CSS 原本的路径，行为不变。当前主流浏览器均支持。
- */
-add_action(
-	'wp_head',
-	function () {
-		if ( ! is_front_page() ) {
-			return;
-		}
-
-		$base = get_template_directory_uri() . '/assets/images/';
-		$dir  = get_template_directory() . '/assets/images/';
-
-		// 与 style.css 的 .sa-hero 三档断点一一对应
-		$variants = array(
-			'hero-bg-640w.webp'  => '(max-width: 640px)',
-			'hero-bg-1280w.webp' => '(min-width: 641px) and (max-width: 1280px)',
-			'hero-bg-1920w.webp' => '(min-width: 1281px)',
-		);
-
-		foreach ( $variants as $file => $media ) {
-			// 文件不存在就不输出 —— preload 一个 404 只会浪费一次请求。
-			if ( ! file_exists( $dir . $file ) ) {
-				continue;
-			}
-			/*
-			 * fetchpriority="high" 是必须的，不是锦上添花。
-			 *
-			 * preload 只解决「什么时候被发现」，不改变优先级 —— 图片的默认
-			 * 优先级是 Low，浏览器会排在 CSS、脚本之后才取它。
-			 * Lighthouse 对此有一条专门的审核项（「应将 fetchpriority=high
-			 * 应用于图片预加载请求」），上一版漏了这个属性，那一项是不通过的。
-			 *
-			 * 全站只有这一处用 high：优先级是相对的，标得越多越等于没标。
-			 */
-			printf(
-				'<link rel="preload" as="image" href="%s" type="image/webp" media="%s" fetchpriority="high">' . "\n",
-				esc_url( $base . $file ),
-				esc_attr( $media )
-			);
-		}
-	},
-	2
-);
 
 /* -------------------------------------------------------------------------
  * 主样式表内嵌
@@ -459,10 +404,15 @@ function sa_should_inline_css() {
  *
  * 相对路径必须改写：
  *
- *   style.css 里有 6 处 url("assets/images/hero-bg-*.webp|jpg")。作为外链样式表
- *   时它们相对于样式表自身解析；一旦内嵌进 HTML，就变成相对于文档地址 ——
- *   会去请求 https://站点/assets/images/...，全部 404，hero 背景图直接消失。
- *   所以这里统一改写为绝对地址。data: 与 http(s): 开头的不动。
+ *   作为外链样式表时，url("assets/...") 相对于样式表自身解析；一旦内嵌进
+ *   HTML，就变成相对于文档地址 —— 会去请求 https://站点/assets/...，全部 404，
+ *   而页面不会报错，只是图静默消失。所以这里统一改写为绝对地址，
+ *   data: 与 http(s): 开头的不动。
+ *
+ *   当前 style.css 里已没有相对路径的 url()（原先那 6 处 hero-bg 已随
+ *   首屏大图改用 <img> 一并移除，只剩一个 data: URI）。这段改写因此暂时
+ *   无事可做，但保留 —— 将来任何人在 CSS 里写一句 url("assets/...")
+ *   都会被自动处理，而不是上线后才发现图没了。
  *
  * @param string $tag    原始 <link> 标签。
  * @param string $handle 句柄。
