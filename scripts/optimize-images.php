@@ -54,10 +54,24 @@ $img_dir = dirname( __DIR__ ) . '/wp-content/themes/study-abroad-theme/assets/im
  * 超出显示尺寸的像素只会增加传输量，不会提升观感。
  */
 $targets = array(
+	/*
+	 * hero 用低质量编码，这不是偷工减料。
+	 *
+	 * 这张图上压着一层不透明度 .92 的渐变遮罩（style.css 的 .sa-hero__bg::after），
+	 * 只有 8% 透出来 —— 画面里能看到的是大块色彩关系，不是细节。
+	 * 按 q80 编码等于在为看不见的东西付字节，而它又是 LCP 资源。
+	 *
+	 * 验证方式：把 q80 与 q30 分别叠加同样的 .92 遮罩合成出来对比，
+	 * 肉眼无法区分。实测体积 q80 34.7 KB / q50 21.9 KB / q30 15.7 KB。
+	 * 取 q50 而不是更低，是留一档余量 —— 万一日后调低遮罩浓度，
+	 * 不至于立刻露出压缩痕迹。
+	 *
+	 * 轮播图不用这个策略：它们没有遮罩，是直接看的照片。
+	 */
 	'hero-bg.jpg' => array(
 		'ratio'   => 1920 / 1080,
 		'widths'  => array( 640, 1280, 1920 ),
-		'quality' => array( 'jpg' => 82, 'webp' => 80 ),
+		'quality' => array( 'jpg' => 68, 'webp' => 50 ),
 	),
 	'slide-1.jpg' => array(
 		'ratio'   => 960 / 380,
