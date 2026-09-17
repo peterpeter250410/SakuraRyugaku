@@ -184,8 +184,11 @@ if [ -d "${THEME}/assets/images" ]; then
     # 检查的是派生文件而不是源图。
     # 页面引用的是 optimize-images.php 按显示尺寸生成的 -960w / -1920w，
     # 只查源图会在「源图在、没跑过优化脚本」时误报齐全，而前台全是 404。
-    for img in slide-1-960w.jpg slide-2-960w.jpg slide-3-960w.jpg \
+    for img in slide-1-640w.jpg slide-2-640w.jpg slide-3-640w.jpg \
+               slide-1-640w.webp slide-2-640w.webp slide-3-640w.webp \
+               slide-1-960w.jpg slide-2-960w.jpg slide-3-960w.jpg \
                slide-1-960w.webp slide-2-960w.webp slide-3-960w.webp \
+               hero-bg-640w.jpg hero-bg-640w.webp \
                hero-bg-1280w.jpg hero-bg-1280w.webp \
                hero-bg-1920w.jpg hero-bg-1920w.webp; do
         [ -f "${THEME}/assets/images/${img}" ] || { warn "缺少 assets/images/${img}"; MISSING_IMG=1; }

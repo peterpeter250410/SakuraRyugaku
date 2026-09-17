@@ -272,21 +272,28 @@ get_header();
 							 * 会挑更大的候选图。PageSpeed 的「改进图片传送」正是这一条
 							 * （实际显示 556 宽，却取了更大的文件，约 20 KiB 浪费）。
 							 *
-							 * 没有再加 640w 候选：手机上 .sa-carousel__slide img 的高度是
-							 * 220px，按 2 倍屏算需要 440 物理像素，而按 960:380 比例生成的
-							 * 640w 只有 253 高 —— object-fit: cover 会把它放大，反而更糊。
-							 * 现有的 960w（380 高）已经是偏紧的一档。
+							 * 补了 640w 候选。
+							 *
+							 * 上一版这里写着「不加 640w，因为 cover 会放大反而更糊」，
+							 * 那个判断错了：它假设手机上显示框是 1.69:1，而 PageSpeed
+							 * 实测报的所需显示尺寸是 556x220 —— 比例 2.53:1，与图片的
+							 * 960:380 完全一致，根本不存在裁切，纯粹是把 960 宽的图
+							 * 缩到 556 显示。
+							 * 640x253 仍然大于所需的 556x220，不会放大。
+							 * 实测体积：slide-1 的 960w 是 40.1 KB，640w 只有 24.8 KB。
 							 */
 							$sa_sizes = '(max-width: 1000px) calc(100vw - 40px), 960px';
 							?>
 							<picture>
 								<source
 									type="image/webp"
-									srcset="<?php echo esc_url( $sa_img_base . $sa_stem . '-960w.webp' ); ?> 960w,
+									srcset="<?php echo esc_url( $sa_img_base . $sa_stem . '-640w.webp' ); ?> 640w,
+									        <?php echo esc_url( $sa_img_base . $sa_stem . '-960w.webp' ); ?> 960w,
 									        <?php echo esc_url( $sa_img_base . $sa_stem . '-1920w.webp' ); ?> 1920w"
 									sizes="<?php echo esc_attr( $sa_sizes ); ?>">
 								<img src="<?php echo esc_url( $sa_img_base . $sa_stem . '-960w.jpg' ); ?>"
-									srcset="<?php echo esc_url( $sa_img_base . $sa_stem . '-960w.jpg' ); ?> 960w,
+									srcset="<?php echo esc_url( $sa_img_base . $sa_stem . '-640w.jpg' ); ?> 640w,
+									        <?php echo esc_url( $sa_img_base . $sa_stem . '-960w.jpg' ); ?> 960w,
 									        <?php echo esc_url( $sa_img_base . $sa_stem . '-1920w.jpg' ); ?> 1920w"
 									sizes="<?php echo esc_attr( $sa_sizes ); ?>"
 									alt="<?php echo esc_attr( $slide['alt'] ); ?>"

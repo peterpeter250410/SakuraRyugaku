@@ -61,11 +61,11 @@ $targets = array(
 	),
 	'slide-1.jpg' => array(
 		'ratio'   => 960 / 380,
-		'widths'  => array( 960, 1920 ),
+		'widths'  => array( 640, 960, 1920 ),
 		'quality' => array( 'jpg' => 82, 'webp' => 78 ),
 	),
-	'slide-2.jpg' => array( 'ratio' => 960 / 380, 'widths' => array( 960, 1920 ), 'quality' => array( 'jpg' => 82, 'webp' => 78 ) ),
-	'slide-3.jpg' => array( 'ratio' => 960 / 380, 'widths' => array( 960, 1920 ), 'quality' => array( 'jpg' => 82, 'webp' => 78 ) ),
+	'slide-2.jpg' => array( 'ratio' => 960 / 380, 'widths' => array( 640, 960, 1920 ), 'quality' => array( 'jpg' => 82, 'webp' => 78 ) ),
+	'slide-3.jpg' => array( 'ratio' => 960 / 380, 'widths' => array( 640, 960, 1920 ), 'quality' => array( 'jpg' => 82, 'webp' => 78 ) ),
 );
 
 /**
