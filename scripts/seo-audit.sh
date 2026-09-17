@@ -228,31 +228,28 @@ else
     echo "         生成命令: php scripts/make-logo.php"
 fi
 
-# hero 背景图：CSS 用的档位与 preload 声明的档位必须一致。
+# hero 大图的各档文件是否齐全。
 #
-# .sa-hero 的背景是 CSS background-image，preload scanner 扫不到，
-# 所以 inc/performance.php 里按断点显式 preload 了对应的 webp。
-# 两处一旦不同步，就会预载一张页面根本不会用的图 —— 慢速链路上白占带宽，
-# 反而拖慢 LCP，而且页面看起来完全正常，不会有任何报错。
-HERO_CSS=$(grep -o 'hero-bg-[0-9]*w\.webp' "${THEME}/style.css" 2>/dev/null | sort -u | tr '\n' ' ')
-HERO_PRE=$(grep -o "hero-bg-[0-9]*w\.webp" "${THEME}/inc/performance.php" 2>/dev/null | sort -u | tr '\n' ' ')
-if [ -z "$HERO_PRE" ]; then
-    warn "inc/performance.php 未 preload hero 背景图 —— LCP 要等 CSS 解析完才开始下载"
-elif [ "$HERO_CSS" = "$HERO_PRE" ]; then
-    ok "hero 背景图档位一致（CSS 与 preload 均为: ${HERO_CSS})"
-    # 声明了就必须真的存在
+# 这里原本比对的是「CSS 里的档位」与「performance.php 里 preload 的档位」——
+# 那是首屏大图还是 CSS background-image 时的产物。现已改为 <img srcset>，
+# 手写的 preload 也一并移除，那条检查因此过时（它会恒报「未 preload」）。
+#
+# 现在改为核对模板 srcset 引用的文件是否都存在：漏跑生成脚本时
+# 浏览器会挑到一个 404 的候选，页面不报错，只是首屏大图不显示。
+HERO_SRCSET=$(grep -o "hero-bg-[0-9]*w\.\(webp\|jpg\)" "${THEME}/front-page.php" 2>/dev/null | sort -u)
+if [ -z "$HERO_SRCSET" ]; then
+    bad "front-page.php 未引用任何 hero 大图 —— 首屏没有背景图"
+else
     HERO_LOST=""
-    for h in $HERO_CSS; do
+    for h in $HERO_SRCSET; do
         [ -f "${THEME}/assets/images/${h}" ] || HERO_LOST="${HERO_LOST} ${h}"
     done
     if [ -n "$HERO_LOST" ]; then
-        bad "hero 背景图文件缺失:${HERO_LOST} —— preload 会打到 404"
+        bad "hero 大图文件缺失:${HERO_LOST} —— srcset 会挑到 404 的候选"
         echo "         生成命令: php scripts/optimize-images.php"
+    else
+        ok "hero 大图各档文件齐全（$(printf '%s' "$HERO_SRCSET" | wc -w | tr -d ' ') 个）"
     fi
-else
-    bad "hero 背景图档位不一致 —— preload 可能预载了页面用不到的图"
-    echo "         style.css      : ${HERO_CSS}"
-    echo "         performance.php: ${HERO_PRE}"
 fi
 
 # 首屏的昂贵绘制属性。
@@ -1027,7 +1024,17 @@ fi
 if grep -q 'class="sa-hero__bg"' "${TMP}/home.html" 2>/dev/null; then
     ok "首屏大图使用 <img> 元素（preload scanner 可原生发现）"
 
-    HERO_IMG=$(sed -n 's/.*\(<img[^>]*hero-bg[^>]*>\).*/\1/p' "${TMP}/home.html" 2>/dev/null | head -1)
+    # 必须先把 HTML 压成一行再提取。
+    #
+    # 模板里的 <img> 是跨多行写的（src / srcset / sizes / alt / fetchpriority
+    # 各占一行），而 sed、grep 都是逐行处理 —— 含 hero-bg 的那一行上没有结束的
+    # ">"，匹配不到，变量为空。空字符串 grep 不到 fetchpriority 就报 FAIL，
+    # 也 grep 不到 lazy 于是假装通过：两条检查同时失效，且一条误报一条漏报。
+    # 第一版就是这么写的，实测报了「缺 fetchpriority」而模板里明明有。
+    HERO_IMG=$(tr '\n' ' ' < "${TMP}/home.html" 2>/dev/null | grep -o '<img[^>]*hero-bg[^>]*>' | head -1)
+    if [ -z "$HERO_IMG" ]; then
+        bad "未能从 HTML 中提取到 hero 的 <img> 标签 —— 检查模板输出"
+    fi
     if printf '%s' "$HERO_IMG" | grep -q 'fetchpriority="high"'; then
         ok "首屏大图带 fetchpriority=high"
     else
