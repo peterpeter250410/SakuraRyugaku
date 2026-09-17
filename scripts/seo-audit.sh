@@ -1041,6 +1041,19 @@ if grep -q 'class="sa-hero__bg"' "${TMP}/home.html" 2>/dev/null; then
         bad "首屏大图缺 fetchpriority=high —— 图片默认优先级为 Low，会排在其他资源之后"
     fi
 
+    # 小屏必须有 media 限定的 source，把档位钉死。
+    #
+    # 这一条防的是一类看不见的回退：只写 srcset + sizes 时，浏览器按
+    # sizes × 设备像素比选档 —— 412 CSS px 的手机视口，DPR 只要 ≥1.56
+    # 就会越过 640w 去取 1280w（34.7 KB → 87.5 KB），而 LCP 资源凭空重了
+    # 2.5 倍。页面看起来一模一样，肉眼查不出来。
+    # sizes 受 DPR 影响、media 不受，所以「小屏就用这一档」只能靠 media 表达。
+    if grep -q '<source[^>]*media="(max-width: *640px)"[^>]*hero-bg-640w' "${TMP}/home.html" 2>/dev/null; then
+        ok "hero 小屏档位由 <source media> 钉死（不受 DPR 影响）"
+    else
+        warn "hero 未用 <source media> 限定小屏档位 —— 高 DPR 手机会取更大的档，LCP 资源无谓变重"
+    fi
+
     if printf '%s' "$HERO_IMG" | grep -q 'loading="lazy"'; then
         bad "首屏大图被标为 loading=lazy —— 首屏图片懒加载会直接拖垮 LCP"
     else

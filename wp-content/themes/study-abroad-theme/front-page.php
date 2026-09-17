@@ -67,15 +67,45 @@ get_header();
 	?>
 	<div class="sa-hero__bg" aria-hidden="true">
 		<picture>
+			<?php
+			/*
+			 * 手机固定用 640w，通过 <source media> 而不是靠 srcset 自选。
+			 *
+			 * 上一版只写了 srcset + sizes="100vw"，结果手机端反而比改版前更重。
+			 * 浏览器选档看的是 sizes × 设备像素比：
+			 *     412 CSS px（手机视口）× DPR 1.75 = 721 设备像素
+			 *     候选 640 / 1280 / 1920 里取 ≥721 的最小者 → 1280w
+			 * 而 412 × 1.56 就已超过 640，也就是说 DPR ≥ 1.56 的设备一律选 1280w，
+			 * 现代手机全在 2~3 之间。实测体积：640w 34.7 KB、1280w 87.5 KB ——
+			 * 等于把 LCP 资源放大了 2.5 倍。
+			 *
+			 * 改版前是 CSS 的 @media (max-width: 640px) 强制取 640w，没有这个问题。
+			 * 那条规则的理由依然成立：这张图上压着一层不透明度 .92 的渐变遮罩，
+			 * 细节本来就看不清，为它多花 53 KB 不划算。
+			 *
+			 * sizes 受 DPR 影响、media 不受 —— 想表达「小屏就用这一档」，
+			 * <picture> 的 media 才是对的工具，写成 sizes="…360px…" 去凑
+			 * 则是在谎报布局宽度。
+			 */
+			?>
+			<source
+				media="(max-width: 640px)"
+				type="image/webp"
+				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-640w.webp' ); ?>">
+			<source
+				media="(max-width: 640px)"
+				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-640w.jpg' ); ?>">
 			<source
 				type="image/webp"
-				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-640w.webp' ); ?> 640w,
-				        <?php echo esc_url( $sa_hero_base . 'hero-bg-1280w.webp' ); ?> 1280w,
+				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-1280w.webp' ); ?> 1280w,
 				        <?php echo esc_url( $sa_hero_base . 'hero-bg-1920w.webp' ); ?> 1920w"
 				sizes="100vw">
+			<?php
+			// 兜底的 <img>：只有当上面所有 <source> 都不匹配时才用它，
+			// 因此这里不再列 640w —— 那一档已由 media 的 source 负责。
+			?>
 			<img src="<?php echo esc_url( $sa_hero_base . 'hero-bg-1280w.jpg' ); ?>"
-				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-640w.jpg' ); ?> 640w,
-				        <?php echo esc_url( $sa_hero_base . 'hero-bg-1280w.jpg' ); ?> 1280w,
+				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-1280w.jpg' ); ?> 1280w,
 				        <?php echo esc_url( $sa_hero_base . 'hero-bg-1920w.jpg' ); ?> 1920w"
 				sizes="100vw"
 				alt=""
