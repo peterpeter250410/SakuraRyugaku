@@ -1051,10 +1051,21 @@ if [ -n "$JA_FONTS" ]; then
     else
         ok "只加载当前语种所需字体"
     fi
-    if echo "$JA_FONTS" | grep -q "display=swap"; then
-        ok "字体使用 display=swap"
+    # font-display 只接受 optional 与 swap 两种，其余都会造成文字不可见期（FOIT）。
+    #
+    # 两者的区别在于对 LCP 的影响：
+    #   swap     —— 文字先用回退字体画出，网络字体到达后重绘。若 LCP 元素是
+    #               文字块，重绘会把 LCP 时间戳推到字体到达那一刻。
+    #   optional —— 没能在极短窗口内就绪就放弃本次使用，不再重绘，
+    #               字体因此完全离开 LCP 路径；下载仍进缓存，下次访问生效。
+    #
+    # 本站选 optional：实测 LCP 被字体链路钉在 5.3 秒，与首屏优化无关。
+    if echo "$JA_FONTS" | grep -q "display=optional"; then
+        ok "字体使用 display=optional（不参与 LCP）"
+    elif echo "$JA_FONTS" | grep -q "display=swap"; then
+        warn "字体使用 display=swap —— 若 LCP 元素是文字，LCP 会被推迟到字体到达时刻；可改 optional"
     else
-        warn "字体未使用 display=swap，会出现文字不可见期（FOIT）"
+        bad "字体未指定 display=optional 或 swap，会出现文字不可见期（FOIT）"
     fi
     # 可变字体的权重区间（wght@400..800）而非逐个列静态字重。
     #

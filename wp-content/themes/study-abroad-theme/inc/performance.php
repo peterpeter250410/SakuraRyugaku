@@ -87,7 +87,34 @@ function sa_webfont_url() {
 	if ( '' === $family ) {
 		return '';
 	}
-	return 'https://fonts.googleapis.com/css2?family=' . $family . ':wght@400..800&display=swap';
+	/*
+	 * display 用 optional，不用 swap。
+	 *
+	 * 这一条是冲着 LCP 来的。把七轮实测排开看：
+	 *     FCP  5.6 → 5.6 → 5.2 → 5.1 → 3.9 → 2.7
+	 *     LCP  6.1 → 5.9 → 5.3 → 5.3 → 5.4 → 5.3
+	 * FCP 被一路优化掉了一半以上，LCP 却始终钉在 5.3 秒附近，
+	 * 说明它被某个与页面资源无关的固定成本锁住。
+	 *
+	 * 那个固定成本就是网络字体的链路：HTML 解析完才开始去
+	 * fonts.googleapis.com 取 CSS（第三方源，一轮 DNS+TCP+TLS），
+	 * 再从 fonts.gstatic.com 取字体文件（又一个第三方源）。
+	 *
+	 * swap 的行为是：文字先用回退字体画出来（这就是 FCP），等网络字体
+	 * 到达后重新绘制一次。而 LCP 元素是 hero 里的标题文字块 ——
+	 * 重绘会把 LCP 的时间戳推到字体替换那一刻。于是无论首屏多快，
+	 * LCP 都等于「字体到达时间」。
+	 *
+	 * optional 的行为：字体没能在极短的窗口内就绪就直接放弃本次使用，
+	 * 继续用回退字体，不再重绘 —— 字体因此彻底离开 LCP 路径。
+	 * 下载仍会继续并进入缓存，再次访问时就能用上。
+	 *
+	 * 代价要说清楚：慢速首次访问会看到系统字体而不是 Noto Sans JP。
+	 * 对 CJK 而言这个代价不大 —— Android 自带 Noto Sans CJK（与之几乎同源），
+	 * iOS 是 Hiragino Sans，Windows 是游ゴシック，都是正经的日文字体，
+	 * 字体栈里已按此顺序排好。若宁可要字体一致性，把这里改回 swap 即可。
+	 */
+	return 'https://fonts.googleapis.com/css2?family=' . $family . ':wght@400..800&display=optional';
 }
 
 /**
