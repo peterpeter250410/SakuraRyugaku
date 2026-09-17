@@ -402,3 +402,81 @@ add_action(
 	},
 	2
 );
+
+/* -------------------------------------------------------------------------
+ * 主样式表内嵌
+ * ---------------------------------------------------------------------- */
+
+/**
+ * 是否内嵌主样式表。
+ *
+ * @return bool
+ */
+function sa_should_inline_css() {
+	return (bool) apply_filters( 'sa_inline_critical_css', true );
+}
+
+/**
+ * 把 style.css 的内容内嵌进 <head>，取代 <link rel="stylesheet">。
+ *
+ * 为什么这么做：
+ *
+ *   PageSpeed 的「渲染阻塞请求」一节里，全站只有 style.css 一个条目
+ *   （13.2 KiB / 300 毫秒），而它给出的建议原文就是「延迟或内嵌可以将这些
+ *   网络请求移出关键路径」。内嵌之后首屏渲染不再需要第二次往返 ——
+ *   HTML 一到就能绘制。
+ *
+ *   取舍要说清楚：CSS 不再能被单独缓存，跨页浏览时每个页面都会重新传一份
+ *   （gzip 后约 11 KB）。本站是投放落地页，多数访客只看一个页面就决定去留，
+ *   首屏时间比跨页缓存值钱。要改回去把 sa_inline_critical_css 过滤成 false 即可。
+ *
+ * 相对路径必须改写：
+ *
+ *   style.css 里有 6 处 url("assets/images/hero-bg-*.webp|jpg")。作为外链样式表
+ *   时它们相对于样式表自身解析；一旦内嵌进 HTML，就变成相对于文档地址 ——
+ *   会去请求 https://站点/assets/images/...，全部 404，hero 背景图直接消失。
+ *   所以这里统一改写为绝对地址。data: 与 http(s): 开头的不动。
+ *
+ * @param string $tag    原始 <link> 标签。
+ * @param string $handle 句柄。
+ * @return string
+ */
+add_filter(
+	'style_loader_tag',
+	function ( $tag, $handle ) {
+		if ( 'sa-theme' !== $handle || is_admin() || ! sa_should_inline_css() ) {
+			return $tag;
+		}
+
+		static $inline = null;
+		if ( null === $inline ) {
+			$inline = '';
+			$path   = get_stylesheet_directory() . '/style.css';
+
+			// 安全阀：文件异常大时不内嵌，退回外链。内嵌是为了省一次往返，
+			// 把几百 KB 塞进每个 HTML 响应反而更慢。
+			if ( is_readable( $path ) && filesize( $path ) <= 120 * 1024 ) {
+				$css = file_get_contents( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- 本地主题资源。
+				if ( is_string( $css ) && '' !== $css ) {
+					$base   = trailingslashit( get_stylesheet_directory_uri() );
+					$inline = preg_replace_callback(
+						'#url\(\s*([\'"]?)(?!data:|https?:|//|/)([^\'")]+)\1\s*\)#i',
+						function ( $m ) use ( $base ) {
+							return 'url(' . $m[1] . $base . $m[2] . $m[1] . ')';
+						},
+						$css
+					);
+				}
+			}
+		}
+
+		if ( '' === $inline ) {
+			return $tag;
+		}
+
+		// </style> 不会出现在合法 CSS 里，但内容来自文件，仍做一次防御性处理。
+		return '<style id="sa-theme-inline">' . str_replace( '</style', '<\/style', $inline ) . "</style>\n";
+	},
+	10,
+	2
+);

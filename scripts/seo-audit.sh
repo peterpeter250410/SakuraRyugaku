@@ -965,6 +965,51 @@ else
 fi
 
 # ---------- B12. 性能 ----------
+head2 "B10c. 主样式表内嵌"
+#
+# style.css 内嵌进 <head> 后，首屏渲染不再需要第二次往返。
+# PageSpeed 的「渲染阻塞请求」里它曾是全站唯一条目（13.2 KiB / 300 毫秒），
+# 工具给的建议原文就是「延迟或内嵌」。
+#
+# 必须同时查两件事：
+#   1. 确实内嵌了（没有退回外链）
+#   2. 内嵌后 url() 全是绝对地址
+# 第 2 条是关键：作为外链时 url("assets/...") 相对于样式表解析，内嵌后变成
+# 相对于文档地址，会去请求 /assets/images/...，全部 404 —— 而页面不会报错，
+# 只是 hero 背景图静默消失，肉眼很容易漏掉。
+if grep -q '<style id="sa-theme-inline">' "${TMP}/home.html" 2>/dev/null; then
+    ok "主样式表已内嵌（不再产生渲染阻塞请求）"
+
+    # 内嵌块里不应出现相对路径的 url()
+    if sed -n 's/.*<style id="sa-theme-inline">\(.*\)<\/style>.*/\1/p' "${TMP}/home.html" 2>/dev/null \
+        | grep -qE 'url\(["'"'"']?assets/'; then
+        bad "内嵌 CSS 里残留相对路径 url(assets/…) —— hero 背景图会 404（页面不报错，只是图没了）"
+    else
+        ok "内嵌 CSS 的 url() 均已改写为绝对地址"
+    fi
+
+    # 确认真的没有再输出主样式表的外链
+    if grep -qE '<link[^>]+study-abroad-theme/style\.css' "${TMP}/home.html" 2>/dev/null; then
+        warn "既内嵌又输出了 style.css 外链 —— 同一份 CSS 传了两遍"
+    else
+        ok "未重复输出 style.css 外链"
+    fi
+else
+    warn "主样式表未内嵌 —— 首屏渲染要多等一次往返（检查 sa_inline_critical_css 过滤器与文件大小阀值）"
+fi
+
+# 背景图实际可达性。
+# 内嵌改写一旦出错，最直接的后果就是这些图 404，所以直接请求一张验证。
+HERO_URL=$(grep -oE 'https://[^"'"'"')]*hero-bg-[0-9]+w\.webp' "${TMP}/home.html" 2>/dev/null | head -1)
+if [ -n "$HERO_URL" ]; then
+    HERO_CODE=$(status_of "$HERO_URL")
+    if [ "$HERO_CODE" = "200" ]; then
+        ok "hero 背景图可访问（${HERO_CODE}）"
+    else
+        bad "hero 背景图 → HTTP ${HERO_CODE}：${HERO_URL}"
+    fi
+fi
+
 head2 "B11. 性能指标（服务端侧）"
 read -r TTFB TOTAL SIZE <<EOF
 $(curl -sS -o /dev/null -w '%{time_starttransfer} %{time_total} %{size_download}' -L --max-time 30 \
