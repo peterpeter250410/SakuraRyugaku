@@ -35,6 +35,25 @@ class SA_Tracker {
 			)
 		);
 
+		/*
+		 * defer 加载。
+		 *
+		 * 脚本本来就注册在页脚，但页脚的 <script src> 仍会在解析到那一行时
+		 * 阻塞解析器，直到下载并执行完。PageSpeed 的关键路径里 tracker.js
+		 * 一直挂在 HTML 之后，就是这个缘故 —— 埋点不该出现在关键路径上。
+		 *
+		 * 主题里对 sa-theme 已经做过同样处理（inc/performance.php 的
+		 * script_loader_tag 过滤器），但那个过滤器只认 sa-theme 这一个句柄，
+		 * 管不到插件注册的脚本，所以这里各自处理。
+		 *
+		 * strategy 参数是 WordPress 6.3 起支持的，本站运行 7.0。
+		 * 更早的版本上这行会被忽略（属性不输出），脚本退回为普通页脚脚本 ——
+		 * 行为与改动前一致，不会出错，只是拿不到 defer 的好处。
+		 */
+		if ( function_exists( 'wp_script_add_data' ) ) {
+			wp_script_add_data( 'sa-tracker', 'strategy', 'defer' );
+		}
+
 		wp_enqueue_script( 'sa-tracker' );
 
 		// 若配置了 GA4，注入 gtag 基础库。

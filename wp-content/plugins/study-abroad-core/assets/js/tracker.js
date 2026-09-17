@@ -205,18 +205,47 @@
 		});
 	});
 
-	// 滚动深度
+	/*
+	 * 滚动深度。
+	 *
+	 * 这里原本在每次 scroll 事件里读 document.documentElement.scrollHeight。
+	 * 那是一次强制同步布局（forced reflow）—— 浏览器必须立刻算完布局才能
+	 * 返回这个值，而滚动事件的触发频率极高。PageSpeed 的「强制自动重排」
+	 * 一项因此涨到 256 毫秒（它会滚动页面来采集截图，把这条路径踩满）。
+	 *
+	 * 改法两条：
+	 *   1. 高度缓存下来，只在初次、resize、load 之后重新测量。
+	 *      页面高度在滚动过程中不会变，没有理由每次都问一遍。
+	 *      load 之后要补测一次：图片加载完会改变文档高度。
+	 *   2. 滚动处理放进 requestAnimationFrame 并去重，每帧至多算一次。
+	 *      浏览器一帧内只需要一个答案，算多了也用不上。
+	 */
 	var depths = [25, 50, 75, 100];
 	var fired = {};
+	var docH = -1;
+
+	function measureDocH() {
+		docH = document.documentElement.scrollHeight - window.innerHeight;
+	}
+
+	window.addEventListener('resize', function () { docH = -1; }, { passive: true });
+	window.addEventListener('load', function () { docH = -1; });
+
+	var ticking = false;
 	window.addEventListener('scroll', function () {
-		var h = document.documentElement.scrollHeight - window.innerHeight;
-		if (h <= 0) return;
-		var pct = Math.round((window.scrollY / h) * 100);
-		depths.forEach(function (d) {
-			if (pct >= d && !fired[d]) {
-				fired[d] = true;
-				send('scroll_depth', { percent: d });
-			}
+		if (ticking) { return; }
+		ticking = true;
+		window.requestAnimationFrame(function () {
+			ticking = false;
+			if (docH < 0) { measureDocH(); }
+			if (docH <= 0) { return; }
+			var pct = Math.round((window.scrollY / docH) * 100);
+			depths.forEach(function (d) {
+				if (pct >= d && !fired[d]) {
+					fired[d] = true;
+					send('scroll_depth', { percent: d });
+				}
+			});
 		});
 	}, { passive: true });
 })();
