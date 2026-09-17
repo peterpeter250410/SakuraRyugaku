@@ -69,32 +69,38 @@ get_header();
 		<picture>
 			<?php
 			/*
-			 * 手机固定用 640w，通过 <source media> 而不是靠 srcset 自选。
+			 * 小屏档位用 <source media> 钉死，不靠 srcset 自选。
 			 *
-			 * 上一版只写了 srcset + sizes="100vw"，结果手机端反而比改版前更重。
-			 * 浏览器选档看的是 sizes × 设备像素比：
-			 *     412 CSS px（手机视口）× DPR 1.75 = 721 设备像素
-			 *     候选 640 / 1280 / 1920 里取 ≥721 的最小者 → 1280w
-			 * 而 412 × 1.56 就已超过 640，也就是说 DPR ≥ 1.56 的设备一律选 1280w，
-			 * 现代手机全在 2~3 之间。实测体积：640w 34.7 KB、1280w 87.5 KB ——
-			 * 等于把 LCP 资源放大了 2.5 倍。
+			 * 曾经只写 srcset + sizes="100vw"，结果手机端反而更重：浏览器选档
+			 * 看的是 sizes × 设备像素比，412 CSS px × DPR 1.75 = 721 设备像素，
+			 * 于是跳过 640w 去取 1280w。而 412 × 1.56 就已超过 640 ——
+			 * DPR ≥ 1.56 的设备一律如此，现代手机全在 2~3 之间。
+			 * sizes 受 DPR 影响、media 不受，所以「小屏就用这一档」只能靠 media 表达；
+			 * 把 sizes 写成 360px 之类去凑，是在谎报布局宽度。
 			 *
-			 * 改版前是 CSS 的 @media (max-width: 640px) 强制取 640w，没有这个问题。
-			 * 那条规则的理由依然成立：这张图上压着一层不透明度 .92 的渐变遮罩，
-			 * 细节本来就看不清，为它多花 53 KB 不划算。
+			 * 手机给 400w 而不是 640w。这张图上压着一层不透明度 .92 的渐变遮罩
+			 * （.sa-hero__bg::after），只有 8% 透出来 —— 看得到的是大块色彩关系，
+			 * 不是细节。把各档叠加同样的遮罩合成出来逐一对比过：
+			 *     640w q50  21.9 KB   基准
+			 *     400w q45  10.1 KB   与基准几乎无差别 ← 采用
+			 *     280w q45   5.8 KB   樱花枝条开始发糊
+			 *     180w q40   2.7 KB   明显过软
+			 * 这是 LCP 元素，省下的每一字节都直接算在 LCP 上。
 			 *
-			 * sizes 受 DPR 影响、media 不受 —— 想表达「小屏就用这一档」，
-			 * <picture> 的 media 才是对的工具，写成 sizes="…360px…" 去凑
-			 * 则是在谎报布局宽度。
+			 * 640w 保留给 641~1024px 的平板档。
 			 */
 			?>
 			<source
 				media="(max-width: 640px)"
 				type="image/webp"
-				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-640w.webp' ); ?>">
+				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-400w.webp' ); ?>">
 			<source
 				media="(max-width: 640px)"
-				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-640w.jpg' ); ?>">
+				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-400w.jpg' ); ?>">
+			<source
+				media="(max-width: 1024px)"
+				type="image/webp"
+				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-640w.webp' ); ?>">
 			<source
 				type="image/webp"
 				srcset="<?php echo esc_url( $sa_hero_base . 'hero-bg-1280w.webp' ); ?> 1280w,
@@ -110,8 +116,7 @@ get_header();
 				sizes="100vw"
 				alt=""
 				width="1920" height="1080"
-				fetchpriority="high"
-				decoding="async">
+				fetchpriority="high">
 		</picture>
 	</div>
 	<div class="sa-container sa-hero__inner">

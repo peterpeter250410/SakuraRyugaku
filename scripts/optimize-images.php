@@ -70,7 +70,7 @@ $targets = array(
 	 */
 	'hero-bg.jpg' => array(
 		'ratio'   => 1920 / 1080,
-		'widths'  => array( 640, 1280, 1920 ),
+		'widths'  => array( 400, 640, 1280, 1920 ),
 		'quality' => array( 'jpg' => 68, 'webp' => 50 ),
 	),
 	'slide-1.jpg' => array(

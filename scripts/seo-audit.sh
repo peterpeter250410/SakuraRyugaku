@@ -188,6 +188,7 @@ if [ -d "${THEME}/assets/images" ]; then
                slide-1-640w.webp slide-2-640w.webp slide-3-640w.webp \
                slide-1-960w.jpg slide-2-960w.jpg slide-3-960w.jpg \
                slide-1-960w.webp slide-2-960w.webp slide-3-960w.webp \
+               hero-bg-400w.jpg hero-bg-400w.webp \
                hero-bg-640w.jpg hero-bg-640w.webp \
                hero-bg-1280w.jpg hero-bg-1280w.webp \
                hero-bg-1920w.jpg hero-bg-1920w.webp; do
