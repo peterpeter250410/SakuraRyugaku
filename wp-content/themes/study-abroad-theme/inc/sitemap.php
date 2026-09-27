@@ -55,6 +55,76 @@ add_filter(
 );
 
 /**
+ * 修正文章（sa_article）在 sitemap 中的 URL。
+ *
+ * 核心的 posts 提供者会为每个公开 post type 自动建一份 sitemap，
+ * 其中的 loc 来自 get_permalink() —— 那是**不带语种前缀**的 URL。
+ *
+ * 对本站绝大多数内容这没问题（页面三语共用一套内容，无前缀版本即日文版），
+ * 但文章是分语种独立存在的：一篇英文文章只在 /en/guides/xxx/ 存在，
+ * 无前缀的 /guides/xxx/ 会被 inc/articles.php 的语种校验判为 404。
+ *
+ * 不修的话，sitemap 里每一篇非日文文章都是一个 404 —— 这比不提交更糟：
+ * 主动告诉搜索引擎「请收录这些」，然后每一个都打不开。
+ *
+ * 顺带把列表页 /guides/ 按语种补进来：post type archive 不在核心 sitemap 的
+ * 覆盖范围内，不补就永远不会被提交。
+ */
+add_filter(
+	'wp_sitemaps_posts_entry',
+	function ( $entry, $post, $post_type ) {
+		if ( ! defined( 'SA_ARTICLE_PT' ) || SA_ARTICLE_PT !== $post_type ) {
+			return $entry;
+		}
+		if ( function_exists( 'sa_article_url' ) && $post instanceof WP_Post ) {
+			$entry['loc'] = sa_article_url( $post );
+		}
+		return $entry;
+	},
+	10,
+	3
+);
+
+add_filter(
+	'wp_sitemaps_posts_url_list',
+	function ( $url_list, $post_type, $page_num ) {
+		if ( ! defined( 'SA_ARTICLE_PT' ) || SA_ARTICLE_PT !== $post_type ) {
+			return $url_list;
+		}
+		if ( ! function_exists( 'sa_articles_url' ) ) {
+			return $url_list;
+		}
+
+		// 列表页只在第一页补一次，且只补真的有文章的语种。
+		if ( 1 === (int) $page_num ) {
+			$archives = array();
+			foreach ( sa_locales() as $key => $loc ) {
+				$has = get_posts(
+					array(
+						'post_type'        => SA_ARTICLE_PT,
+						'post_status'      => 'publish',
+						'numberposts'      => 1,
+						'fields'           => 'ids',
+						'no_found_rows'    => true,
+						'meta_key'         => '_sa_locale',
+						'meta_value'       => $key,
+						'suppress_filters' => false,
+					)
+				);
+				if ( ! empty( $has ) ) {
+					$archives[] = array( 'loc' => sa_articles_url( $key ) );
+				}
+			}
+			$url_list = array_merge( $archives, $url_list );
+		}
+
+		return $url_list;
+	},
+	10,
+	3
+);
+
+/**
  * 移除作者 sitemap：中介站的作者归档无 SEO 价值，且会暴露登录名。
  */
 add_filter(

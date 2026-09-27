@@ -6,6 +6,8 @@
  * 具体实现拆分在 inc/ 下：
  *   inc/i18n.php        多语言：语种注册表、URL 语种路由、locale 切换
  *   inc/seo.php         SEO：meta / canonical / robots / hreflang / OG / 结构化数据
+ *   inc/schools.php     院校公开页：路由、模板、SEO
+ *   inc/articles.php    资讯文章：post type、语种隔离、来源区块、Article 结构化数据
  *   inc/sitemap.php     多语种 sitemap
  *   inc/performance.php 性能：按语种加载字体、异步资源、CWV 优化
  *
@@ -35,6 +37,7 @@ sa_bootstrap_locale();
 require_once get_template_directory() . '/inc/branding.php';
 require_once get_template_directory() . '/inc/seo.php';
 require_once get_template_directory() . '/inc/schools.php';
+require_once get_template_directory() . '/inc/articles.php';
 require_once get_template_directory() . '/inc/sitemap.php';
 require_once get_template_directory() . '/inc/performance.php';
 

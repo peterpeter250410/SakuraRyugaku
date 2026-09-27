@@ -1,0 +1,311 @@
+{
+  "_comment": [
+    "英文长尾词库。每条 keyword 的 title 即文章标题。",
+    "",
+    "evidence 字段是这份文件的核心，四档含义严格区分，不得混用：",
+    "  gsc        —— 本站 Google Search Console 三个月数据里真实出现过的查询。",
+    "                 这是唯一「有人真的这样搜过」的直接证据，附带真实排名。",
+    "  competitor —— 竞品站上真实存在的文章（URL 已抓取核对）。证明有同行认为",
+    "                 值得写，但不证明有搜索量。",
+    "  serp       —— 我实际跑过搜索、看过结果页得出的竞争度判断。",
+    "  inferred   —— 我的推断，没有任何外部数据支撑。占比最大，优先级最低。",
+    "",
+    "本文件不含任何「月搜索量」字段。没有接入付费关键词工具之前，",
+    "任何搜索量数字都只能是编的。宁可没有，不要假的。",
+    "",
+    "sources_required 非空时，流水线的来源闸门会强制要求文中相应论断",
+    "带 [source:URL] 标记，且 URL 必须落在列出的域名内、可达、正文含对应数字。",
+    "取不到来源就不生成那一段 —— 详见 scripts/content/lib/class-source-checker.php。"
+  ],
+
+  "meta": {
+    "locale": "en",
+    "generated": "2026-09-27",
+    "evidence_basis": {
+      "gsc_export": "Performance on Search 2026-06-27 ~ 2026-09-24，86 展示 / 3 点击 / 9 个具名查询",
+      "competitors_crawled": {
+        "www.jpss.jp": "82,489 URL（8 语种 × 10,316）。univ 4008 / news 3486 / grad 2225 / scholarship 139 / life 65（均为每语种）",
+        "cotoacademy.com": "1,288 篇文章",
+        "gogonihon.com": "30 篇 /en/blog/ 文章 + 42 页"
+      },
+      "serp_checked": [
+        "how to choose a japanese language school in tokyo guide",
+        "japanese language school student part time work 28 hours permit rules",
+        "\"japanese language school\" tokyo dormitory january intake over 30 years old"
+      ]
+    },
+    "competitive_read": {
+      "jpss.jp": "内容量大但 SEO 结构差：URL 全为数字路径（/life/3/1/、/news/3255/），标题大量重复，/en/life/3/8/ 与 /3/9/ 的 title 仍是未翻译占位符「3-9-title」。有内容、无关键词落点，是可被结构化打法超越的对手。",
+      "cotoacademy.com": "长尾打法值得学：极度具体的日常摩擦点（洗衣机按钮、马桶按钮、垃圾分类、药店）。但重心是日语学习与日本境外的语言学校，来日留学的申请/签证/选校不是其主战场。",
+      "gogonihon.com": "选题与本站高度重合（打工许可、选校、垃圾分类），商业模式也最接近，但文章总量仅 30 篇。",
+      "conclusion": "常见话题均已有人覆盖，不存在「无人写过」的大块空白。真实机会有三个：(1) 2026 年在留资格运用变更带来的时效差；(2) 竞品 URL 结构差，关键词 slug + 内链可超越；(3) 「学校 × 属性」组合词几乎无人系统做，而本站已有学校页可作锚点。"
+    }
+  },
+
+  "clusters": [
+    {
+      "id": "visa-2026-changes",
+      "name": "2026 年在留资格运用变更",
+      "priority": 1,
+      "competition": "low-for-now",
+      "rationale": [
+        "出入国在留管理庁 2026 年 4 月起要求日本語教育機関每 3 个月核查在籍留学生的",
+        "资格外活动许可、打工地点、活动内容与每日时长，发现违规须指导改善并上报；",
+        "2026 年 7 月起入学时的日语能力证明也趋严。",
+        "",
+        "英文内容里这块基本还是旧版信息 —— SERP 实测九个结果中只有一家提到 2026 监管变化。",
+        "时效差就是机会窗口，但窗口会关闭，这一簇要最先做。",
+        "",
+        "全簇强制官方来源。这些内容写错不是 SEO 问题：读者可能因此违反在留资格。"
+      ],
+      "sources_required": ["moj.go.jp", "studyinjapan.go.jp"],
+      "keywords": [
+        {
+          "id": "visa-2026-parttime-rules",
+          "title": "Japan Student Visa Part-Time Work Rules: What Actually Changed in 2026",
+          "slug": "student-visa-part-time-work-rules-2026",
+          "intent": "informational",
+          "evidence": "serp",
+          "evidence_note": "SERP 实测该话题九个竞品结果，仅 treeglobalpartners 一家提到 2026 监管变化，其余为旧版内容。变更本身经 ISA 官网确认。",
+          "priority": 1
+        },
+        {
+          "id": "visa-2026-school-monitoring",
+          "title": "Your Language School Now Checks Your Part-Time Job Every 3 Months — Here's What They Ask",
+          "slug": "language-school-part-time-job-checks",
+          "intent": "informational",
+          "evidence": "serp",
+          "evidence_note": "2026 年 4 月新规的具体执行细节，英文内容中未见覆盖。角度是「学生会被问到什么」，与法规条文型内容区分。",
+          "priority": 1
+        },
+        {
+          "id": "visa-2026-japanese-proof",
+          "title": "Proving Japanese Ability for a Student Visa: The 2026 Requirement Explained",
+          "slug": "japanese-proficiency-proof-student-visa-2026",
+          "intent": "informational",
+          "evidence": "serp",
+          "evidence_note": "2026 年 7 月起入学时日语能力证明趋严。需先核实官方条文再写。",
+          "priority": 1
+        },
+        {
+          "id": "visa-28h-exceed",
+          "title": "What Happens If You Work More Than 28 Hours on a Student Visa",
+          "slug": "exceeding-28-hour-work-limit-consequences",
+          "intent": "informational",
+          "evidence": "competitor",
+          "evidence_note": "gogonihon / migaku / GaijinPot / JPSS 均覆盖 28 小时规则本身，但「超了会怎样」这个后果视角覆盖较薄。",
+          "priority": 2
+        },
+        {
+          "id": "visa-shikakugai-apply",
+          "title": "Applying for a Work Permit (Shikakugai Katsudo): Airport vs. Immigration Office",
+          "slug": "work-permit-application-airport-vs-immigration",
+          "intent": "informational",
+          "evidence": "competitor",
+          "evidence_note": "gogonihon 有 getting-a-part-time-work-permit-in-japan。本条聚焦「落地时办 vs 之后办」的选择差异。",
+          "priority": 2
+        }
+      ]
+    },
+
+    {
+      "id": "school-attribute",
+      "name": "学校 × 属性组合词",
+      "priority": 1,
+      "competition": "low",
+      "rationale": [
+        "这一簇证据最硬：GSC 里真实出现过 isi tuition fees（排名 10）、",
+        "human academy takadanobaba（排名 16）、human academy japanese language school fukuoka（排名 11）。",
+        "说明「校名 + 学费 / 校区 / 地点」的搜索模式是真实存在的，而且本站已经排进前 20。",
+        "",
+        "同时本站已有 8 个学校详情页在品牌词上拿到曝光（/en/schools/human-academy-japanese-school/",
+        "单页占全站 47/97 展示），这些页面是现成的内链锚点。",
+        "",
+        "竞品在这块几乎是空的：jpss 只有名录页没有比较型内容，Coto 的学校文章大部分写的是",
+        "日本境外的语言学校（Sydney / NYC / London / Vancouver）。",
+        "",
+        "学费类内容必然出现数字 —— 来源锁定各校官网，取不到就不写具体金额。"
+      ],
+      "sources_required": ["official_school_site"],
+      "keywords": [
+        {
+          "id": "isi-tuition",
+          "title": "ISI Japanese Language School Tuition: What the Total Actually Includes",
+          "slug": "isi-japanese-language-school-tuition-breakdown",
+          "intent": "commercial",
+          "evidence": "gsc",
+          "evidence_note": "GSC 实证：查询 \"isi tuition fees\" 有 1 次展示，平均排名 10。已在第一页边缘，是全站最接近突破的一个词。",
+          "internal_links": ["schools/isi-japanese-language-school"],
+          "sources_required": ["www.isi-education.com"],
+          "priority": 1
+        },
+        {
+          "id": "human-academy-takadanobaba",
+          "title": "Human Academy Takadanobaba Campus: Location, Access and What's Nearby",
+          "slug": "human-academy-takadanobaba-campus-guide",
+          "intent": "commercial",
+          "evidence": "gsc",
+          "evidence_note": "GSC 实证：\"human academy takadanobaba\" 4 次展示，排名 16。校区/地点型查询确实存在。",
+          "internal_links": ["schools/human-academy-japanese-school"],
+          "sources_required": ["hajl.athuman.com"],
+          "priority": 1
+        },
+        {
+          "id": "human-academy-tokyo-vs-fukuoka",
+          "title": "Human Academy Japanese Language School: Tokyo or Fukuoka?",
+          "slug": "human-academy-tokyo-vs-fukuoka",
+          "intent": "commercial",
+          "evidence": "gsc",
+          "evidence_note": "GSC 实证：\"human academy japanese language school fukuoka\"（1 次，排名 11）与 \"human academy tokyo\"（1 次，排名 45）两个查询同时存在，比较型内容有落点。",
+          "internal_links": ["schools/human-academy-japanese-school"],
+          "sources_required": ["hajl.athuman.com"],
+          "priority": 1
+        },
+        {
+          "id": "akamonkai-vs-isi",
+          "title": "Akamonkai vs ISI: Two Very Different Approaches to Japanese Study",
+          "slug": "akamonkai-vs-isi-comparison",
+          "intent": "commercial",
+          "evidence": "inferred",
+          "evidence_note": "推断。两校在 SERP 上均被第三方描述为不同教学取向（赤門会偏升学/JLPT，ISI 多校区综合），比较型长尾通常有需求，但本站 GSC 尚无该组合的实证。",
+          "internal_links": [
+            "schools/akamonkai-japanese-language-school",
+            "schools/isi-japanese-language-school"
+          ],
+          "sources_required": ["www.akamonkai.ac.jp", "www.isi-education.com"],
+          "priority": 2
+        },
+        {
+          "id": "sendagaya-three-schools",
+          "title": "Sendagaya Runs Three Different Schools — Which One Is for You?",
+          "slug": "sendagaya-three-schools-difference",
+          "intent": "commercial",
+          "evidence": "inferred",
+          "evidence_note": "推断。本站已收录千駄ヶ谷日本語学校 / 日本語教育研究所 / 外語学院三条记录，同集团三校名称近似，混淆型查询大概率存在，但无实证。",
+          "internal_links": [
+            "schools/sendagaya-japanese-school",
+            "schools/sendagaya-japanese-institute",
+            "schools/sendagaya-language-school"
+          ],
+          "sources_required": ["group.jp-sji.org"],
+          "priority": 2
+        },
+        {
+          "id": "schools-with-dormitory",
+          "title": "Japanese Language Schools in Tokyo That Provide Dormitories",
+          "slug": "tokyo-japanese-language-schools-with-dormitory",
+          "intent": "commercial",
+          "evidence": "serp",
+          "evidence_note": "SERP 实测「dormitory + january intake」组合，结果页无一篇专门处理该组合，返回的多是泛泛的选校指南与维基条目。组合长尾有空间。",
+          "internal_links": ["schools"],
+          "sources_required": ["official_school_site"],
+          "priority": 2
+        }
+      ]
+    },
+
+    {
+      "id": "application-timeline",
+      "name": "申请流程与时间线",
+      "priority": 2,
+      "competition": "medium",
+      "rationale": [
+        "日本语言学校以 4 月 / 10 月为主、部分校有 1 月 / 7 月入学，申请要提前半年以上，",
+        "COE（在留資格認定証明書）审查还要额外几个月。时间线类内容的搜索意图明确且季节性强。",
+        "",
+        "jpss 的 /en/life/before/6/ 覆盖了入管手续，但 URL 是数字路径、标题为通用句式，",
+        "关键词落点很弱。这是典型的「有内容但拿不到词」，可以结构化超越。",
+        "",
+        "本簇的日期与周期会随年度变化，凡出现具体月份/周期一律要求官方来源。"
+      ],
+      "sources_required": ["moj.go.jp", "studyinjapan.go.jp", "official_school_site"],
+      "keywords": [
+        {
+          "id": "timeline-april-intake",
+          "title": "April Intake Application Timeline: Working Backwards from Day One",
+          "slug": "april-intake-application-timeline",
+          "intent": "informational",
+          "evidence": "competitor",
+          "evidence_note": "jpss /en/life/before/ 系列与多家竞品覆盖入学准备，但「倒推时间线」这一组织方式未见。",
+          "priority": 2
+        },
+        {
+          "id": "coe-processing",
+          "title": "Certificate of Eligibility: How Long the Wait Actually Is",
+          "slug": "certificate-of-eligibility-processing-time",
+          "intent": "informational",
+          "evidence": "inferred",
+          "evidence_note": "推断。COE 是申请链条上最不可控的一环，但本站 GSC 无实证，SERP 亦未单独核查。",
+          "sources_required": ["moj.go.jp"],
+          "priority": 2
+        },
+        {
+          "id": "intake-comparison",
+          "title": "April, July, October or January: Which Intake Should You Target?",
+          "slug": "choosing-between-april-july-october-january-intake",
+          "intent": "informational",
+          "evidence": "serp",
+          "evidence_note": "SERP 实测确认多家竞品提到「多数学校 4 月/10 月开学，部分有 1 月/7 月」，但作为独立主题展开的未见。",
+          "priority": 2
+        }
+      ]
+    },
+
+    {
+      "id": "survival",
+      "name": "落地生存指南",
+      "priority": 3,
+      "competition": "high",
+      "rationale": [
+        "这一簇是红海，必须承认：jpss 的 /life/ 每语种 65 页覆盖了在留卡登记、国保、开户、",
+        "找房、垃圾分类、噪音、自行车等；Coto 有 1,288 篇，打法是极度具体的日常摩擦点",
+        "（洗衣机按钮、马桶按钮、药店、SIM 卡、租房三部曲）。",
+        "",
+        "所以这簇不做泛泛的「日本生活指南」—— 没有任何机会。要做就学 Coto 的打法：",
+        "越具体越好，而且要绑定「语言学校学生」这个身份，与面向所有外国人的通用内容区分。",
+        "",
+        "优先级压到 3。前两簇跑通并见到数据之前不投入。"
+      ],
+      "keywords": [
+        {
+          "id": "first-week-checklist",
+          "title": "Your First Week in Japan as a Language School Student: The Paperwork Order That Matters",
+          "slug": "first-week-paperwork-order-language-school-student",
+          "intent": "informational",
+          "evidence": "competitor",
+          "evidence_note": "jpss /life/1/1-3 分别覆盖在留卡、国保、开户，但三者的先后依赖关系（开户常需先有在留卡与住民登录）未见整合。差异化点在「顺序」。",
+          "sources_required": ["studyinjapan.go.jp"],
+          "priority": 3
+        },
+        {
+          "id": "dorm-vs-apartment",
+          "title": "School Dormitory or Your Own Apartment? The Real Trade-offs in Year One",
+          "slug": "school-dormitory-vs-apartment-first-year",
+          "intent": "informational",
+          "evidence": "competitor",
+          "evidence_note": "Coto 有 apartment-hunting 三部曲与 best-neighborhoods-to-live-tokyo，jpss 有 /life/2/1 找房。但「学校宿舍 vs 自租」的对比角度未见。",
+          "priority": 3
+        }
+      ]
+    }
+  ],
+
+  "rejected": [
+    {
+      "term": "トビタテ / トビタテ留学JAPAN",
+      "reason": "Bing 导出里这两个词合计 2,388 年展示，看着很诱人，但它是文部科学省「トビタテ！留学JAPAN」—— 面向日本学生出国留学的官方项目，受众与本站完全相反。「日本留学」一词在日语中的歧义陷阱。"
+    },
+    {
+      "term": "留学生 / study abroad（泛词）",
+      "reason": "搜索意图无法判定，落地页对不上，转化为零。"
+    },
+    {
+      "term": "scholarship 系列",
+      "reason": "jpss 每语种 139 页奖学金内容，是其最大的内容资产。以本站当前权重（三个月 3 次点击）正面进攻没有胜算。等前两簇跑出数据再评估。"
+    },
+    {
+      "term": "日本語学校 一覧 / japanese language school list",
+      "reason": "名录型查询由 jpss 的 6,233 个院校页与日本語教育振興協会官方名录占据，本站 8 条记录不具备规模竞争力。"
+    }
+  ]
+}

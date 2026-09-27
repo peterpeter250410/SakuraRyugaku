@@ -352,14 +352,45 @@ add_action(
 		// --- hreflang（逐页对应，不再一律指向各语种首页）---
 		// noindex 页面不参与 hreflang 集群。
 		if ( ! sa_is_noindex() ) {
+			/*
+			 * 参与 hreflang 集群的语种。
+			 *
+			 * 站内绝大多数页面（首页、FAQ、院校页……）三语共用同一套模板与数据，
+			 * 译文由 .po 提供，因此每个语种都必然存在对应 URL，默认输出全部语种。
+			 *
+			 * 文章不是这样：一篇文章属于某一个语种，正文各语种独立撰写，
+			 * 没写的语种就是不存在。若仍无条件输出三语，hreflang 会指向 404 ——
+			 * 这不是小瑕疵：Google 要求 hreflang 双向对应，指向不存在的页面
+			 * 会使整个集群失效，连带影响已有页面。
+			 *
+			 * 故此处开放过滤器，由各内容类型申报自己真实存在的语种。
+			 * 返回的键必须是 sa_locales() 的键；空数组表示不输出 hreflang。
+			 *
+			 * @see inc/articles.php 中 sa_hreflang_locales 的实现
+			 */
+			$all_locales = sa_locales();
+			$cluster     = (array) apply_filters( 'sa_hreflang_locales', array_keys( $all_locales ) );
 			$default_key = sa_default_locale();
-			foreach ( sa_locales() as $key => $loc ) {
-				$alt_url  = sa_current_url_in( $key );
+
+			foreach ( $cluster as $key ) {
+				if ( ! isset( $all_locales[ $key ] ) ) {
+					continue;
+				}
+				$alt_url  = apply_filters( 'sa_hreflang_url', sa_current_url_in( $key ), $key );
 				$hreflang = sa_locale_field( $key, 'hreflang', str_replace( '_', '-', $key ) );
 				echo '<link rel="alternate" hreflang="' . esc_attr( $hreflang ) . '" href="' . esc_url( $alt_url ) . '">' . "\n";
 			}
-			// x-default 指向默认语种的对应页面。
-			echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( sa_current_url_in( $default_key ) ) . '">' . "\n";
+
+			/*
+			 * x-default 指向默认语种的对应页面 —— 但前提是默认语种真的在集群里。
+			 * 只有英文版的文章，x-default 应指向英文版本身，否则又是一个 404 指向。
+			 */
+			if ( ! empty( $cluster ) ) {
+				$xd = in_array( $default_key, $cluster, true ) ? $default_key : reset( $cluster );
+				echo '<link rel="alternate" hreflang="x-default" href="'
+					. esc_url( apply_filters( 'sa_hreflang_url', sa_current_url_in( $xd ), $xd ) )
+					. '">' . "\n";
+			}
 		}
 
 		// --- Open Graph ---
