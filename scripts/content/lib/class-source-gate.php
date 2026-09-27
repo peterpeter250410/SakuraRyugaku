@@ -218,8 +218,24 @@ class SA_Source_Gate {
 				CURLOPT_MAXREDIRS      => 5,
 				CURLOPT_TIMEOUT        => $this->timeout,
 				CURLOPT_CONNECTTIMEOUT => 15,
-				// 政府站（moj.go.jp 实测）对默认 UA 直接返回 403，必须带浏览器 UA。
+				CURLOPT_ENCODING       => '', // 接受 gzip，不少站点只对声明了压缩的客户端正常响应。
 				CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+				/*
+				 * 光有 User-Agent 不够。
+				 *
+				 * moj.go.jp 对默认 UA 返回 403，加了 UA 就通过；
+				 * 但 isi-education.com 的 WAF 还要看 Accept / Accept-Language /
+				 * Referer —— 只带 UA 时同样是 403，补齐这三个头立刻变 200。
+				 *
+				 * 这一点不修的话，闸门会把「内容完全正确、只是官网挡了爬虫」的文章
+				 * 判成来源不可达而拒绝发布。误拦截同样是故障，只是不容易被发现。
+				 */
+				CURLOPT_HTTPHEADER     => array(
+					'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+					'Accept-Language: ja,en-US;q=0.9,en;q=0.8,zh-CN;q=0.7',
+					'Referer: https://www.google.com/',
+					'Upgrade-Insecure-Requests: 1',
+				),
 			)
 		);
 		$raw    = curl_exec( $ch );
@@ -429,6 +445,29 @@ class SA_Source_Gate {
 			// 量词 → 数字
 			if ( preg_match( '/(' . $unit_alt . ').{0,12}?' . $n_q . '/iu', $page ) ) {
 				return true;
+			}
+		}
+
+		/*
+		 * 邻接判定失败时的回退：5 位以上的数字改用整页出现性检查。
+		 *
+		 * 表格里的金额普遍不重复单位 —— ISI 的学费页把「（単位：日本円）」
+		 * 写在表头，下面每个 100,000 / 1,065,000 旁边都没有「円」。
+		 * 只认邻接的话，这类完全正确的引用会被全部判死。
+		 *
+		 * 门槛定在 5 位是因为误放行才是危险方向：当初「45 hours」正是被
+		 * 页面角落的电话号码 ℡045-370-9755 蒙混过关的。两位数继续严查，
+		 * 而 6 位数（1065000）在一个页面上偶然出现的概率低到可以接受。
+		 *
+		 * 换句话说：邻接是首选证据，大数字的整页出现是次级证据，
+		 * 小数字没有次级证据可用。
+		 */
+		if ( strlen( $num ) >= 5 ) {
+			$hay = str_replace( ',', '', $page );
+			foreach ( $candidates as $c ) {
+				if ( false !== strpos( $hay, str_replace( ',', '', $c ) ) || false !== strpos( $page, $c ) ) {
+					return true;
+				}
 			}
 		}
 
