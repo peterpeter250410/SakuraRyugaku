@@ -612,7 +612,23 @@ function wp_eval( $script, array $args = array() ) {
 	foreach ( $args as $a ) {
 		$cmd .= ' ' . escapeshellarg( $a );
 	}
-	$cmd .= ' --path=' . escapeshellarg( wp_path() ) . ' 2>&1';
+	$cmd .= ' --path=' . escapeshellarg( wp_path() );
+
+	/*
+	 * root 下必须加 --allow-root，否则 WP-CLI 直接拒绝执行。
+	 *
+	 * 仓库里其它脚本早有这个约定（见 scripts/publish-school.sh 的
+	 * `[ "$(id -u)" = "0" ] && WP="${WP} --allow-root"`），这里当初漏了，
+	 * 结果是前面所有阶段跑完、烧掉 token，最后倒在发布这一步。
+	 *
+	 * 不无条件加：非 root 时带上它虽然也能跑，但会掩盖「本来就不该用 root」
+	 * 这件事 —— 站点文件的属主是谁，wp-cli 就该用谁的身份跑。
+	 */
+	if ( sa_is_root() ) {
+		$cmd .= ' --allow-root';
+	}
+
+	$cmd .= ' 2>&1';
 
 	$out  = array();
 	$code = 0;
@@ -703,6 +719,23 @@ function publish( $id, array $kw, array $article ) {
 /* =========================================================================
  * 杂项
  * ====================================================================== */
+
+/**
+ * 当前是否以 root 运行。
+ *
+ * posix 扩展不是必装的（很多面板环境把它禁了），所以留一条 `id -u` 的退路。
+ * 两条都拿不到时返回 false —— 宁可让 WP-CLI 自己报那句明确的 root 警告，
+ * 也不要凭猜测替用户加上 --allow-root。
+ *
+ * @return bool
+ */
+function sa_is_root() {
+	if ( function_exists( 'posix_geteuid' ) ) {
+		return 0 === posix_geteuid();
+	}
+	$uid = trim( (string) @shell_exec( 'id -u' ) );
+	return '0' === $uid;
+}
 
 /**
  * 输出一行。

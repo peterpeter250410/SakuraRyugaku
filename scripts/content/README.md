@@ -2,18 +2,30 @@
 
 长尾词 → 文章 → 自动发布。四道客观闸门挡在发布之前。
 
+## 部署后第一次：刷新固定链接
+
+新注册了 `sa_article` post type，不刷 `/guides/` 会 404：
+
+```bash
+cd /www/wwwroot/studyinjp.com
+wp rewrite flush --hard --allow-root     # 非 root 身份跑时去掉 --allow-root
+```
+
 ## 快速开始
 
 ```bash
 cd /www/wwwroot/studyinjp.com
-export ANTHROPIC_API_KEY='sk-ant-...'
+source /root/.sa-content-env             # 里面是 export ANTHROPIC_API_KEY=...
 
-php scripts/content/pipeline.php list                     # 看有哪些选题
+php scripts/content/pipeline.php list                      # 看有哪些选题
 php scripts/content/pipeline.php run isi-tuition --dry-run # 跑一篇，不发布
 php scripts/content/pipeline.php run isi-tuition           # 跑完并发布
 php scripts/content/pipeline.php run-all --limit=2         # 按优先级跑 2 篇
 php scripts/content/pipeline.php status                    # 各阶段数量 + 今日已发
 ```
+
+pipeline 自己调 WP-CLI 时会检测 uid，root 下自动补 `--allow-root`，
+不需要你额外设置（约定同 `scripts/publish-school.sh`）。
 
 **第一次务必用 `--dry-run`。** 它会完整跑完生成与全部闸门，把成稿留在
 `state/<id>.json` 里，只是不写进 WordPress。先看几篇再决定要不要放开自动发布。
