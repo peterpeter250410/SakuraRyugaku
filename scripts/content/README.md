@@ -1,6 +1,29 @@
 # 文章生成流水线
 
-长尾词 → 文章 → 自动发布。四道客观闸门挡在发布之前。
+长尾词 → 文章 → 发布。四道客观闸门挡在发布之前。
+
+## 生产服务器上不跑模型调用
+
+本项目的约定：**生产机不存模型服务的密钥，也不发起这类调用。**
+
+分工因此是这样的：
+
+```
+别处（开发机 / Claude Code 会话）      生产服务器
+  研究 → 写稿 → 产出 article.json  →   校验 → 发布
+  （这一段要调 API）                   （零 API 调用）
+```
+
+服务器上只会用到这三个脚本，它们都不碰任何外部模型服务：
+
+| 脚本 | 做什么 |
+|---|---|
+| `check-article.php` | 跑四道闸门：抓取来源、核对数字、查重、文风评分 |
+| `wp/publish-article.php` | 写入 WordPress |
+| `wp/dump-articles.php` | 导出站内文章，供查重用 |
+
+`pipeline.php` 与 `lib/class-llm.php` 会调用 Anthropic API，**不要在生产服务器上运行**。
+它们是给开发机批量生成用的。
 
 ## 部署后第一次：刷新固定链接
 
@@ -11,24 +34,37 @@ cd /www/wwwroot/studyinjp.com
 wp rewrite flush --hard --allow-root     # 非 root 身份跑时去掉 --allow-root
 ```
 
-## 快速开始
+## 服务器上的日常操作
+
+拿到一份 `article.json` 之后，就这三步：
 
 ```bash
 cd /www/wwwroot/studyinjp.com
-source /root/.sa-content-env             # 里面是 export ANTHROPIC_API_KEY=...
 
-php scripts/content/pipeline.php list                      # 看有哪些选题
-php scripts/content/pipeline.php run isi-tuition --dry-run # 跑一篇，不发布
-php scripts/content/pipeline.php run isi-tuition           # 跑完并发布
-php scripts/content/pipeline.php run-all --limit=2         # 按优先级跑 2 篇
-php scripts/content/pipeline.php status                    # 各阶段数量 + 今日已发
+# 1. 导出站内同语种文章，供查重（第一次站内没文章，会得到 {}）
+wp eval-file scripts/content/wp/dump-articles.php en_US --allow-root > /tmp/corpus.json
+
+# 2. 跑四道闸门。退出码 0 才能往下走
+php scripts/content/check-article.php /tmp/isi-tuition.json --corpus=/tmp/corpus.json
+echo "退出码: $?"
+
+# 3. 校验通过后发布
+wp eval-file scripts/content/wp/publish-article.php /tmp/isi-tuition.json --allow-root
 ```
 
-pipeline 自己调 WP-CLI 时会检测 uid，root 下自动补 `--allow-root`，
-不需要你额外设置（约定同 `scripts/publish-school.sh`）。
+第 2 步会真的去抓取文中引用的每一个 URL，并逐个核对数字。
+**它不通过就不要发**——那说明稿子里有查无实据的数字。
 
-**第一次务必用 `--dry-run`。** 它会完整跑完生成与全部闸门，把成稿留在
-`state/<id>.json` 里，只是不写进 WordPress。先看几篇再决定要不要放开自动发布。
+### 开发机上的批量生成（不在生产服务器跑）
+
+```bash
+export ANTHROPIC_API_KEY='sk-ant-...'
+php scripts/content/pipeline.php list
+php scripts/content/pipeline.php run isi-tuition --dry-run
+php scripts/content/pipeline.php run-all --limit=2
+```
+
+`--dry-run` 跑完生成与全部闸门，成稿留在 `state/<id>.json`，不写进 WordPress。
 
 ## 目录
 
