@@ -84,7 +84,7 @@ class SA_Source_Gate {
 		$warnings = array();
 		$checked  = 0;
 
-		$text = wp_strip_tags_compat( $body );
+		$text = wp_strip_tags_compat( self::attribute_tables( $body ) );
 
 		/* ---- 1 & 4：标记与条目对应 ---------------------------------- */
 
@@ -173,6 +173,50 @@ class SA_Source_Gate {
 			'errors'   => $errors,
 			'warnings' => $warnings,
 			'checked'  => $checked,
+		);
+	}
+
+	/**
+	 * 让表格继承「引出它那句话」的来源标记。
+	 *
+	 * 为什么需要这一步：
+	 *
+	 *   闸门按句读切分文本，再要求每个含数字的句子带 [source:N]。
+	 *   表格里全是数字、没有句号，整张表会被切成一大块无标记内容，
+	 *   于是每一篇带数据表的文章都会被判成「一堆裸数字」。
+	 *
+	 *   但人本来就不会在表格每个格子里标注来源 —— 真实的写法是
+	 *   「各校区首年费用如下 [source:1]：」然后跟一张表。
+	 *   这条规则就是把那个写法变成机器能认的：
+	 *   表格前面最近的一个 [source:N]，视为整张表的出处。
+	 *
+	 *   作用域刻意限制在 <table> 内：正文段落仍然逐句要求标记，
+	 *   不会因为这条规则而整体放松。
+	 *
+	 * 同时把 </tr> 换成段落分隔、</td> 换成竖线，
+	 * 让每一行成为独立的切分单元，否则整张表仍是一块。
+	 *
+	 * @param string $html 正文 HTML。
+	 * @return string 处理后的 HTML（仅用于校验，不影响发布的正文）。
+	 */
+	private static function attribute_tables( $html ) {
+		return preg_replace_callback(
+			'#<table\b.*?</table>#is',
+			function ( $m ) use ( $html ) {
+				$table = $m[0];
+				$pos   = strpos( $html, $table );
+
+				// 表格之前的全部内容里，最后一个 [source:N]。
+				$before = false !== $pos ? substr( $html, 0, $pos ) : '';
+				if ( ! preg_match_all( '/\[source:\s*(\d+)\s*\]/i', $before, $sm ) ) {
+					return $table; // 前面没有任何标记 —— 照常走裸数字检查，该报就报。
+				}
+				$n = (int) end( $sm[1] );
+
+				// 每个 </tr> 前补上标记，使每一行都带出处。
+				return preg_replace( '#</tr>#i', " [source:{$n}]</tr>", $table );
+			},
+			$html
 		);
 	}
 
@@ -267,7 +311,15 @@ class SA_Source_Gate {
 	 * @return array<int,string>
 	 */
 	private static function sentences_with_numbers( $text ) {
-		$parts = preg_split( '/(?<=[.!?。！？])\s+/u', $text, -1, PREG_SPLIT_NO_EMPTY );
+		/*
+		 * 两种边界都要切：句末标点，以及空行。
+		 *
+		 * 只按标点切的话，小标题会和它后面那一句粘成一块 —— 标题不带句号。
+		 * 结果是报错信息里出现「The campus gap is not where you would look for it
+		 * Nagano's first-year total is 905,000 yen」这种横跨标题与正文的片段，
+		 * 定位起来要多花一道功夫。段落边界本来就是句子边界。
+		 */
+		$parts = preg_split( '/(?<=[.!?。！？])\s+|\n{2,}/u', $text, -1, PREG_SPLIT_NO_EMPTY );
 		$parts = array_values( array_map( 'trim', (array) $parts ) );
 
 		/*

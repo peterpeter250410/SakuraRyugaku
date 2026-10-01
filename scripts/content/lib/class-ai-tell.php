@@ -303,8 +303,23 @@ class SA_AI_Tell {
  * @return string
  */
 function wp_strip_tags_compat( $html ) {
-	// 先把块级标签换成换行，否则段落会粘成一句，段落指标全废。
-	$s = preg_replace( '#</(p|div|h[1-6]|li|blockquote|section)>#i', "\n\n", (string) $html );
+	$s = (string) $html;
+
+	/*
+	 * 表格要在去标签之前处理掉。
+	 *
+	 * 单元格之间没有任何分隔符，直接 strip_tags 会把一行数字粘成
+	 * 「40,000100,000750,000」这种东西 —— 既切不出句子，数字匹配也会错乱
+	 * （来源页抓下来的表格同样受影响，不只是我们自己的正文）。
+	 *
+	 * 行末换段、格间加竖线，让每一行成为独立的切分单元。
+	 */
+	$s = preg_replace( '#</t[dh]>#i', ' | ', $s );
+	$s = preg_replace( '#</tr>#i', "\n\n", $s );
+
+	// 块级标签换成空行，否则段落会粘成一句，段落长度指标全废。
+	$s = preg_replace( '#</(p|div|h[1-6]|li|blockquote|section|table)>#i', "\n\n", $s );
 	$s = preg_replace( '#<br\s*/?>#i', "\n", $s );
+
 	return html_entity_decode( strip_tags( $s ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 }
