@@ -1,0 +1,52 @@
+{
+  "title": "What a School Not Publishing Something Tells You",
+  "slug": "reading-japanese-language-school-websites",
+  "locale": "en_US",
+  "group": "what-schools-dont-publish",
+  "keyword_id": "what-schools-dont-publish",
+  "summary": "School websites are written to attract you. The useful signal is not the marketing — it is which inconvenient facts a school chose to put in writing anyway.",
+  "body_html": "<p>Every school website says the teaching is excellent, the staff are supportive and the location is convenient. Those sentences carry no information, because no school writes the opposite.</p><p>What does carry information is narrower and easy to miss: which awkward facts a school published when it did not have to, and which ordinary facts it left out.</p><h2>Start with the inconvenient disclosures</h2><p>A school that writes down something you would rather not hear is telling you how it will behave when you have a problem.</p><p>Akamonkai's dormitory page asks which dormitory you would like and then states plainly that you may be assigned one other than your preference. [source:1] Nobody made it write that. A school optimising purely for conversion leaves the sentence out and deals with the disappointment on arrival.</p><p>The same page says bedding is not in the room, and that a futon set — pillow, mattress and quilt — can be arranged if you order in advance, with the covers supplied by you. [source:1] That is the kind of detail you discover at eleven at night on your first day if nobody tells you.</p><p>Human Academy's campus pages carry two course lists, one of which is marked as pending accreditation from the Ministry of Education, and the school states that these are plans and the content may change. [source:2] Again: a disclosure that costs the school something and helps you.</p><p>When you are comparing two schools and one of them has disclosures like these and the other has none, you have not learned that the first school is worse.</p><h2>Then look at what is absent, carefully</h2><p>Absence is weaker evidence than presence, and this is where people over-read.</p><p>The Sendagaya group's site publishes capacity, intake months and course lengths — the preparation course lists a capacity of 1,728 with intakes in April and October, running 2 years from April and 1 year 6 months from October. [source:3] What it does not publish anywhere is price.</p><p>We checked this by hand rather than assuming a form was hiding it: there is no fee page on the site. That is our reading, not a statement by the school, and we flag it as ours. What follows is that you cannot compare this option on cost before contacting them — and that any figure you find quoted for it elsewhere did not come from the school.</p><p>That is the honest conclusion. The dishonest conclusion, which is everywhere, is that a school not publishing fees is hiding something. It might simply not publish fees. Absence tells you what you cannot verify, not what is true.</p><h2>Read the category, not the word</h2><p>This one costs students real money, and it turns on vocabulary.</p><p>Kyoshin Language Academy's housing support page is titled for share house and homestay introduction. [source:4] That is a different product from a dormitory the school owns and manages: a third-party contract, third-party rules, and a price set by the operator.</p><p>Both are legitimate. But \"accommodation support\" covers both, and a comparison table with a tick in the accommodation column tells you nothing about which one you are getting. The word on the page is what matters.</p><p>Akamonkai, by contrast, states that it owns and manages a large number of student dormitories, with rent from 40,000 to 60,000 yen per month and utilities charged separately on usage. [source:1] Owning and introducing are not the same relationship, and the one you have determines who you complain to when the heating fails.</p><h2>A page can describe something that is no longer running</h2><p>Worth knowing because it is invisible in a browser.</p><p>While reading Akamonkai's course list we found a taster course present in the page's HTML source but commented out, so it does not appear on the rendered page. [source:1] The natural reading is that the school withdrew it and left the markup in place.</p><p>We mention this not as a criticism — leaving dead markup in a page is utterly normal — but because it shows what a published page is: a document maintained by people, where the most recent decision sometimes lives in a comment rather than in the text. A course you read about somewhere else and cannot find on the school's own current page may not exist any more.</p><h2>What to actually do with a school website</h2><ul><li><strong>Note the disclosures that cost the school something.</strong> Allocation you do not control, bedding not supplied, courses pending approval. [source:1] [source:2] They predict how the school communicates later.</li><li><strong>Separate \"not published\" from \"not true\".</strong> The first is a limit on what you can check. Treating it as the second is how people talk themselves out of good schools.</li><li><strong>Read the noun, not the category.</strong> Dormitory, share house, homestay and introduction are four different things. [source:1] [source:4]</li><li><strong>Check the effective-from date on anything structural.</strong> Course lengths and capacity are published per academic year. [source:3]</li><li><strong>Ask for anything absent in writing.</strong> Not because the school is concealing it, but because a price or a course you only have verbally is one you cannot hold anyone to.</li><li><strong>Verify the one thing a website cannot settle:</strong> whether the school is accredited under the new system or notified during the transition. That is covered separately below.</li></ul><p>The category question is the one that actually gates your application — see <a href=\"guides/is-your-japanese-language-school-accredited\">is your school legally allowed to take you</a>. For the comparison axes that do separate schools, see <a href=\"guides/how-to-compare-japanese-language-schools\">the questions that separate them</a>. Dormitory specifics across the schools we cover are in <a href=\"guides/tokyo-japanese-language-schools-with-dormitory\">the schools that provide dormitories</a>. Profiles: <a href=\"schools/akamonkai-japanese-language-school\">Akamonkai</a>, <a href=\"schools/kyoshin-language-academy\">Kyoshin</a>, <a href=\"schools/sendagaya-japanese-school\">Sendagaya Japanese School</a>, <a href=\"schools/human-academy-japanese-school\">Human Academy</a>.</p><p>Everything above was read off the schools' own pages, which are linked below and are the authority. Pages change — a disclosure present today may be edited tomorrow, and an absence may be filled in. We prepare and forward application documents; admission is decided by the school and tuition is paid directly to it.</p>",
+  "sources": [
+    {
+      "url": "https://www.akamonkai.ac.jp/support/dormitory.html",
+      "title": "学生寮・住居支援 | 赤門会日本語学校",
+      "publisher": "赤門会日本語学校",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://hajl.athuman.com/guide/tokyo/",
+      "title": "東京校 | ヒューマンアカデミー日本語学校",
+      "publisher": "ヒューマンアカデミー日本語学校",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://group.jp-sji.org/sjs/",
+      "title": "進学準備教育課程 | 千駄ヶ谷日本語教育研究所グループ",
+      "publisher": "千駄ヶ谷日本語教育研究所グループ",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.kla.ac/ja/support/housing/",
+      "title": "シェアハウス・ホームステイ紹介 | 京進ランゲージアカデミー（KLA）",
+      "publisher": "京進ランゲージアカデミー",
+      "accessed": "2026-10-02"
+    }
+  ],
+  "internal_links_used": [
+    "guides/is-your-japanese-language-school-accredited",
+    "guides/how-to-compare-japanese-language-schools",
+    "guides/tokyo-japanese-language-schools-with-dormitory",
+    "schools/akamonkai-japanese-language-school",
+    "schools/kyoshin-language-academy",
+    "schools/sendagaya-japanese-school",
+    "schools/human-academy-japanese-school"
+  ],
+  "claims_without_sources": [
+    "千駄ヶ谷グループ站に学費ページが存在しないこと —— これは不存在の主張であり、闸门は存在性しか検証できない。2026-09 に人工で確認した結果であって学校の記述ではないため、本文でも「当方の読みであり、そう明示する」と書いた。不存在を断定的に扱わないのがこの記事の主題でもある。",
+    "赤門会のコース一覧に 3週間体験コースが HTML コメントとして残っていること —— コメント内の文字列は strip_tags で落ちるため闸门には見えず、検証もできない。「学校が取り下げたと読むのが自然」と推定であることを明示し、批判としてではなく「公開ページとは人が保守する文書である」という論点の例として挙げた。",
+    "開示をする学校のほうが問題発生時の対応が良い、という因果 —— 相関も因果も検証していない。「後の意思疎通を予測する材料になる」と述べるに留め、優劣の判定はしていない。",
+    "シェアハウス／ホームステイと学生寮の価格差 —— 事業者側の価格であり校方官網からは取れない。金額を比較していない。",
+    "各校の学費の具体額 —— 本記事は読み方を扱うものなので、赤門会の家賃以外の金額は引いていない（学費は別記事で出典付きに扱っている）。",
+    "「比較表のチェックマークは何も教えない」という指摘 —— 一般的な観察であって特定の比較サイトを指していない。他サイトの記述内容を検証していないため、具体例は挙げていない。"
+  ]
+}

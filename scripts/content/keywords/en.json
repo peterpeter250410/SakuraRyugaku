@@ -334,6 +334,78 @@
             "official_school_site",
             "moj.go.jp"
           ]
+        },
+        {
+          "id": "who-decides-what",
+          "title": "What Nobody Can Promise You About a Japanese School Application",
+          "slug": "who-decides-what-school-application",
+          "intent": "informational",
+          "evidence": "inferred",
+          "evidence_note": "推断。斡旋業者の「合格保証」「ビザ保証」という表現に対し、誰が何を決めるのか（入学は学校、在留資格は入管庁の裁量、学費は学生が学校へ直接）を一次資料で示した記事が見当たらない。本サイト自身の立場の開示にもなる。",
+          "sources_required": [
+            "moj.go.jp"
+          ],
+          "priority": 1
+        },
+        {
+          "id": "health-insurance-obligation",
+          "title": "Why You Must Join National Health Insurance Yourself",
+          "slug": "national-health-insurance-students-japan",
+          "intent": "informational",
+          "evidence": "serp",
+          "evidence_note": "SERP 実測：国民健康保険の一般的な説明は多いが、会社の健康保険の加入要件に「学生以外」が明記されているため留学生は自分で国保に入る以外にない、という因果を示したものが無い。更新ガイドラインの保険料未納の項とも接続する。",
+          "sources_required": [
+            "moj.go.jp"
+          ],
+          "priority": 1
+        },
+        {
+          "id": "emergency-and-disaster",
+          "title": "Emergency Numbers and What to Do in a Disaster",
+          "slug": "emergency-numbers-disaster-students-japan",
+          "intent": "informational",
+          "evidence": "competitor",
+          "evidence_note": "競品も110/119に触れるが、入管庁の生活・就労ガイドブックが載せている避難の考え方までを扱ったものが薄い。災害は日本固有で、来日前に読んでおく価値が最も高い項目のひとつ。",
+          "sources_required": [
+            "moj.go.jp"
+          ],
+          "priority": 2
+        },
+        {
+          "id": "official-guidebook",
+          "title": "The Official Guidebook Nobody Tells You About",
+          "slug": "official-living-working-guidebook-japan",
+          "intent": "informational",
+          "evidence": "serp",
+          "evidence_note": "SERP 実測：生活・就労ガイドブックを紹介した英語記事が見当たらない。19言語・17府省庁協力・157ページの一次資料が無料で公開されているのに、留学情報の側がそれを指していない。",
+          "sources_required": [
+            "moj.go.jp"
+          ],
+          "priority": 2
+        },
+        {
+          "id": "daily-life-rules",
+          "title": "Daily Life Rules That Get Students in Trouble",
+          "slug": "daily-life-rules-japan-students",
+          "intent": "informational",
+          "evidence": "competitor",
+          "evidence_note": "ごみ出しや騒音を扱う記事は多いが、入管庁のガイドブックが「生活のルール」として挙げている範囲に沿って、かつ住居の入居条件と併せて整理したものが見当たらない。",
+          "sources_required": [
+            "moj.go.jp"
+          ],
+          "priority": 3
+        },
+        {
+          "id": "bicycle-and-traffic",
+          "title": "Bicycles and Traffic Rules: The Rules Students Break First",
+          "slug": "bicycle-traffic-rules-students-japan",
+          "intent": "informational",
+          "evidence": "inferred",
+          "evidence_note": "推断。自転車は留学生が最初に接する法規制で、日本固有のルール（左側通行・防犯登録等）が多い。ガイドブックに交通ルールの章があるが、留学生向けに書いた英語記事が見当たらない。GSC 実証は無い。",
+          "sources_required": [
+            "moj.go.jp"
+          ],
+          "priority": 3
         }
       ],
       "sources_required": [
@@ -470,6 +542,62 @@
           "intent": "informational",
           "evidence": "serp",
           "evidence_note": "SERP 実測：電子届出システムや在留申請オンラインの個別案内は入管庁にあるが、「留学生がどれをオンラインで済ませられ、どれには何が前提として要るか」を一枚にまとめた英語記事が無い。マイナンバーカードが在留手続のオンライン申請の前提になる点が特に抜けている。",
+          "sources_required": [
+            "moj.go.jp"
+          ],
+          "priority": 2
+        }
+      ]
+    },
+    {
+      "id": "school-choice",
+      "sources_required": [
+        "moj.go.jp",
+        "mext.go.jp",
+        "official_school_site"
+      ],
+      "theme": "学校選びそのもの。「どの学校が良いか」ではなく「その学校があなたを受け入れられるのか」「校方サイトの書き方から何が読み取れるか」という層。認定制度への移行（告示日本語教育機関は令和11年3月31日で廃止）は2027年入学の2年課程がその線をまたぐため、いま選ぶ人に直接影響するのに英語の情報が無い。",
+      "keywords": [
+        {
+          "id": "school-legitimacy-check",
+          "title": "Is Your Japanese Language School Legally Allowed to Take You?",
+          "slug": "is-your-japanese-language-school-accredited",
+          "intent": "commercial",
+          "evidence": "serp",
+          "evidence_note": "SERP 実測：英語では「認定日本語教育機関」も「告示校」も制度名として触れられる程度で、告示日本語教育機関が令和11年3月31日で廃止されること、専ら日本語教育を受ける留学生はこの二つのいずれかでなければならないことを扱った記事が無い。選校の前提そのもので、空白の価値が最も高い。",
+          "priority": 1
+        },
+        {
+          "id": "what-schools-dont-publish",
+          "title": "What a School Not Publishing Something Tells You",
+          "slug": "reading-japanese-language-school-websites",
+          "intent": "commercial",
+          "evidence": "inferred",
+          "evidence_note": "推断。本サイトが14校の官網を実際に読んで見つけた非対称（学費ページが存在しない／寮ではなくシェアハウス紹介／コースが HTML コメントで取り下げられている）を素材にする。同種の記事を見たことがないが GSC の実証は無い。",
+          "sources_required": [
+            "official_school_site"
+          ],
+          "priority": 2
+        },
+        {
+          "id": "school-selection-criteria",
+          "title": "The Questions That Actually Separate Japanese Language Schools",
+          "slug": "how-to-compare-japanese-language-schools",
+          "intent": "commercial",
+          "evidence": "competitor",
+          "evidence_note": "競品の選校ガイドは「立地・学費・進学実績」を並べるが、定員から並行クラス数を読む、課程の目的で学校が分かれている、寮は割当であって選択でない、といった実際に差が出る軸を扱ったものが見当たらない。",
+          "sources_required": [
+            "official_school_site"
+          ],
+          "priority": 1
+        },
+        {
+          "id": "transfer-schools",
+          "title": "Can You Change Schools Mid-Course?",
+          "slug": "changing-japanese-language-schools-mid-course",
+          "intent": "informational",
+          "evidence": "inferred",
+          "evidence_note": "推断。移籍が14日の届出対象であることと、取消事由・更新の考慮要素との関係を扱った英語記事が見当たらない。GSC 実証は無い。",
           "sources_required": [
             "moj.go.jp"
           ],
