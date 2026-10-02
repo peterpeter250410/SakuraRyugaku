@@ -328,6 +328,118 @@
         "moj.go.jp"
       ],
       "_sources_note": "当初このクラスタだけ sources_required が未設定で、白名単が空＝域名無制限になっていた。生活系の記事はまとめブログの二次情報で埋めやすく、制限が最も要る側だった。寮費などは校方官網、手続は入管庁に限定する。"
+    },
+    {
+      "id": "eligibility",
+      "sources_required": [
+        "mext.go.jp"
+      ],
+      "theme": "日本の大学入学資格そのもの。計画が成立するかを決める層で、英語圏の情報が最も薄い。",
+      "keywords": [
+        {
+          "id": "university-eligibility-routes",
+          "title": "Do You Actually Qualify for a Japanese University?",
+          "slug": "japanese-university-entrance-qualification-routes",
+          "intent": "informational",
+          "evidence": "serp",
+          "evidence_note": "SERP 実測：英語で「12 years of schooling Japan university」を引くと、留学斡旋業者の概説ばかりで文科省の列挙（指定準備教育課程・国外の学力認定試験・11年以上の指定課程・国際的評価団体認定校）を出典付きで並べたものが無い。計画の成否を決める層なので空白の価値が高い。",
+          "priority": 1
+        },
+        {
+          "id": "junbi-kyoiku-designated",
+          "title": "MEXT-Designated Preparatory Courses: What They Fix and Who Runs Them",
+          "slug": "mext-designated-preparatory-course-explained",
+          "intent": "informational",
+          "evidence": "serp",
+          "evidence_note": "SERP 実測：「準備教育課程」を英語で解説したものはほぼ無く、あっても一校の宣伝文。文科省の指定一覧そのものに当たった記事が見当たらない。",
+          "priority": 1
+        },
+        {
+          "id": "jlpt-vs-eju",
+          "title": "JLPT or EJU: Which One Your Target Actually Requires",
+          "slug": "jlpt-or-eju-which-exam-you-need",
+          "intent": "informational",
+          "evidence": "competitor",
+          "evidence_note": "両試験の個別解説は競品に多いが、「進学先の種別によってどちらが要るかが変わる」という選択の軸で書いたものが見当たらない。",
+          "sources_required": [
+            "official_school_site"
+          ],
+          "priority": 2
+        }
+      ]
+    },
+    {
+      "id": "renewal",
+      "sources_required": [
+        "moj.go.jp",
+        "mhlw.go.jp"
+      ],
+      "theme": "在留期間更新。発行後の継続に関わる層で、GSC にクエリが出るのは入学後なので今は実証が無い。",
+      "keywords": [
+        {
+          "id": "renewal-criteria",
+          "title": "What Immigration Actually Looks At When You Renew",
+          "slug": "student-visa-renewal-what-is-assessed",
+          "intent": "informational",
+          "evidence": "serp",
+          "evidence_note": "SERP 実測：更新の必要書類リストは多いが、入管庁の「在留資格の変更、在留期間の更新許可のガイドライン」の考慮要素（素行・雇用労働条件・納税）に当たった英語記事が無い。",
+          "priority": 1
+        },
+        {
+          "id": "minimum-wage-renewal",
+          "title": "Being Paid Below Minimum Wage Is Your Visa Problem Too",
+          "slug": "below-minimum-wage-student-visa-risk",
+          "intent": "informational",
+          "evidence": "inferred",
+          "evidence_note": "推断。最低賃金の解説と在留更新の解説はそれぞれ存在するが、更新ガイドラインの「雇用・労働条件が適正であること」が打工の労働条件を本人の審査に取り込んでいる点を結びつけた記事は見当たらない。GSC 実証は無い。",
+          "priority": 1
+        },
+        {
+          "id": "minimum-wage-prefecture",
+          "title": "Minimum Wage by Prefecture, and Why Your Raise May Be Late",
+          "slug": "japan-minimum-wage-by-prefecture-students",
+          "intent": "informational",
+          "evidence": "serp",
+          "evidence_note": "SERP 実測：最低賃金の一覧は多数あるが、都道府県ごとに発効日が違う（同じ年度でも10月から12月までばらける）点を扱ったものが無い。",
+          "priority": 2
+        },
+        {
+          "id": "tax-and-renewal",
+          "title": "Unpaid Tax and Your Visa Renewal",
+          "slug": "unpaid-tax-student-visa-renewal",
+          "intent": "informational",
+          "evidence": "inferred",
+          "evidence_note": "推断。ガイドラインの納税義務の項は令和8年6月改正で注書きが追記されており、関係機関からの情報提供に触れている。英語圏では扱われていないが本サイトの GSC 実証は無い。",
+          "priority": 2
+        },
+        {
+          "id": "dropout-consequences",
+          "title": "If You Stop Attending or Withdraw: What Happens to Your Status",
+          "slug": "stop-attending-withdraw-student-status",
+          "intent": "informational",
+          "evidence": "inferred",
+          "evidence_note": "推断。更新ガイドラインが「除籍・退学後も在留を継続していた留学生」を消極的要素として明記しており、取消事由（第22条の4第1項第5号・第6号）と接続する。英語での解説が見当たらない。",
+          "priority": 1
+        },
+        {
+          "id": "student-to-work-visa",
+          "title": "From Student to Work Visa: What the Change Involves",
+          "slug": "student-to-work-visa-status-change",
+          "intent": "informational",
+          "evidence": "competitor",
+          "evidence_note": "競品は就職活動の進め方を扱うが、在留資格変更そのものの審査期間（公表値）と更新ガイドラインの考慮要素を出典付きで示したものが見当たらない。",
+          "priority": 2
+        },
+        {
+          "id": "residence-card-reporting",
+          "title": "Residence Card: What You Must Report, and by When",
+          "slug": "residence-card-reporting-obligations",
+          "intent": "informational",
+          "evidence": "competitor",
+          "evidence_note": "住居地の届出は競品も触れるが、所属機関・配偶者に関する届出や紛失時の再交付までを期限付きで整理したものが薄い。",
+          "priority": 2
+        }
+      ]
     }
   ],
   "rejected": [
