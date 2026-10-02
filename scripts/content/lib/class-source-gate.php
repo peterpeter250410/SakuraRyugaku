@@ -550,6 +550,44 @@ class SA_Source_Gate {
 		$seen = array();
 
 		/*
+		 * 条文番号（Article 22-4 / paragraph 1）を先に取り出す。
+		 *
+		 * 放っておくと「22」「4」「1」に割れ、どれも「3桁以下・量詞なし」の
+		 * 分岐で捨てられる —— 変異テストで Article 22-4 を 22-7 に書き換えても
+		 * 闸门が何も言わないことを確認した。
+		 *
+		 * 法令の条番号を間違えると、読者は違う条文を読みに行く。
+		 * 在留資格の取消しの根拠を一つずれた条文で示すのは、
+		 * 数字を書き間違えるのと同じ種類の実害であって、
+		 * 「小さい数だから」で検査外にしてよいものではない。
+		 *
+		 * 日本語の出典では第２２条の４・第１９条第２項と書かれるので、
+		 * 照合は number_present() 側で和文の形に組み立てる。
+		 */
+		preg_match_all( '/\bArticles?\s+(\d{1,3})(?:\s*-\s*(\d{1,2}))?/iu', $s, $am, PREG_SET_ORDER );
+		foreach ( $am as $a ) {
+			$num = isset( $a[2] ) && '' !== $a[2] ? $a[1] . '-' . $a[2] : $a[1];
+			$key = $num . '|article';
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$out[]        = array( 'num' => $num, 'unit' => 'article', 'raw' => $a[0] );
+		}
+		$s = preg_replace( '/\bArticles?\s+\d{1,3}(?:\s*-\s*\d{1,2})?/iu', ' ', $s );
+
+		preg_match_all( '/\bparagraphs?\s+(\d{1,2})\b/iu', $s, $pm, PREG_SET_ORDER );
+		foreach ( $pm as $p ) {
+			$key = $p[1] . '|paragraph';
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$out[]        = array( 'num' => $p[1], 'unit' => 'paragraph', 'raw' => $p[0] );
+		}
+		$s = preg_replace( '/\bparagraphs?\s+\d{1,2}\b/iu', ' ', $s );
+
+		/*
 		 * 时刻（9:15 / 13:30）先单独抽出来。
 		 *
 		 * 不这样做的话它们会被拆成「9」和「15」两个两位数，双双落进
@@ -696,6 +734,35 @@ class SA_Source_Gate {
 			);
 			foreach ( array_unique( $forms ) as $f ) {
 				if ( false !== strpos( $page, $f ) ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/*
+		 * 条文番号。和文の出典は「第２２条の４」「第１９条第２項」と書く。
+		 * 半角・全角の両方を試す（官公庁サイトは全角が主）。
+		 */
+		if ( 'article' === $unit || 'paragraph' === $unit ) {
+			$forms = array();
+			if ( 'paragraph' === $unit ) {
+				$forms[] = '第' . $num . '項';
+				$forms[] = '第' . self::to_fullwidth( $num ) . '項';
+			} elseif ( false !== strpos( $num, '-' ) ) {
+				list( $main, $sub ) = explode( '-', $num, 2 );
+				$forms[] = '第' . $main . '条の' . $sub;
+				$forms[] = '第' . self::to_fullwidth( $main ) . '条の' . self::to_fullwidth( $sub );
+				$forms[] = '第' . $main . '条の' . self::to_fullwidth( $sub );
+				$forms[] = '第' . self::to_fullwidth( $main ) . '条の' . $sub;
+			} else {
+				$forms[] = '第' . $num . '条';
+				$forms[] = '第' . self::to_fullwidth( $num ) . '条';
+			}
+
+			$hay = str_replace( ' ', '', $page );
+			foreach ( array_unique( $forms ) as $f ) {
+				if ( false !== strpos( $hay, str_replace( ' ', '', $f ) ) ) {
 					return true;
 				}
 			}
