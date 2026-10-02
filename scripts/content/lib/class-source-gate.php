@@ -570,15 +570,26 @@ class SA_Source_Gate {
 		return array(
 			'hour'  => array( 'hour', 'hours', '時間' ),
 			'week'  => array( 'week', 'weeks', 'weekly', '週間', '週' ),
-			'day'   => array( 'day', 'days', '日間', '日' ),
+			/*
+			 * 中文の量詞を入れる。
+			 *
+			 * 三語展開の検証で分かったこと：中国語版の記事は「41.0天」「3个月」と
+			 * 書くが、天 も 个月 も表に無かったため、数字がまるごと検査外に落ちていた。
+			 * 変異テストで 41.0天→51.0天、1个月到3个月→5个月 がどちらも素通りした。
+			 *
+			 * 日本語の出典に対して中国語で書く以上、本文側の量詞は中国語になる。
+			 * 照合先（出典ページ）は日本語なので、日本語の量詞と並べて持っておけば
+			 * 「中文の量詞で抽出し、日本語の表記で照合する」が成立する。
+			 */
+			'day'   => array( 'day', 'days', '日間', '日', '天' ),
 			/*
 			 * 「ヵ月」（U+30F5 小書きカ）は「ヶ月」（U+30F6）と別の文字。
 			 * 赤門会のコース一覧は「1年6ヵ月」と書いており、ヶ だけでは当たらない。
 			 * 見た目がほぼ同じぶん、抜けていても気づきにくい。
 			 */
-			'month' => array( 'month', 'months', 'か月', 'ヶ月', 'ヵ月', '箇月', 'カ月', 'ケ月' ),
+			'month' => array( 'month', 'months', 'か月', 'ヶ月', 'ヵ月', '箇月', 'カ月', 'ケ月', '个月', '個月' ),
 			'year'  => array( 'year', 'years', 'annual', 'annually', '年間', '年' ),
-			'yen'   => array( 'yen', 'JPY', '円' ),
+			'yen'   => array( 'yen', 'JPY', '円', '日元', '日圓', '日圆' ),
 			'page'  => array( 'page', 'pages', 'ページ' ),
 			/*
 			 * 「分」と「名」を入れておく理由。
@@ -735,6 +746,69 @@ class SA_Source_Gate {
 			}
 			$s = preg_replace( $re, ' ', $s );
 		}
+
+		/*
+		 * CJK 表記の日付も一つのトークンにする。
+		 *
+		 * 三語展開の検証で、日本語・中国語の記事が「令和5年3月17日」と
+		 * 書いたときに月の数字が検査外に落ちることが分かった ——
+		 * 「3」の後ろは「月17日」で、裸の「月」は量詞表に無い（三月と衝突するため
+		 * 意図的に入れていない）。結果、3月を5月に書き換えても闸门が黙った。
+		 *
+		 * 日付は規制の文章では論点そのものなので、英文（1 October 2026）と
+		 * 同じく一つのトークンとして扱う。和暦（令和・平成）と西暦の両方を拾い、
+		 * 西暦に正規化してから number_present に渡す —— 照合側は既に
+		 * 和暦・西暦の両方の形を組み立てる。
+		 */
+		$era_base = array( '令和' => 2018, '平成' => 1988, '昭和' => 1925 );
+		$cjk_date = '/(?:(令和|平成|昭和)\s*(\d{1,2}|元)|(\d{4}))\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/u';
+		preg_match_all( $cjk_date, $s, $cm, PREG_SET_ORDER );
+		foreach ( $cm as $c ) {
+			if ( '' !== $c[1] ) {
+				$n  = ( '元' === $c[2] ) ? 1 : (int) $c[2];
+				$yr = $era_base[ $c[1] ] + $n;
+			} else {
+				$yr = (int) $c[3];
+			}
+			$num = $yr . '-' . (int) $c[4] . '-' . (int) $c[5];
+			$key = $num . '|date';
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$out[]        = array( 'num' => $num, 'unit' => 'date', 'raw' => $c[0] );
+		}
+		$s = preg_replace( $cjk_date, ' ', $s );
+
+		/*
+		 * 日を伴わない「年月」も拾う。
+		 *
+		 * 規制の文章は「令和６年１０月許可分から」「令和８年６月改正」のように
+		 * 月までで切ることが多い。年月日の形だけを見ていると、
+		 * この種の記述の月がまるごと検査外に落ちる ——
+		 * 検証で 令和6年10月 を 令和6年11月 に書き換えても素通りした。
+		 * 制度の施行時期や改正時期は、日付と同じく論点そのものである。
+		 *
+		 * 年月日の抽出を先に済ませてあるので、ここに残るのは日の無いものだけ。
+		 */
+		$cjk_ym = '/(?:(令和|平成|昭和)\s*(\d{1,2}|元)|(\d{4}))\s*年\s*(\d{1,2})\s*月(?!\s*\d)/u';
+		preg_match_all( $cjk_ym, $s, $ym, PREG_SET_ORDER );
+		foreach ( $ym as $c ) {
+			if ( '' !== $c[1] ) {
+				$n  = ( '元' === $c[2] ) ? 1 : (int) $c[2];
+				$yr = $era_base[ $c[1] ] + $n;
+			} else {
+				$yr = (int) $c[3];
+			}
+			$num = $yr . '-' . (int) $c[4];
+			$key = $num . '|yearmonth';
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$out[]        = array( 'num' => $num, 'unit' => 'yearmonth', 'raw' => $c[0] );
+		}
+		$s = preg_replace( $cjk_ym, ' ', $s );
 
 		preg_match_all( '/\bparagraphs?\s+(\d{1,2})\b/iu', $s, $pm, PREG_SET_ORDER );
 		foreach ( $pm as $p ) {
@@ -993,6 +1067,38 @@ class SA_Source_Gate {
 		 * 日付。和暦の形に組み立てて照合する。
 		 * 西暦で書かれている場合もあるので、そちらも試す。
 		 */
+		/*
+		 * 年月（日を伴わない）。和暦・西暦の両方の形を試す。
+		 * 日付と違い、月までしか無いので回退も無い ——
+		 * 「◯月」だけでの照合は年を捨てることになり、年こそが論点だから。
+		 */
+		if ( 'yearmonth' === $unit ) {
+			list( $yr, $mon ) = array_map( 'intval', explode( '-', $num ) );
+
+			$forms = array();
+			$reiwa = $yr - 2018;
+			if ( $reiwa >= 1 ) {
+				$forms[] = '令和' . $reiwa . '年' . $mon . '月';
+				if ( 1 === $reiwa ) {
+					$forms[] = '令和元年' . $mon . '月';
+				}
+			}
+			$heisei = $yr - 1988;
+			if ( $heisei >= 1 && $heisei <= 31 ) {
+				$forms[] = '平成' . $heisei . '年' . $mon . '月';
+			}
+			$forms[] = $yr . '年' . $mon . '月';
+
+			$hay = str_replace( ' ', '', $page );
+			foreach ( array_unique( $forms ) as $f ) {
+				$f = str_replace( ' ', '', $f );
+				if ( false !== strpos( $hay, $f ) || false !== strpos( $hay, self::to_fullwidth( $f ) ) ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		if ( 'date' === $unit ) {
 			list( $yr, $mon, $day ) = array_map( 'intval', explode( '-', $num ) );
 
