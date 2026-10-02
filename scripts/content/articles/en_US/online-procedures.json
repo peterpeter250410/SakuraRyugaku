@@ -1,0 +1,73 @@
+{
+  "title": "Which Immigration Procedures You Can Actually Do Online",
+  "slug": "immigration-procedures-online-students",
+  "locale": "en_US",
+  "group": "online-procedures",
+  "keyword_id": "online-procedures",
+  "summary": "Some procedures are fully online, one is online only if bundled with another, and the rest need a card you can only get after registering your address.",
+  "body_html": "<p>Every trip to an immigration office costs you a day of class, because the counter is open on weekdays during the hours you are in a classroom. So the question of what can be done without going is worth more than it sounds.</p><p>The answer is uneven, and the dependencies run in an order most people discover too late.</p><h2>Fully online, no conditions: notifications about your school</h2><p>If your institution changes its name or address, ceases to exist, or you leave it or transfer, the notification can be filed through the electronic notification system — 24 hours a day, 365 days a year. [source:1] The system also shows your filing history and processing status. [source:1]</p><p>No documents evidencing the notified matter are required. [source:1]</p><p>This is the best deal in the whole set: an obligation with a 14 day deadline that you can discharge at midnight from your phone, with nothing to scan. [source:1] There is no good reason to do this one at a counter.</p><p>The alternatives, if you prefer them, are a regional immigration office with your residence card, or post — but posted notifications get no acknowledgement of receipt, and the agency recommends a trackable method. [source:1]</p><h2>Online, but only bundled: the work permit</h2><p>The work permit can be applied for online. [source:2] With a condition that is easy to read past.</p><p>Online filing is available only where the work permit application is submitted together with an application to change status, to extend your period of stay, or to acquire status. [source:2]</p><p>So if you are a new student who just wants the permit on its own, online is not open to you. It becomes open later, at your first renewal, when you can attach the permit application to it and save a trip.</p><p>There is a related improvement for the bundled route. Since January 2024 an online application can be received by post, with a permit document issued in place of the passport sticker. [source:3]</p><h2>Online, with a prerequisite: your residence applications</h2><p>Extending your period of stay and changing your status can both be filed online — if you have a My Number card. [source:4]</p><p>That is the dependency, and it has a dependency of its own.</p><p>You can apply for the My Number card only after filing your address notification at the municipal office. [source:4] The application for the card itself can then be made by post, smartphone or computer. [source:4]</p><p>So the chain is: register your address, apply for the card, then file residence applications online. Each step gates the next, and the first step has a 14 day deadline from when you decide your address. [source:5]</p><p>Which means the sensible time to get the My Number card is your first month in Japan, long before you need it — not the month your status expires.</p><p>The card is also usable as photo identification. [source:4] That is worth having for reasons unconnected to immigration.</p><h2>Online for your school, not for you: the Certificate of Eligibility</h2><p>The Certificate of Eligibility application can be filed online. [source:6] Postal submission is not accepted at all, and the agency asks explicitly that applications not be posted to it. [source:6]</p><p>In practice this is your school's procedure rather than yours, since for language school students the school files it. [source:6] Where it affects you is at the receiving end: since 17 March 2023 the certificate can be received by email. [source:6]</p><p>That is worth asking your school about. An emailed certificate removes an international courier leg at the point in the process where you are already waiting on a date nobody will promise you.</p><h2>What still means going in person</h2><p>Your address notification is a municipal office procedure, in person, with your residence card. [source:5] Both the first one and every move afterwards. [source:5]</p><p>A standalone work permit, with nothing to bundle it with, is a counter or postal application. [source:2]</p><p>And a lost residence card means the police first for a report acceptance number, then immigration. [source:7]</p><h2>One caution about fees</h2><p>Where a procedure charges a fee, the counter fee and the online fee are set separately — the agency publishes the online amounts and payment method on a different page from the counter table. [source:8]</p><p>So do not assume the online route costs the same. Check the figure for the route you are actually using, especially since the counter fees were revised upward in October 2026. [source:8]</p><h2>The order to do things in</h2><ul><li><strong>First month:</strong> address notification at the municipal office, in person, within 14 days. [source:5] Then apply for the My Number card. [source:4]</li><li><strong>Any time something changes about your school:</strong> electronic notification system, same day, no documents. [source:1]</li><li><strong>First time you want the work permit:</strong> counter or post, unless you happen to be filing another application alongside it. [source:2]</li><li><strong>At renewal:</strong> file online with your My Number card, and attach the work permit application if you need one. [source:4] [source:2]</li><li><strong>Check the fee for the route you are using.</strong> [source:8]</li></ul><p>For the full arrival sequence these depend on, see <a href=\"guides/first-week-paperwork-order-language-school-student\">your first week in Japan</a>. For the notifications themselves and their deadlines, see <a href=\"guides/residence-card-reporting-obligations\">what you must report and by when</a>. For what renewal is judged on and the new fee schedule, see <a href=\"guides/student-visa-renewal-what-is-assessed\">what immigration actually looks at when you renew</a>. For the work permit decision, see <a href=\"guides/work-permit-application-airport-vs-immigration\">airport or immigration office</a>.</p><p>Online availability and fees change, and each procedure has its own page — those pages, linked below, are the authority. This page maps which route applies to which procedure; it is not advice.</p>",
+  "sources": [
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/nyuukokukanri10_00014.html",
+      "title": "所属（活動）機関に関する届出（教授、…、留学、研修）",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/16-8.html",
+      "title": "資格外活動許可申請",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/shikakugai_00001.html",
+      "title": "資格外活動の許可（入管法第19条）",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/support/guidance/index.html",
+      "title": "日本に入国された外国人のみなさまへ～新規入国者向けガイダンスページ～",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/publications/faq/newimmiact_4_port-city.html",
+      "title": "出入国港での手続 / 市区町村での手続 / 地方出入国在留管理官署での手続",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/16-1.html",
+      "title": "在留資格認定証明書交付申請",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/nyuukokukanri10_00010.html",
+      "title": "紛失等による在留カードの再交付申請",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/16-3.html",
+      "title": "在留期間更新許可申請",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    }
+  ],
+  "internal_links_used": [
+    "guides/first-week-paperwork-order-language-school-student",
+    "guides/residence-card-reporting-obligations",
+    "guides/student-visa-renewal-what-is-assessed",
+    "guides/work-permit-application-airport-vs-immigration"
+  ],
+  "claims_without_sources": [
+    "オンライン申請の手数料額 —— 各申請ページは別ページを案内するだけで額を示していない。別ページを確認していないため、「別に定められている」「使う経路の額を確認せよ」とだけ書き、金額は一切書いていない。",
+    "電子届出システムの利用登録に何が必要か —— 届出ページは利用できることを述べるが、登録手続の詳細は別ページの管轄で確認していない。",
+    "マイナンバーカードの交付までにかかる期間 —— 自治体ごとに異なり、入管庁の出典にはない。「期限の月ではなく最初の月に取れ」という推奨は、依存関係（住民登録→カード→オンライン申請）という出典のある事実からの当方の結論。",
+    "オンラインで申請できる在留手続の全リスト —— ガイダンスページは在留期間更新・在留資格変更を例示しており、それ以外を網羅していない。例示されたものだけを書いた。",
+    "在留カードの有効期間更新申請がオンラインで可能か —— 確認していないため触れていない。",
+    "2026年10月の手数料改定の具体額 —— 本記事では金額を扱わず、改定があった事実のみ述べた（金額は renewal-criteria と student-to-work-visa で出典付きで扱っている）。"
+  ]
+}

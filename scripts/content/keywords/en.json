@@ -277,6 +277,19 @@
           "evidence": "serp",
           "evidence_note": "SERP 实测确认多家竞品提到「多数学校 4 月/10 月开学，部分有 1 月/7 月」，但作为独立主题展开的未见。",
           "priority": 2
+        },
+        {
+          "id": "tb-screening",
+          "title": "Pre-Entry Tuberculosis Screening: Who Needs It and When",
+          "slug": "pre-entry-tuberculosis-screening-students",
+          "intent": "informational",
+          "evidence": "serp",
+          "evidence_note": "SERP 実測：英語では制度の存在を一行触れるものしかなく、対象国ごとの開始時期と「結核非発病証明書の有効期間が胸部レントゲン実施日から原則180日」という計画上の制約を扱ったものが無い。インドネシアは令和8年11月2日開始で、直近の申請者に直接影響する。",
+          "sources_required": [
+            "moj.go.jp",
+            "mhlw.go.jp"
+          ],
+          "priority": 1
         }
       ]
     },
@@ -418,7 +431,10 @@
           "intent": "informational",
           "evidence": "inferred",
           "evidence_note": "推断。ガイドラインの納税義務の項は令和8年6月改正で注書きが追記されており、関係機関からの情報提供に触れている。英語圏では扱われていないが本サイトの GSC 実証は無い。",
-          "priority": 2
+          "priority": 2,
+          "status": "absorbed",
+          "absorbed_by": "renewal-criteria",
+          "_absorbed_note": "更新ガイドライン第7項（納税義務等）は renewal-criteria で、国民健康保険料の未納が未納税と同じ段落に置かれている点と、令和8年6月改正で追記された「関係機関からの情報提供」まで含めて扱った。住民税・国保の仕組みそのものを書くなら自治体を出典にする必要があり、本サイトはその一次資料を持たない。同じ条文で二本目を立てると薄めるだけ。"
         },
         {
           "id": "dropout-consequences",

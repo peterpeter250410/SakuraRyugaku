@@ -1,0 +1,42 @@
+{
+  "title": "Pre-Entry Tuberculosis Screening: Who Needs It and When",
+  "slug": "pre-entry-tuberculosis-screening-students",
+  "locale": "en_US",
+  "group": "tb-screening",
+  "keyword_id": "tb-screening",
+  "summary": "For some nationalities this is now a hard requirement at the Certificate of Eligibility stage — and the certificate expires 180 days after the chest X-ray.",
+  "body_html": "<p>If you hold the nationality of one of several specified countries and you are coming to Japan as a mid-to-long-term resident, you need a tuberculosis clearance certificate before your Certificate of Eligibility application is filed.</p><p>Not after. Not at the airport. At the application.</p><p>And the certificate has an expiry, which turns this from a box to tick into a sequencing problem.</p><h2>Who it applies to</h2><p>The scheme covers nationals of the Philippines, Vietnam, Indonesia, Nepal, Myanmar and China who intend to enter and reside in Japan as mid-to-long-term residents, excluding holders of a re-entry permit. [source:2] It also covers people entering under two specific designated-activity categories. [source:2]</p><p>Being on that list of nationalities is not the same as the requirement being live for you yet. The start dates are staggered by country.</p><h2>Which dates are already in force</h2><p>Submission of a tuberculosis clearance certificate at the Certificate of Eligibility application became mandatory for Philippine and Nepalese nationals on 23 June 2025, and for Vietnamese nationals on 1 September 2025. [source:1]</p><p>For Indonesia, the ministry announced that screening begins on 2 November 2026. [source:2]</p><p>So if you are an Indonesian national planning an intake after that date, this is a new step in your application that did not exist for students who applied before you — and most study-abroad material has not caught up.</p><p>The agency asks applicants to prepare the required documents in advance and attach them in the system when applying. [source:1]</p><h2>What you actually do</h2><p>You attend a designated medical institution in the target country, where you receive a doctor's examination and a chest X-ray. [source:2] If the examination finds you have not developed tuberculosis, that institution issues a tuberculosis clearance certificate. [source:2]</p><p>The certificate is then submitted at the Certificate of Eligibility application — or, if you are applying for a visa at an overseas mission without obtaining a Certificate of Eligibility, at the visa application. [source:2]</p><p>Two practical points from the ministry's own page.</p><p>The number of days and the cost to get the certificate issued differ by medical institution. [source:2] So \"how long does it take\" has no national answer — ask the institution you intend to use.</p><p>And keep your own copy. The ministry notes you may be asked to present the applicant's copy after entry, so it should be stored carefully. [source:2]</p><h2>The 180 day problem [source:2]</h2><p>This is the part that needs planning rather than compliance.</p><p>The clearance certificate is valid, as a rule, for 180 days from the date the chest X-ray was taken. [source:2]</p><p>Now put that next to how a Certificate of Eligibility application actually runs. The standard processing period is 1 to 3 months. [source:3] Your school files the application, not you. [source:3] And the agency's own data notes that applications increase ahead of April and October course openings, with Student status processing times tending to lengthen as a result. [source:3]</p><p>So the sequence has a window on both sides. Get the X-ray too early and the certificate may expire before the application is filed. Get it too late and you delay your school's filing date, which sits upstream of everything else.</p><p>The 180 days runs from the X-ray date, not from the certificate's issue date. [source:2] Since issuance takes an institution-dependent number of days, your usable window is already shorter than 180 days by the time you hold the document. [source:2]</p><h2>How to sequence it</h2><ul><li><strong>Ask your school when they file</strong> the Certificate of Eligibility applications for your intake. That date is the fixed point everything else works back from, and it is the one date nobody publishes.</li><li><strong>Then book the X-ray</strong> so the certificate is in your school's hands before that filing date, with room for the institution's own processing time. [source:2]</li><li><strong>Do not get it done months in advance</strong> \"to be safe\". The 180 days starts at the X-ray. [source:2]</li><li><strong>Confirm whether the requirement is live for your nationality</strong> and for your application date. [source:1] [source:2] The dates differ by country.</li><li><strong>Keep your copy</strong> after you arrive. [source:2]</li></ul><h2>Why this exists, briefly</h2><p>The ministry sets out its reasoning. Tuberculosis remains one of Japan's major infectious diseases, with roughly 10,000 new patients and about 1,500 deaths annually. [source:2] Of 9,899 newly registered tuberculosis patients in the most recent year cited, 2,352 were foreign-born. [source:2]</p><p>The screening targets nationals of the countries accounting for a large share of foreign-born patients diagnosed while residing in Japan. [source:2]</p><p>We mention this not to editorialise but because the reasoning tells you something useful about the requirement: it is a public health measure applied by nationality and residence length, not an assessment of you. There is nothing to appeal and nothing personal in it — it is a document to obtain, in the right order.</p><p>For how the Certificate of Eligibility timeline works and why the published average differs from the standard period, see <a href=\"guides/certificate-of-eligibility-processing-time\">how long the certificate actually takes</a>. For the full backwards-planned timeline this fits into, see <a href=\"guides/april-intake-application-timeline\">the April intake timeline in reverse</a>. The separate Japanese-ability evidence now required at the same application stage is covered in <a href=\"guides/japanese-proficiency-proof-student-visa-2026\">how that requirement is verified</a>.</p><p>Target countries, start dates and procedures are set by the Ministry of Health, Labour and Welfare and the Immigration Services Agency, and are being added to — the pages linked below are the authority and carry their own update dates. Confirm your own nationality's position there before booking anything. This page is a summary, not medical or legal advice.</p>",
+  "sources": [
+    {
+      "url": "https://www.moj.go.jp/isa/11_00063.html",
+      "title": "【重要】入国前結核スクリーニングの開始について",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/kenkou/kekkaku-kansenshou03/index_00006.html",
+      "title": "入国前結核スクリーニング（Japan Pre-Entry Tuberculosis Screening）",
+      "publisher": "厚生労働省（Ministry of Health, Labour and Welfare）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/16-1.html",
+      "title": "在留資格認定証明書交付申請",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    }
+  ],
+  "internal_links_used": [
+    "guides/certificate-of-eligibility-processing-time",
+    "guides/april-intake-application-timeline",
+    "guides/japanese-proficiency-proof-student-visa-2026"
+  ],
+  "claims_without_sources": [
+    "ミャンマー・中国の開始時期 —— 厚労省ページは対象国として挙げているが、この両国の開始日は本文で確認できなかった（インドネシアの開始日のみ明記）。したがって「対象国に含まれる」とだけ書き、開始日を書いていない。未定を既定のように書けば、該当国の読者が誤った前提で計画を立てる。",
+    "指定健診医療機関の名称・所在地・費用 —— 厚労省が別途一覧（PDF）を公開しているが本記事では開いていない。費用と所要日数は「医療機関によって異なる」という出典の記述に留め、相場を書いていない。",
+    "結核を発病していると判断された場合に何が起きるか —— 出典に記載がなく、治療後の再受診の扱いも確認できていない。推測で書かない。",
+    "特定活動告示第53号・第54号の内容（デジタルノマドとその家族）—— 対象に含まれることは出典どおりだが、告示の内容そのものは別の管轄で確認していないため、「二つの特定の指定活動類型」とだけ書いた。",
+    "180日の有効期間に例外があるか —— 出典は「原則として」と書いており、例外の有無・内容は示していない。本文でも「as a rule」とした。",
+    "在留資格認定証明書を取得せずに査証申請する場合の実務的な流れ —— 出典は提出時点が査証申請時になることだけを述べており、在外公館ごとの運用は確認していない。"
+  ]
+}
