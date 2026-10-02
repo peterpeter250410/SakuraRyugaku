@@ -1,0 +1,40 @@
+{
+  "title": "Applying for a Work Permit: Airport vs. Immigration Office",
+  "slug": "work-permit-application-airport-vs-immigration",
+  "locale": "en_US",
+  "group": "visa-shikakugai-apply",
+  "keyword_id": "visa-shikakugai-apply",
+  "summary": "You can get the work permit at the airport on arrival, or at an immigration office later. One of those options closes the moment you clear the gate.",
+  "body_html": "<p>The permit that lets you work part-time is a separate application from your visa. [source:1] It is free. [source:2] And there is a decision inside it that most people make by accident, because nobody tells them there was a choice.</p><p>You can apply at the airport, as you arrive. Or you can apply at an immigration office, after you have settled in. The first option exists for exactly one moment and then it is gone.</p><h2>At the airport, immediately after landing permission</h2><p>If you are newly arriving and have been granted Student status, you can apply for the work permit straight after your landing permission and receive it at the port of entry. [source:1]</p><p>There is one exclusion. If the period of stay you were granted is 3 months, this route is not available to you. [source:1] Check what was actually granted rather than what you expected.</p><p>There is even a dedicated application form for this case — the one labelled for students arriving newly. [source:2] That is a reasonable signal that the counter staff have seen it before and it is not an unusual request.</p><p>Bring the form filled in. You will have been on a plane for a long time, you will be in a queue, and this is not the moment to be reading a form for the first time.</p><h2>At an immigration office, afterwards</h2><p>The alternative is the regional immigration office with jurisdiction over where you live. [source:2]</p><p>Read that again: where you live. Not the nearest office, not any office. Which means this route is not open to you until you have an address, and on arrival you do not have one yet.</p><p>Then there are the opening hours. Weekdays, 9:00 to 12:00 in the morning and 1:00 to 4:00 in the afternoon. [source:2]</p><p>Put those against a language school timetable. Morning classes typically run across the first block entirely; afternoon classes run across the second. Whichever slot you are assigned, going to immigration costs you a day of class — and attendance is the thing your status actually depends on.</p><p>Also: postal submission is not how this works. [source:2] You go in person, or someone authorised goes for you.</p><h2>Online is not the escape hatch it looks like</h2><p>The work permit can be applied for online. [source:2] There is a real limitation attached, and it is easy to read past.</p><p>Online is available only when the work permit application is filed together with an application to change status, extend your period of stay, or acquire status. [source:2]</p><p>So for a new student who simply wants the permit on its own, with no other application to attach it to, online is not an option. It becomes one later, when you renew — file the permit alongside the renewal and you have saved yourself the trip.</p><p>One related improvement: since January 2024, an online application can be received by post, with a permit document issued instead of the passport sticker. [source:1]</p><h2>What you actually receive</h2><p>The permit comes as a sticker in your passport, or as a separate permit document. [source:1]</p><p>For mid-to-long-term residents, the fact of the permit is also printed on the back of the residence card and written into its chip. [source:1] The agency asks that anyone checking your permission look at the card's reverse as well as the sticker or document. [source:1]</p><p>This is the practical part. An employer who asks \"are you allowed to work?\" is going to look at the back of your card. If you have the permit and the back of your card is blank, something has gone wrong and you want to know before an interview, not during one.</p><h2>What the permit actually grants</h2><p>The standard version is the comprehensive permit: work of up to 28 hours per week, without the employer being named. [source:3] That is the one students get, and it is why you can change jobs without reapplying.</p><p>It carries a condition on the type of workplace. Adult entertainment venues and related businesses are excluded. [source:3] This is not a grey area and it does not become acceptable because the role itself is washing dishes.</p><p>If you need more than the weekly limit — a full-time internship, for instance — that is a different animal: an individual permit, decided case by case with the organisation named. [source:3]</p><h2>Which one to choose</h2><p>Airport, if you can. It is the only version of this that costs you nothing but a filled-in form, and it means you arrive already able to look for work.</p><p>Office, if the airport route was closed to you or you missed it. Go early in your first weeks, before your timetable hardens and before you start turning down shifts you cannot legally take yet.</p><p>Either way, do not start working first and apply afterwards. Working without the permit is not a paperwork lapse — it falls inside the agency's definition of illegal work, and the consequences run through your status rather than your wallet. See <a href=\"guides/exceeding-28-hour-work-limit-consequences\">what actually happens when the work rules are broken</a>, and <a href=\"guides/student-visa-part-time-work-rules-2026\">what changed about the part-time rules</a> for the monitoring your school now does.</p><p>Procedures and forms change, and the agency's pages are the only authority — they are linked below. Nothing here is legal advice, and individual applications are decided on their own facts.</p>",
+  "sources": [
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/shikakugai_00001.html",
+      "title": "資格外活動の許可（入管法第19条）",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/16-8.html",
+      "title": "資格外活動許可申請",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/nyuukokukanri07_00045.html",
+      "title": "資格外活動許可について",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    }
+  ],
+  "internal_links_used": [
+    "guides/exceeding-28-hour-work-limit-consequences",
+    "guides/student-visa-part-time-work-rules-2026"
+  ],
+  "claims_without_sources": [
+    "空港での手続に要する時間（「数分程度」という記述）—— 検索結果の要約には現れたが、当庁の該当ページ本文で確認できなかったため書いていない。要約を出典扱いしない原則どおり。",
+    "語学学校の時間割と入管の受付時間が重なるという指摘 —— 受付時間は出典どおりだが、「午前クラスは第一ブロックに丸被り」という対応づけは当方の整理であって当庁の記述ではない。時間割そのものは学校ごとに異なるため「typically」と書き、出典マーカーは付けていない。",
+    "空港で申請できる窓口がある空港の一覧 —— 在留カードが交付される空港に限られるはずだが、当庁ページから空港名を確認していないため列挙していない。",
+    "個別許可の審査にかかる期間・許可率 —— 公表されていない。「case by case」とだけ述べた。",
+    "資格外活動許可の申請から交付までの日数（入管窓口の場合）—— 在留審査処理期間の公表対象に資格外活動許可が含まれているか確認できなかったため、日数は書いていない。"
+  ]
+}

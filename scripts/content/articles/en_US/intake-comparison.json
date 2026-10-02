@@ -1,0 +1,53 @@
+{
+  "title": "April, July, October or January: Which Intake Should You Target?",
+  "slug": "choosing-between-april-july-october-january-intake",
+  "locale": "en_US",
+  "group": "intake-comparison",
+  "keyword_id": "intake-comparison",
+  "summary": "The four intakes are not four versions of the same thing. They differ in course length, in price, and in how long immigration takes to process your paperwork.",
+  "body_html": "<p>Four intake months get listed as though they were equivalent options. They are not, and the differences between them are larger than the three months separating them.</p><p>Three things change depending on which one you pick: how many schools will take you, how long your course is, and how busy immigration is when your application lands.</p><h2>Not every intake exists at every school</h2><p>Within one group of three schools, the intake months differ by course. The university-preparation course takes students in April and October. [source:1] The graduate-school course takes them in April, July, October and January. [source:2] The employment course takes them in April, July and October. [source:3]</p><p>April is the only month all three share. [source:1] [source:2] [source:3]</p><p>That is the first practical filter, and it runs the opposite way to how people usually approach this. You do not pick an intake and then find a school. If you have already decided on a course, the course has decided which intakes are open to you.</p><h2>A later intake is a shorter course</h2><p>This is the part that surprises people, and it is visible in the published course lengths.</p><p>For the graduate-school course: 2 years from April, 1 year 9 months from July, 1 year 6 months from October, 1 year 3 months from January. [source:2] The university-preparation course runs 2 years from April and 1 year 6 months from October. [source:1]</p><p>Every option ends at the same point in the academic year. The intake does not move your finish line — it moves your start line.</p><p>So the real trade is runway against cost. An April start gives you the longest preparation before the same entrance exams. A January start gives you the shortest, and a shorter course is a cheaper course. Nobody frames January as the budget option, but structurally that is what it is.</p><p>Whether that trade is worth taking depends on something only you know: how much Japanese you already have. Arriving with solid grounding and taking a shorter course is efficient. Arriving as a beginner and taking the shortest course means sitting exams you have had 1 year 3 months to prepare for. [source:2]</p><h2>The queue is worst for the popular months</h2><p>Here is the consideration almost nobody factors in, and it comes from the immigration agency rather than from any school.</p><p>In its published processing-time data, the agency notes that applications increase every year ahead of Japanese language school course openings in April and October, and that processing times for the Student status tend to lengthen as a result. [source:4]</p><p>So the two most popular intakes are the two with the slowest paperwork. The standard processing period for the Certificate of Eligibility is 1 to 3 months. [source:5] If you are applying for April or October, assume the slower end of that; if you are applying for July or January, you are in a thinner queue.</p><p>This is not a reason on its own to pick July. It is a reason to build a longer buffer if you pick April — and to know that the buffer you read about in a guide written for a quiet month may not be enough for yours.</p><h2>What each one is actually good for</h2><p><strong>April.</strong> The default, and the only month every course offers. [source:1] [source:2] [source:3] Longest course, most preparation, most competition for places, slowest immigration queue. [source:4] Pick it if you are starting from little Japanese, or if the course you want offers nothing else.</p><p><strong>October.</strong> The other major intake, offered by all three courses here. [source:1] [source:2] [source:3] Shorter course than April, same slow queue. [source:4] A reasonable choice if your decision came too late for April and you do not want to wait a year.</p><p><strong>July.</strong> Available on two of the three courses. [source:2] [source:3] Off-peak for immigration processing. [source:4] Course length 1 year 9 months on the graduate route. [source:2] Worth looking at if your timing landed here anyway.</p><p><strong>January.</strong> The narrowest option — on this group's courses, only the graduate-school route. [source:2] Shortest course at 1 year 3 months, and therefore the least expensive of the four. [source:2] Off-peak queue. [source:4] Suits someone who already has the Japanese and wants the credential rather than the years.</p><h2>How to decide, in order</h2><ul><li>Pick the course first, not the month. The course eliminates most of the options for you. [source:1] [source:2] [source:3]</li><li>Be honest about your current Japanese. Course length is the variable that changes with your intake, and a shorter course is only cheaper if it is long enough. [source:2]</li><li>If you are going for April or October, add buffer to your paperwork timeline rather than to your optimism. The agency says those months run slower. [source:4]</li><li>Ask the school directly which intakes they are actually recruiting for next — a published intake month is not the same as an open one in a given year.</li></ul><p>Working backwards from a specific start date is a separate exercise, and we have laid it out for the April intake: see <a href=\"guides/april-intake-application-timeline\">the April timeline in reverse</a>. For why the processing average and the standard period disagree, see <a href=\"guides/certificate-of-eligibility-processing-time\">how long the Certificate of Eligibility actually takes</a>. The three courses above are profiled in <a href=\"guides/sendagaya-three-schools-difference\">the Sendagaya group comparison</a>.</p><p>Course structures carry an effective-from date and change between academic years. Intake months, course lengths and processing figures all come from the sources linked below — check them against the year you are applying for.</p>",
+  "sources": [
+    {
+      "url": "https://group.jp-sji.org/sjs/",
+      "title": "進学準備教育課程 | 千駄ヶ谷日本語教育研究所グループ",
+      "publisher": "千駄ヶ谷日本語教育研究所グループ",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://group.jp-sji.org/sji/",
+      "title": "大学院進学コース | 千駄ヶ谷日本語教育研究所グループ",
+      "publisher": "千駄ヶ谷日本語教育研究所グループ",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://group.jp-sji.org/sls/",
+      "title": "就職課程 | 千駄ヶ谷日本語教育研究所グループ",
+      "publisher": "千駄ヶ谷日本語教育研究所グループ",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/content/001470530.pdf",
+      "title": "在留審査処理期間（日数）令和8年7月許可分",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/16-1.html",
+      "title": "在留資格認定証明書交付申請",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    }
+  ],
+  "internal_links_used": [
+    "guides/april-intake-application-timeline",
+    "guides/certificate-of-eligibility-processing-time",
+    "guides/sendagaya-three-schools-difference"
+  ],
+  "claims_without_sources": [
+    "「4月の募集枠の競争が最も激しい」—— 入管庁の脚注が述べているのは申請数の増加と審査期間の長期化までで、学校側の選考競争については何も言っていない。本文では「most competition for places」と書いているが、これは申請増加からの常識的な帰結であって出典の記述ではない。出典マーカーを付けていないのはそのため。",
+    "1月入学が「四つの中で最も安い」という断定の根拠 —— 課程が短い（1年3か月）ことは出典どおりだが、学費の金額はグループ站に公表がないため、金額としての比較はしていない。「課程が短いぶん安くなる」という構造の話に留めた。",
+    "他校が同じ入学期を持つかどうか —— 本記事の入学期データは千駄ヶ谷グループ三課程のものだけ。「多くの学校は4月と10月」という一般化は競品が多用するが、本サイトが実際に確認した範囲を超えるため書いていない。記事中も「within one group of three schools」と範囲を明示した。",
+    "7月・1月入学の在留審査が実際に何日短いか —— 入管庁は月次の平均日数を公表しているが、月をまたいで集計して差を示せばそれは当方の分析になる。脚注が述べる「4月・10月に向けて長期化する傾向」までに留めた。",
+    "各入学期の実際の募集状況（その年に本当に募集しているか）—— 年度ごとに変わり公表もされないため、「学校に直接聞け」とした。"
+  ]
+}

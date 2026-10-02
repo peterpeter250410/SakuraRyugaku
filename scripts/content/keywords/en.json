@@ -304,9 +304,10 @@
           "evidence": "competitor",
           "evidence_note": "jpss /life/1/1-3 分别覆盖在留卡、国保、开户，但三者的先后依赖关系（开户常需先有在留卡与住民登录）未见整合。差异化点在「顺序」。",
           "sources_required": [
-            "studyinjapan.go.jp"
+            "moj.go.jp"
           ],
-          "priority": 3
+          "priority": 3,
+          "_sources_note": "当初は studyinjapan.go.jp を想定していたが、在留カードの交付港・住居地の届出期限（14日）・マイナンバーカードの前後関係はいずれも出入国在留管理庁が一次資料であり、studyinjapan.go.jp には当該記述がない。実際に書ける出典に合わせて moj.go.jp に修正した。闸门を緩めたのではなく、こちらの当初の想定が外れていた。"
         },
         {
           "id": "dorm-vs-apartment",
@@ -315,9 +316,18 @@
           "intent": "informational",
           "evidence": "competitor",
           "evidence_note": "Coto 有 apartment-hunting 三部曲与 best-neighborhoods-to-live-tokyo，jpss 有 /life/2/1 找房。但「学校宿舍 vs 自租」的对比角度未见。",
-          "priority": 3
+          "priority": 3,
+          "sources_required": [
+            "official_school_site",
+            "moj.go.jp"
+          ]
         }
-      ]
+      ],
+      "sources_required": [
+        "official_school_site",
+        "moj.go.jp"
+      ],
+      "_sources_note": "当初このクラスタだけ sources_required が未設定で、白名単が空＝域名無制限になっていた。生活系の記事はまとめブログの二次情報で埋めやすく、制限が最も要る側だった。寮費などは校方官網、手続は入管庁に限定する。"
     }
   ],
   "rejected": [

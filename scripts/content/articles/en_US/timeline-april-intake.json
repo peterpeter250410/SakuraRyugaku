@@ -1,0 +1,67 @@
+{
+  "title": "April Intake Application Timeline: Working Backwards from Day One",
+  "slug": "april-intake-application-timeline",
+  "locale": "en_US",
+  "group": "timeline-april-intake",
+  "keyword_id": "timeline-april-intake",
+  "summary": "Built backwards from your first day of class, using only the deadlines that are actually published. The one date nobody publishes is the one you have to ask for.",
+  "body_html": "<p>Most timelines for this are built forwards from \"start researching\" and are therefore useless, because the thing that constrains you is at the other end.</p><p>So: backwards from your first day of class, using only published anchors. Where no anchor exists, we say so rather than inventing a number of months.</p><h2>Day one, and the fortnight after it</h2><p>You arrive, and a clock starts that has nothing to do with the school. Once you have decided where you live, you must report that address at the municipal office within 14 days. [source:1]</p><p>If you landed at a port where the residence card is issued on arrival, you are holding it. [source:1] If not, your passport says the card comes later, and it is issued after that address report and posted to the address you registered. [source:1]</p><p>So the first fortnight is spoken for. Do not plan to spend it flat-hunting.</p><h2>Roughly 2 months before: the dormitory is decided [source:2]</h2><p>If you are taking a school dormitory, the allocation lands here. One group states that about 2 months before enrolment you are told which of your three choices could be reserved, that cancelling after that incurs a fee, and that the invoice comes with the tuition invoice after the Certificate of Eligibility is issued. [source:2]</p><p>Two consequences for the timeline. The dormitory question has to be answered earlier than it feels — the school asks right after the admission screening. [source:2] And your dormitory payment is gated on the Certificate of Eligibility, so a slow certificate delays your accommodation too, not just your flight. [source:2]</p><h2>Before that: the certificate, and this is the loose end</h2><p>The standard processing period for the Certificate of Eligibility is 1 to 3 months. [source:3] That is the published range and it is wide.</p><p>For April specifically, it is worse than the average suggests. The agency notes in its own processing-time data that applications increase ahead of Japanese language school course openings in April and October, and that processing times for the Student status tend to lengthen as a result. [source:4]</p><p>Two things follow for an April plan.</p><p>Plan against 3 months, not against the published average. [source:3] The average covers granted applications in one month, and rejections and withdrawals are excluded from it. [source:4] Your case is one case in a specific, busy month.</p><p>And note that this is the step you have least control over. Everything downstream of it — visa, flight, dormitory payment, arrival — waits on a date nobody will give you in advance.</p><h2>Before that: the school files, and your Japanese is now checked</h2><p>You are almost certainly not the applicant. The certificate application can be filed by you, by a staff member of the institution receiving you, or by an approved filing agent. [source:3] For language school students it is the school.</p><p>This is where your real deadline lives, and it is the one date in this whole timeline that is not published anywhere: the date your school needs your documents in hand to make its own filing batch.</p><p>Ask for that date explicitly. Not \"when is the application deadline\" — schools answer that with their own enrolment deadline, which is later. Ask when they submit the certificate applications to immigration, and work to the version of your documents being complete before then.</p><p>One requirement at this stage is newer than most advice acknowledges. Evidencing your Japanese by a record of study hours is no longer accepted; a test certificate or confirmation by interview is required, and for certificate applications this applies to students planning to enrol from October 2026 onwards. [source:5] If it is the interview route, that interview is scored against a threshold your school sets. [source:5]</p><p>So \"get my documents together\" now includes a test result or a scheduled interview, and both of those have their own lead times that are not yours to compress.</p><h2>Before that: choosing, and the thing that is fixed</h2><p>Course length is set by your intake rather than chosen. On the preparation course at one group, April entry runs 2 years and October entry runs 1 year 6 months. [source:6] On its graduate-school course, April runs 2 years. [source:7]</p><p>April is also the only intake that every course in that group offers. [source:6] [source:7] If the course you want is unusual, April may be the only month it exists in — which removes the \"I'll aim for the quieter July intake\" option before you consider it.</p><h2>The timeline as a whole</h2><ul><li><strong>Day one:</strong> classes start.</li><li><strong>First 14 days after arrival:</strong> address report, in person, at the municipal office. [source:1]</li><li><strong>About 2 months before enrolment:</strong> dormitory allocation told to you; cancelling now costs. [source:2]</li><li><strong>Before that:</strong> certificate issued, then visa at the embassy, then dormitory invoice paid. [source:2]</li><li><strong>1 to 3 months earlier:</strong> certificate application filed — assume the long end for April. [source:3] [source:4]</li><li><strong>Before that:</strong> your documents complete at the school, including Japanese-ability evidence. [source:5] This date is not published. Ask for it.</li><li><strong>Before that:</strong> school chosen, course chosen, intake effectively chosen for you by the course. [source:6] [source:7]</li></ul><p>Notice what we have not done: given you a fixed number of months to start before. The honest answer is that the only unpublished date in the chain is your school's filing date, every published anchor sits downstream of it, and so the planning question is not \"how early\" but \"what does my school need, by when\".</p><p>For why the published processing average and the standard period disagree, see <a href=\"guides/certificate-of-eligibility-processing-time\">how long the certificate actually takes</a>. For how the four intake months differ, see <a href=\"guides/choosing-between-april-july-october-january-intake\">choosing an intake</a>. For the Japanese-ability step, see <a href=\"guides/japanese-proficiency-proof-student-visa-2026\">how that requirement is verified</a>. And for the arrival paperwork order, see <a href=\"guides/first-week-paperwork-order-language-school-student\">your first week</a>.</p><p>Processing figures are published monthly and move; course structures carry effective-from dates. The sources below are the authority, and applications are assessed case by case.</p>",
+  "sources": [
+    {
+      "url": "https://www.moj.go.jp/isa/publications/faq/newimmiact_4_port-city.html",
+      "title": "出入国港での手続 / 市区町村での手続 / 地方出入国在留管理官署での手続",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://group.jp-sji.org/dormitory/",
+      "title": "学生寮 | 千駄ヶ谷日本語教育研究所グループ",
+      "publisher": "千駄ヶ谷日本語教育研究所グループ",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/16-1.html",
+      "title": "在留資格認定証明書交付申請",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/content/001470530.pdf",
+      "title": "在留審査処理期間（日数）令和8年7月許可分",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/10_00258.html",
+      "title": "日本語教育機関に入学する者に係る運用の一部見直しについて",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://group.jp-sji.org/sjs/",
+      "title": "進学準備教育課程 | 千駄ヶ谷日本語教育研究所グループ",
+      "publisher": "千駄ヶ谷日本語教育研究所グループ",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://group.jp-sji.org/sji/",
+      "title": "大学院進学コース | 千駄ヶ谷日本語教育研究所グループ",
+      "publisher": "千駄ヶ谷日本語教育研究所グループ",
+      "accessed": "2026-10-02"
+    }
+  ],
+  "internal_links_used": [
+    "guides/certificate-of-eligibility-processing-time",
+    "guides/choosing-between-april-july-october-january-intake",
+    "guides/japanese-proficiency-proof-student-visa-2026",
+    "guides/first-week-paperwork-order-language-school-student"
+  ],
+  "claims_without_sources": [
+    "「◯か月前に動き出せ」という総リードタイム —— 出典のある区間（審査1〜3か月、寮の割当約2か月前、到着後14日）を足しても、学校の出願締切と書類取りまとめの期間が不明なため総計は出せない。記事の結論自体を「総リードタイムは出せない、学校の提出日を聞け」に置いた。推定月数を書けば読者はそれを締切として使うので、書かないほうが実用的でもある。",
+    "ビザ申請（在外公館）にかかる日数 —— 公館ごとに異なり、入管庁の出典では扱っていない。工程としてだけ置き、日数は書いていない。",
+    "学校の出願締切 —— 学校・年度ごとに異なり、千駄ヶ谷グループ站にも明記がない。「公表されていない、聞け」と書いた。",
+    "航空券手配・学費納入の時期 —— 寮費請求が在留資格認定証明書交付後であることは出典どおりだが、学費納入時期は学校ごとに異なり出典がないため触れていない。",
+    "4月入学の審査が具体的に何日長くなるか —— 入管庁の脚注は「長期化する傾向」とだけ述べ、幅を示していない。月次データを自分で集計して差を出せば当方の分析になるため、していない。",
+    "「8か月前／10か月前」という例示 —— 当初は「よくある総リードタイムの言い方」を否定するために書いたが、どちらの数字もどの出典にも存在しない当方の修辞であり、闸门に弾かれたのが正しい。数字を落として「固定の月数は示さない」と書き換えた。"
+  ]
+}

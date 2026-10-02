@@ -267,6 +267,29 @@ class SA_Source_Gate {
 				51, // CURLE_PEER_FAILED_VERIFICATION
 				60, // CURLE_SSL_CACERT             本机根证书过期
 				77, // CURLE_SSL_CACERT_BADFILE
+
+				/*
+				 * 転送が始まってから切れる系。当初はこの一群が抜けていた。
+				 *
+				 * 抜けていると何が起きるか —— 接続が途中で切れた回は
+				 * 「本文が空」になり、env_fail でないので
+				 * 「数字がページ上に無い」= 内容の誤りとして報告される。
+				 * これは終了コード 3 を作った理由そのものに反する嘘で、
+				 * しかも正しい記事を誤りに見せる方向の嘘。
+				 *
+				 * 実際に起きた：isi-education.com が
+				 * 「Recv failure: Connection reset by peer」（56）を返した回と、
+				 * group.jp-sji.org が HTTP 000・0 バイトを返した回。
+				 * 同じ記事を直後に再実行すると通るので、内容は正しかった。
+				 * 間欠的なので、気づかないまま「この数字は裏が取れない」と
+				 * 判断してしまう危険がある種類の故障。
+				 */
+				16, // CURLE_HTTP2
+				18, // CURLE_PARTIAL_FILE           途中で切れた
+				52, // CURLE_GOT_NOTHING            200 なのに空
+				55, // CURLE_SEND_ERROR
+				56, // CURLE_RECV_ERROR             Connection reset by peer
+				92, // CURLE_HTTP2_STREAM
 			),
 			true
 		);
@@ -512,7 +535,12 @@ class SA_Source_Gate {
 			'hour'  => array( 'hour', 'hours', '時間' ),
 			'week'  => array( 'week', 'weeks', 'weekly', '週間', '週' ),
 			'day'   => array( 'day', 'days', '日間', '日' ),
-			'month' => array( 'month', 'months', 'か月', 'ヶ月', '箇月', 'カ月' ),
+			/*
+			 * 「ヵ月」（U+30F5 小書きカ）は「ヶ月」（U+30F6）と別の文字。
+			 * 赤門会のコース一覧は「1年6ヵ月」と書いており、ヶ だけでは当たらない。
+			 * 見た目がほぼ同じぶん、抜けていても気づきにくい。
+			 */
+			'month' => array( 'month', 'months', 'か月', 'ヶ月', 'ヵ月', '箇月', 'カ月', 'ケ月' ),
 			'year'  => array( 'year', 'years', 'annual', 'annually', '年間', '年' ),
 			'yen'   => array( 'yen', 'JPY', '円' ),
 			'page'  => array( 'page', 'pages', 'ページ' ),
@@ -529,6 +557,40 @@ class SA_Source_Gate {
 			 */
 			'minute' => array( 'minute', 'minutes', 'min', '分' ),
 			'people' => array( 'student', 'students', 'people', 'places', '名', '人' ),
+			/*
+			 * 学校の「校」。
+			 *
+			 * 「文部科学省認定の準備教育課程がある日本語学校は約30校」のような
+			 * 数字は、学校選びの前提そのものを形づくる —— 30 を 300 と書けば
+			 * 「珍しい課程」が「ありふれた課程」に変わってしまう。
+			 * 量詞として登録しないと2桁・量詞なしで検査外に落ちる。
+			 */
+			'school' => array( 'school', 'schools', '校' ),
+			/*
+			 * 建物の「棟」。
+			 *
+			 * 「校舎から5～40分の距離に約30棟の寮があります」のような数字は、
+			 * 寮の選択肢がどれだけあるかを表す —— 30 棟と 3 棟では
+			 * 「希望を出せる」の意味が変わる。量詞に入れないと検査外に落ちる。
+			 */
+			'building' => array( 'building', 'buildings', 'block', 'blocks', '棟' ),
+			/*
+			 * パーセント。
+			 *
+			 * 変異テストで「more than 90 percent」を 70 に書き換えても
+			 * 闸门が何も言わないことを確認した —— percent が量詞表に無く、
+			 * 2桁・量詞なしで検査外に落ちていた。
+			 *
+			 * 学校が自ら掲げる就職率・進学率は、読者が школы を比べるときに
+			 * 最も重く見る数字で、しかも書き換えが一文字で済む。
+			 * 検査外にしておく理由がない。
+			 */
+			'percent' => array( 'percent', 'percentage', '%', '％', 'パーセント', '割' ),
+			/*
+			 * 寮。「２つの女子寮」のような数え方を拾うため。
+			 * 寮の棟数・女子寮の数は住む場所の選択肢そのもの。
+			 */
+			'dormitory' => array( 'dormitory', 'dormitories', 'dorm', 'dorms', '寮' ),
 		);
 	}
 
@@ -651,7 +713,26 @@ class SA_Source_Gate {
 		foreach ( $m[0] as $hit ) {
 			$raw    = $hit[0];
 			$offset = $hit[1];
-			$n      = str_replace( ',', '', $raw );
+
+			/*
+			 * 末尾のカンマは数字の一部ではなく句読点。
+			 *
+			 * \d[\d,]* は「2026,」まで一つのトークンとして飲む。すると直後の
+			 * 文字列が " schools that enrol…" になり、量詞判定が
+			 * 「2026 所の学校」と読んでしまう —— 実際に
+			 * 「From 2026, schools that enrol international students…」が
+			 * 公開済みの記事でこの誤判定を起こし、令和８年として整页照合で
+			 * 通っていた数字が落ちた。
+			 *
+			 * カンマは名詞句を切る。数字と量詞の間に句読点があれば、
+			 * その語は量詞ではない。1,728 のような内部のカンマは残す。
+			 */
+			$raw = rtrim( $raw, ',' );
+			if ( '' === $raw ) {
+				continue;
+			}
+
+			$n = str_replace( ',', '', $raw );
 
 			// 数字之后的一小段，用来判定量词（"28 hours" / "28-hour" / "780,000 yen"）。
 			$tail = mb_substr( substr( $s, $offset + strlen( $raw ) ), 0, 12, 'UTF-8' );
@@ -662,6 +743,37 @@ class SA_Source_Gate {
 					if ( preg_match( '/^[\s\-]*' . preg_quote( $w, '/' ) . '/iu', $tail ) ) {
 						$unit = $key;
 						break 2;
+					}
+				}
+			}
+
+			/*
+			 * 量詞が数字の前に来る書き方も拾う。
+			 *
+			 * 英語は「a capacity of 900」「rent of 40,000 yen」のように
+			 * 数える対象を先に言う。後ろだけ見ていると 900 は量詞なしの3桁として
+			 * 検査外に落ちる —— 変異テストで 900 を 800 に書き換えても
+			 * 闸门が黙っていることを確認した。
+			 *
+			 * 定員は学校を比べるときに最も見られる数字のひとつで、
+			 * 本体の量詞表に「名」「人」を入れたのと同じ理由から、
+			 * 英語側の言い方も拾わないと意味がない。
+			 *
+			 * 先行句は限定列挙にする。量詞表を丸ごと前方にも適用すると、
+			 * 「within 40 minutes of 30 buildings」のような文で
+			 * 誤った単位が付く方向に倒れる。
+			 */
+			if ( '' === $unit ) {
+				$head = mb_substr( substr( $s, max( 0, $offset - 24 ), min( 24, $offset ) ), -24, null, 'UTF-8' );
+				$lead = array(
+					'people'  => '(?:capacity|capacities|places|enrolment|enrollment)\s+(?:of|for|:)?\s*$',
+					'yen'     => '(?:rent|fee|fees|tuition|cost|price)\s+(?:of|from|:)?\s*$',
+					'percent' => '(?:rate|ratio)\s+(?:of|:)?\s*$',
+				);
+				foreach ( $lead as $key => $re ) {
+					if ( preg_match( '/' . $re . '/iu', $head ) ) {
+						$unit = $key;
+						break;
 					}
 				}
 			}
@@ -895,6 +1007,36 @@ class SA_Source_Gate {
 		 * 换句话说：邻接是首选证据，大数字的整页出现是次级证据，
 		 * 小数字没有次级证据可用。
 		 */
+		/*
+		 * 在留期間の「３月」。
+		 *
+		 * 日本の法令文は期間を「か月」ではなく「月」と書く ——
+		 * 資格外活動のページは「「３月」の在留期間が決定された場合を除く」。
+		 * 量詞表に裸の「月」を足せば拾えるが、それはやってはいけない：
+		 * 本文の「3 months」がページ上の「3月」（三月＝March）に当たってしまい、
+		 * 誤放行の方向に倒れる。1〜12 はすべて月名と衝突する。
+		 *
+		 * 代わりに、法令文がこの用法で必ず使うかぎ括弧付きの形だけを認める。
+		 * 誤放行には「ページがかぎ括弧付きで『N月』と書いており、かつ
+		 * それが月名の意味である」ことが必要で、その組み合わせは実際には起きにくい。
+		 * 全角数字と全角かぎ括弧の両方を試す。
+		 */
+		if ( 'month' === $unit ) {
+			$hay   = str_replace( ' ', '', $page );
+			$fw    = self::to_fullwidth( $num );
+			$forms = array(
+				'「' . $num . '月」',
+				'「' . $fw . '月」',
+				$num . '月の在留期間',
+				$fw . '月の在留期間',
+			);
+			foreach ( array_unique( $forms ) as $f ) {
+				if ( false !== strpos( $hay, str_replace( ' ', '', $f ) ) ) {
+					return true;
+				}
+			}
+		}
+
 		if ( strlen( $num ) >= 5 ) {
 			$hay = str_replace( ',', '', $page );
 			foreach ( $candidates as $c ) {

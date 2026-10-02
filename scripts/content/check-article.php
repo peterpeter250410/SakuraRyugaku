@@ -211,6 +211,49 @@ exit( 0 );
  * @param string $keyword_id keyword id。
  * @return array<int,string>
  */
+/**
+ * 收录校の官網ドメイン一覧（scripts/schools.json の official_url から）。
+ *
+ * ここを手で列挙しないのは、学校を追加したときに更新を忘れるから。
+ * 忘れた結果どうなるかというと、正しく官網を引いた記事が
+ * 「域名が範囲外」で落ちる —— 誤拦截も故障であって、
+ * しかも原因が分かりにくい方向の故障になる。
+ *
+ * @return array<int,string>
+ */
+function school_official_domains() {
+	static $cache = null;
+	if ( null !== $cache ) {
+		return $cache;
+	}
+
+	$cache = array();
+	$file  = dirname( SA_CONTENT_DIR ) . '/schools.json';
+	if ( ! file_exists( $file ) ) {
+		return $cache;
+	}
+
+	$data = json_decode( (string) file_get_contents( $file ), true );
+	$rows = isset( $data['schools'] ) ? $data['schools'] : $data;
+	if ( ! is_array( $rows ) ) {
+		return $cache;
+	}
+
+	foreach ( $rows as $s ) {
+		if ( ! is_array( $s ) || empty( $s['official_url'] ) ) {
+			continue;
+		}
+		$host = parse_url( (string) $s['official_url'], PHP_URL_HOST );
+		if ( $host ) {
+			// www. は host_allowed() が後方一致で見るので落としておく。
+			$cache[] = preg_replace( '/^www\./i', '', $host );
+		}
+	}
+
+	$cache = array_values( array_unique( $cache ) );
+	return $cache;
+}
+
 function allowed_domains_for( $keyword_id ) {
 	if ( '' === $keyword_id ) {
 		return array();
@@ -228,10 +271,31 @@ function allowed_domains_for( $keyword_id ) {
 					continue;
 				}
 				$dom = isset( $k['sources_required'] ) ? (array) $k['sources_required'] : $c_dom;
-				// official_school_site 是占位符不是域名，去掉。
-				return array_values( array_filter( $dom, function ( $d ) {
-					return 'official_school_site' !== $d;
-				} ) );
+
+				/*
+				 * official_school_site は域名ではなく「校方官网であること」という指定。
+				 *
+				 * 以前はこれを単に捨てていた。結果、たとえば
+				 * schools-with-dormitory（sources_required が
+				 * official_school_site だけ）の白名単は空になり、
+				 * 「域名を制限しない」と同じ扱いになっていた。
+				 *
+				 * これは一番弱い方向に倒れている。学校を列挙する記事こそ、
+				 * まとめブログや留学斡旋業者の二次情報で埋められやすい。
+				 * 指定が最も効くべき選題で、実際には何も効いていなかった。
+				 *
+				 * schools.json の official_url から実際の校方ドメインに展開する。
+				 * 収録校の官網だけが通り、二次情報は落ちる。
+				 */
+				$out = array();
+				foreach ( $dom as $d ) {
+					if ( 'official_school_site' === $d ) {
+						$out = array_merge( $out, school_official_domains() );
+						continue;
+					}
+					$out[] = $d;
+				}
+				return array_values( array_unique( $out ) );
 			}
 		}
 	}

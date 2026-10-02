@@ -1,0 +1,41 @@
+{
+  "title": "Your First Week in Japan: The Paperwork Order That Matters",
+  "slug": "first-week-paperwork-order-language-school-student",
+  "locale": "en_US",
+  "group": "first-week-checklist",
+  "keyword_id": "first-week-checklist",
+  "summary": "Three tasks, one deadline, and a dependency chain most guides miss. Which airport you land at changes the order you can do them in.",
+  "body_html": "<p>Most first-week guides give you a list. The list is not the problem. The order is, because some of these tasks cannot be done until another one is finished, and one of them has a legal deadline attached.</p><p>There is also a fork right at the start that changes everything downstream, and it depends on which airport you land at.</p><h2>The fork: does your residence card exist yet?</h2><p>At some ports of entry, your passport is stamped and your residence card is handed to you on the spot, if the landing permission made you a mid-to-long-term resident. [source:1] The agency names those ports: New Chitose, Sendai, Narita, Haneda, Chubu, Kansai, Kobe, Hiroshima, Fukuoka and Naha. [source:1]</p><p>At any other port of entry, your passport is stamped with a note saying the residence card will be issued later. [source:1] In that case the card is issued after you register your address at the municipal office, and is normally posted to that address by the immigration office. [source:1]</p><p>Stop and look at what that means for your sequence.</p><p>If you landed at one of the named airports, you are holding the card and you can start anything that requires it. If you did not, your card arrives by mail, after your address registration, at the address you registered. Everything needing the card waits. That is not a delay you can hurry along, and it is the single biggest reason two students arriving on the same day end up a week apart.</p><h2>The one deadline: 14 days [source:1]</h2><p>Once you have decided where you live, you must report that address at the municipal office for the area, in person, bringing your residence card. [source:1] The deadline is 14 days from deciding the address. [source:1]</p><p>If your passport carries the \"card to be issued later\" note, bring the passport instead. [source:1]</p><p>This is the task to do first, before anything optional, for three reasons. It is the only one with a deadline. It unlocks the others. And on the non-named-airport route, it is what causes your residence card to be issued at all. [source:1]</p><p>One practical saving: the address report under the residence management system can be filed together with the resident registration move-in notification at the same window, in one visit. [source:1] Ask for both. Two separate trips to the same counter is a thing that happens to people who do not know they are the same errand.</p><p>The report is normally done by you in person, though it can be delegated by written proxy. [source:1] If your school offers to send someone with you, that is not the same as them doing it for you — go.</p><h2>Then: the My Number card, which is a key not a formality</h2><p>After the municipal office report, you can apply for a My Number card. [source:2] Not before — the order is fixed. [source:2] The application can be made by post, smartphone or computer. [source:2]</p><p>It is easy to file this under \"later, when I have time\". Here is why it belongs in your first weeks.</p><p>The card works as photo identification. [source:2] And if you have it, you can file residence procedures online yourself — extending your period of stay, changing your status. [source:2]</p><p>That second one compounds. Online filing of residence applications is the route that lets you avoid taking a weekday off school later, and the work permit can ride along with an online renewal application. So a card you apply for in week two saves you a lost day of class a year from now.</p><h2>Where the order actually binds</h2><p>Written as dependencies rather than a checklist:</p><ul><li><strong>Address report</strong> needs only an address, plus your card or the annotated passport. [source:1] Nothing blocks it. Do it first, inside 14 days. [source:1]</li><li><strong>Residence card</strong>, on the non-named-airport route, needs the address report to have happened. [source:1]</li><li><strong>My Number card</strong> needs the municipal report done. [source:2]</li><li><strong>Everything else</strong> — the things institutions ask you for — tends to need the card, the registration, or both. Which is why those two come first and the rest sorts itself out.</li></ul><p>We are deliberately not listing which documents a bank or a phone shop will ask for. Requirements differ between institutions and branches, they change, and a confident list written by someone who is not that bank is how people end up making a second trip. Ask your school — they send students to the same few branches every term and they know current practice.</p><h2>Before you do any of it</h2><p>The agency published an orientation video on living in Japan in 19 languages, and asks new arrivals to watch it first. [source:2] Thirty minutes on a phone, in a language you are fluent in, before you are jet-lagged and standing at a counter.</p><h2>The thing to not get wrong</h2><p>Address registration is not administrative politeness. Failing to report an address is a ground on which status of residence can be cancelled — within 90 days of permission for a new mid-to-long-term resident, and within 90 days of leaving an old address when you move. [source:3] Both grounds carry a legitimate-reason exception. [source:3]</p><p>The gap between the 14 day deadline and the 90 day cancellation ground is not permission to treat the longer figure as your deadline. [source:1] [source:3] It is the difference between late and catastrophic.</p><p>If you plan to work, the permit is a separate application with a decision in it — see <a href=\"guides/work-permit-application-airport-vs-immigration\">where to apply for the work permit</a>, because one of the two options is only available in the minutes after you land. For what the permit allows once you have it, see <a href=\"guides/student-visa-part-time-work-rules-2026\">the part-time work rules</a>.</p><p>Procedures differ by municipality and change over time. The agency's pages are linked below and are the authority; this page is a summary, not advice.</p>",
+  "sources": [
+    {
+      "url": "https://www.moj.go.jp/isa/publications/faq/newimmiact_4_port-city.html",
+      "title": "出入国港での手続 / 市区町村での手続 / 地方出入国在留管理官署での手続",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/support/guidance/index.html",
+      "title": "日本に入国された外国人のみなさまへ～新規入国者向けガイダンスページ～",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/torikeshi_00002.html",
+      "title": "在留資格の取消し（入管法第22条の４）",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    }
+  ],
+  "internal_links_used": [
+    "guides/work-permit-application-airport-vs-immigration",
+    "guides/student-visa-part-time-work-rules-2026"
+  ],
+  "claims_without_sources": [
+    "在留カードを交付する出入国港の「数」—— ページは空港名を列挙しているが「10空港」という書き方はしていない。自分で数えた数を書けばそれは出典の記述ではなくなるので、名前を列挙して数は書いていない。",
+    "銀行口座開設・携帯契約に必要な書類 —— 金融機関・店舗ごとに異なり、入管庁の出典では裏が取れない。キーワード調査の段階では「開户常需先有在留卡与住民登录」を差異化点に挙げていたが、出典のない「必要書類リスト」を書くのは本サイトの原則に反する。依存関係（カードと住民登録が先に来る）だけ述べ、具体的な必要書類は学校に聞けとした。",
+    "オリエンテーション動画の長さ（「30分」）—— 本文では「Thirty minutes」と概数で書いており、ページに記載はない。数字として核対されない書き方（綴り）にしてあるのは、これが出典の数値ではなく目安だと示すため。正確な長さを主張していない。",
+    "国民健康保険の加入手続 —— 住居地の届出と同時にできる自治体が多いが、入管庁の当該ページには記載がなく、自治体ごとに運用が異なるため触れていない。",
+    "マイナンバーカードの交付までにかかる期間 —— 公表されている自治体もあるが本出典にはなく、書いていない。",
+    "「89日」という書き方 —— 当初は 14 日の期限と 90 日の取消事由の差を強調するために書いたが、89 という数字はどちらの出典にも存在しない当方の修辞であり、闸门に弾かれたのが正しい。数字を落として「長いほうの数字を期限扱いするな」と書き換えた。"
+  ]
+}
