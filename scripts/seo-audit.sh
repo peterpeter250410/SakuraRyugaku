@@ -720,84 +720,96 @@ if [ "$(status_of "$ART_SITEMAP")" = "200" ]; then
             ok "无带语种后缀的疑似重复文章 URL"
         fi
 
-        ART_FIRST=$(printf '%s\n' "$ART_URLS" | head -1)
-        fetch "$ART_FIRST" "${TMP}/article.html"
-        ART_TXT=$(tr '\n' ' ' < "${TMP}/article.html" 2>/dev/null)
+        # 構造チェックは全記事に回す。
+        #
+        # 以前は sitemap の先頭1本だけを見ていた。記事が5本のうちは実害が
+        # 薄かったが、25本になり記事間の相互リンクが密になった時点で
+        # 「17本目の内部リンクが404」を検出できない検査になっていた。
+        # 実際、公開直後に手で全25本を回して確認する作業が発生した ——
+        # 手でやる必要があったということは、検査がその仕事をしていない。
+        #
+        # 1本あたり1リクエスト。内部リンクは全記事ぶんを集めてから
+        # 重複を除いて一度ずつ叩くので、本数に対して線形で収まる。
+        ART_BAD_CANON=0; ART_BAD_MARK=0; ART_BAD_SRC=0; ART_BAD_SCHEMA=0
+        ART_BAD_AUTHOR=0; ART_BAD_CITE=0; ART_BAD_DESC=0; ART_DESC_MIN=99999
+        : > "${TMP}/art-links.txt"
+        : > "${TMP}/art-hreflang.txt"
 
-        # canonical 必须恰好一条：主题自带一条，WP 核心的 rel_canonical 也会输出一条，
-        # 两条同时存在过（已修），这里守住。
-        ART_CANON_N=$(printf '%s' "$ART_TXT" | grep -o 'rel="canonical"' | wc -l | tr -d ' ')
-        if [ "$ART_CANON_N" = "1" ]; then
-            ok "文章页 canonical 恰好 1 条"
-        else
-            bad "文章页 canonical ${ART_CANON_N} 条（应为 1）: ${ART_FIRST}"
-        fi
+        ART_I=0
+        while IFS= read -r ART_U; do
+            [ -z "$ART_U" ] && continue
+            ART_I=$((ART_I + 1))
+            fetch "$ART_U" "${TMP}/article.html"
+            ART_TXT=$(tr '\n' ' ' < "${TMP}/article.html" 2>/dev/null)
 
-        # [source:N] 是给闸门用的机器标记，发布时应被剥掉。漏在正文里读者会困惑。
-        ART_MARKERS=$(printf '%s' "$ART_TXT" | grep -o '\[source:[0-9]*\]' | wc -l | tr -d ' ')
-        if [ "$ART_MARKERS" = "0" ]; then
-            ok "正文无残留 [source:N] 标记"
-        else
-            bad "正文残留 ${ART_MARKERS} 处 [source:N] 标记: ${ART_FIRST}"
-        fi
+            # canonical は主題と WP 核心の二重出力が実際に起きたので本数を見る。
+            N=$(printf '%s' "$ART_TXT" | grep -o 'rel="canonical"' | wc -l | tr -d ' ')
+            [ "$N" = "1" ] || { bad "canonical ${N} 条（应为 1）: ${ART_U}"; ART_BAD_CANON=$((ART_BAD_CANON+1)); }
 
-        # 出处区块。文章里的数字都标了来源，页面上必须让读者看得到出处。
-        if printf '%s' "$ART_TXT" | grep -q 'sa-article__sources'; then
-            ok "出处区块已渲染"
-        else
-            bad "文章页缺少出处区块: ${ART_FIRST}"
-        fi
+            # [source:N] は闸门用の機械標記。発布時に剥がれていなければ読者が困る。
+            N=$(printf '%s' "$ART_TXT" | grep -o '\[source:[0-9]*\]' | wc -l | tr -d ' ')
+            [ "$N" = "0" ] || { bad "残留 [source:N] ${N} 处: ${ART_U}"; ART_BAD_MARK=$((ART_BAD_MARK+1)); }
 
-        # Article + citation 结构化数据，且 author 必须是组织而非编造的人名。
-        if printf '%s' "$ART_TXT" | grep -q '"@type":"Article"'; then
-            ok "Article 结构化数据存在"
-            printf '%s' "$ART_TXT" | grep -q '"citation"' \
-                && ok "结构化数据含 citation（出处）" \
-                || warn "结构化数据缺 citation: ${ART_FIRST}"
-            if printf '%s' "$ART_TXT" | grep -qE '"author":\{"@type":"(Organization|Person)"'; then
-                printf '%s' "$ART_TXT" | grep -q '"author":{"@type":"Organization"' \
-                    && ok "author 为 Organization（未编造人名署名）" \
-                    || bad "author 为 Person —— 本站文章无真实作者本人，不应署人名: ${ART_FIRST}"
+            printf '%s' "$ART_TXT" | grep -q 'sa-article__sources' \
+                || { bad "缺出处区块: ${ART_U}"; ART_BAD_SRC=$((ART_BAD_SRC+1)); }
+
+            if printf '%s' "$ART_TXT" | grep -q '"@type":"Article"'; then
+                printf '%s' "$ART_TXT" | grep -q '"citation"' \
+                    || { warn "结构化数据缺 citation: ${ART_U}"; ART_BAD_CITE=$((ART_BAD_CITE+1)); }
+                # 本站の記事に実在の著者はいない。人名署名は事実に反する。
+                if printf '%s' "$ART_TXT" | grep -q '"author":{"@type":"Person"'; then
+                    bad "author 为 Person（本站无真实作者本人）: ${ART_U}"; ART_BAD_AUTHOR=$((ART_BAD_AUTHOR+1))
+                fi
+            else
+                bad "缺 Article 结构化数据: ${ART_U}"; ART_BAD_SCHEMA=$((ART_BAD_SCHEMA+1))
             fi
-        else
-            bad "文章页缺少 Article 结构化数据: ${ART_FIRST}"
-        fi
 
-        # meta description 截断检查。
-        # wp_trim_words() 的词／字计数随语言包切换，曾在 /en/ 上把描述切在 60 字符处（已修）。
-        ART_DESC=$(printf '%s' "$ART_TXT" | grep -o '<meta name="description" content="[^"]*"' | head -1 | sed 's/.*content="//; s/"$//')
-        # 先还原 HTML 实体再量长度：一个撇号在页面上是 &#039;（6 字符），
-        # 直接数会把 156 字符的描述报成 161，让人以为超限去改一个不存在的问题。
-        ART_DESC=$(printf '%s' "$ART_DESC" | sed "s/&#0\{0,3\}39;/'/g; s/&apos;/'/g; s/&quot;/\"/g; s/&#8230;/…/g; s/&lt;/</g; s/&gt;/>/g; s/&amp;/\&/g")
-        ART_DESC_LEN=$(printf '%s' "$ART_DESC" | wc -m | tr -d ' ')
-        if [ "$ART_DESC_LEN" -lt 50 ]; then
-            bad "文章 meta description 仅 ${ART_DESC_LEN} 字符，疑被截断: ${ART_FIRST}"
-        else
-            case "$ART_DESC" in
-                *…|*...) warn "文章 meta description 以省略号结尾（${ART_DESC_LEN} 字符），确认是否被截断" ;;
-                *) ok "文章 meta description 完整（${ART_DESC_LEN} 字符）" ;;
-            esac
-        fi
+            # meta description。実体を戻してから数える（&#039; は6文字）。
+            D=$(printf '%s' "$ART_TXT" | grep -o '<meta name="description" content="[^"]*"' | head -1 | sed 's/.*content="//; s/"$//')
+            D=$(printf '%s' "$D" | sed "s/&#0\{0,3\}39;/'/g; s/&apos;/'/g; s/&quot;/\"/g; s/&#8230;/…/g; s/&lt;/</g; s/&gt;/>/g; s/&amp;/\&/g")
+            DL=$(printf '%s' "$D" | wc -m | tr -d ' ')
+            [ "$DL" -lt "$ART_DESC_MIN" ] && ART_DESC_MIN=$DL
+            if [ "$DL" -lt 50 ]; then
+                bad "meta description 仅 ${DL} 字符，疑被截断: ${ART_U}"; ART_BAD_DESC=$((ART_BAD_DESC+1))
+            else
+                case "$D" in
+                    *…|*...) warn "meta description 以省略号结尾（${DL} 字符）: ${ART_U}" ;;
+                esac
+            fi
 
-        # 正文内的站内链接必须带语种前缀，否则落到日文页或 404。
+            printf '%s' "$ART_TXT" | grep -o 'href="'"${SITE_URL}"'/en/[^"]*"' \
+                | sed 's/href="//; s/"$//' >> "${TMP}/art-links.txt"
+            printf '%s' "$ART_TXT" | grep -o 'rel="alternate" hreflang="[^"]*" href="[^"]*"' \
+                | sed 's/.*href="//; s/"$//' >> "${TMP}/art-hreflang.txt"
+        done <<EOF_ARTS
+${ART_URLS}
+EOF_ARTS
+
+        [ "$ART_BAD_CANON" = "0" ]  && ok "全 ${ART_I} 篇 canonical 恰好 1 条"
+        [ "$ART_BAD_MARK" = "0" ]   && ok "全 ${ART_I} 篇无残留 [source:N] 标记"
+        [ "$ART_BAD_SRC" = "0" ]    && ok "全 ${ART_I} 篇出处区块已渲染"
+        [ "$ART_BAD_SCHEMA" = "0" ] && ok "全 ${ART_I} 篇含 Article 结构化数据"
+        [ "$ART_BAD_CITE" = "0" ]   && ok "全 ${ART_I} 篇结构化数据含 citation"
+        [ "$ART_BAD_AUTHOR" = "0" ] && ok "全 ${ART_I} 篇 author 非 Person（未编造人名署名）"
+        [ "$ART_BAD_DESC" = "0" ]   && ok "全 ${ART_I} 篇 meta description 完整（最短 ${ART_DESC_MIN} 字符）"
+
+        # 内部リンクと hreflang は重複を除いて一度ずつ。
+        # 記事間の相互リンクは同じ URL を何度も指すので、重複を除かないと
+        # 記事数の二乗に近い回数叩くことになる。
+        ART_LINKS_U=$(sort -u "${TMP}/art-links.txt" 2>/dev/null | grep -c . | tr -d ' ')
         ART_BAD_LINKS=0
-        for L in $(printf '%s' "$ART_TXT" | grep -o 'href="'"${SITE_URL}"'/en/[^"]*"' | sed 's/href="//; s/"$//' | sort -u); do
+        for L in $(sort -u "${TMP}/art-links.txt" 2>/dev/null); do
             LC=$(status_of "$L")
-            if [ "$LC" != "200" ]; then
-                bad "文章内链 ${LC}: ${L}"
-                ART_BAD_LINKS=$((ART_BAD_LINKS + 1))
-            fi
+            [ "$LC" = "200" ] || { bad "文章内链 ${LC}: ${L}"; ART_BAD_LINKS=$((ART_BAD_LINKS+1)); }
         done
-        [ "$ART_BAD_LINKS" = "0" ] && ok "文章内链全部可访问"
+        [ "$ART_BAD_LINKS" = "0" ] && ok "文章内链全部可访问（去重后 ${ART_LINKS_U} 条）"
 
-        # hreflang 只应输出同一翻译组里真实存在的语种。
-        # 指向不存在的译文等于给搜索引擎一批 404，而文章目前只有英文版。
-        for HL in $(printf '%s' "$ART_TXT" | grep -o 'rel="alternate" hreflang="[^"]*" href="[^"]*"' | sed 's/.*href="//; s/"$//' | sort -u); do
+        ART_BAD_HL=0
+        for HL in $(sort -u "${TMP}/art-hreflang.txt" 2>/dev/null); do
             HLC=$(status_of "$HL")
-            [ "$HLC" = "200" ] \
-                && ok "hreflang 目标可访问: ${HL}" \
-                || bad "hreflang 指向 ${HLC}: ${HL}"
+            [ "$HLC" = "200" ] || { bad "hreflang 指向 ${HLC}: ${HL}"; ART_BAD_HL=$((ART_BAD_HL+1)); }
         done
+        [ "$ART_BAD_HL" = "0" ] && ok "hreflang 目标全部可访问"
     fi
 else
     info "文章 sitemap 不可访问（若尚无已发布文章，属正常）"
