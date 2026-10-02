@@ -538,6 +538,27 @@ class SA_Source_Gate {
 		// 时刻已单独处理，从文本里剔除，避免再被当成两个普通数字。
 		$s = preg_replace( '/\b\d{1,2}:\d{2}\b/u', ' ', $s );
 
+		/*
+		 * 語学レベルの記号（A1〜C2 / N1〜N5）。
+		 *
+		 * 「A1」の 1 は単独の数字として扱われ、1桁・量詞なしでスキップされる。
+		 * つまり A1 を A2 に書き換えても闸门は何も言わない —— 実際に素通りした。
+		 *
+		 * だが A1 と A2 は別の水準であり、入学要件としては実質的な違いになる。
+		 * 日本語学校を扱うサイトでは CEFR と JLPT の級は常時出てくるので、
+		 * 「記号だから数字ではない」で検査外にしてよいものではない。
+		 */
+		preg_match_all( '/\b([A-C][1-2]|N[1-5])\b/u', $s, $lv, PREG_SET_ORDER );
+		foreach ( $lv as $l ) {
+			$key = $l[0] . '|level';
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$out[] = array( 'num' => $l[0], 'unit' => 'level', 'raw' => $l[0] );
+		}
+		$s = preg_replace( '/\b([A-C][1-2]|N[1-5])\b/u', ' ', $s );
+
 		preg_match_all( '/\d[\d,]*/u', $s, $m, PREG_OFFSET_CAPTURE );
 
 		$syn = self::unit_synonyms();
@@ -611,6 +632,29 @@ class SA_Source_Gate {
 		 *
 		 * 先頭ゼロの有無（9:15 と 09:15）も両方試す。
 		 */
+		/*
+		 * 語学レベル記号。全角で書かれることが多い ——
+		 * 入管庁の通知は「Ａ１相当」で、半角の A1 はページ全体に存在しない。
+		 * 英字も数字も全角化した形を試す。
+		 */
+		if ( 'level' === $unit ) {
+			$fw_alpha = array( 'A' => 'Ａ', 'B' => 'Ｂ', 'C' => 'Ｃ', 'N' => 'Ｎ' );
+			$letter   = substr( $num, 0, 1 );
+			$digit    = substr( $num, 1 );
+			$forms    = array(
+				$num,
+				( isset( $fw_alpha[ $letter ] ) ? $fw_alpha[ $letter ] : $letter ) . self::to_fullwidth( $digit ),
+				$letter . self::to_fullwidth( $digit ),
+				( isset( $fw_alpha[ $letter ] ) ? $fw_alpha[ $letter ] : $letter ) . $digit,
+			);
+			foreach ( array_unique( $forms ) as $f ) {
+				if ( false !== strpos( $page, $f ) ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		if ( 'time' === $unit ) {
 			$parts = explode( ':', $num );
 			$h     = (int) $parts[0];
