@@ -25,7 +25,10 @@
     "programs": [
       {
         "name": "2年コース",
-        "name_i18n": { "zh": "2 年课程", "en": "2-year course" },
+        "name_i18n": {
+          "zh": "2 年课程",
+          "en": "2-year course"
+        },
         "duration": "2年",
         "tuition_min": 1732500,
         "tuition_max": 1732500,
@@ -34,7 +37,10 @@
       },
       {
         "name": "1年9か月コース",
-        "name_i18n": { "zh": "1 年 9 个月课程", "en": "1 year 9 months course" },
+        "name_i18n": {
+          "zh": "1 年 9 个月课程",
+          "en": "1 year 9 months course"
+        },
         "duration": "1年9か月",
         "tuition_min": 1526250,
         "tuition_max": 1526250,
@@ -43,7 +49,10 @@
       },
       {
         "name": "1年6か月コース",
-        "name_i18n": { "zh": "1 年 6 个月课程", "en": "1 year 6 months course" },
+        "name_i18n": {
+          "zh": "1 年 6 个月课程",
+          "en": "1 year 6 months course"
+        },
         "duration": "1年6か月",
         "tuition_min": 1320000,
         "tuition_max": 1320000,
@@ -52,7 +61,10 @@
       },
       {
         "name": "1年3か月コース",
-        "name_i18n": { "zh": "1 年 3 个月课程", "en": "1 year 3 months course" },
+        "name_i18n": {
+          "zh": "1 年 3 个月课程",
+          "en": "1 year 3 months course"
+        },
         "duration": "1年3か月",
         "tuition_min": 1113750,
         "tuition_max": 1113750,
@@ -61,7 +73,10 @@
       },
       {
         "name": "9か月コース",
-        "name_i18n": { "zh": "9 个月课程", "en": "9-month course" },
+        "name_i18n": {
+          "zh": "9 个月课程",
+          "en": "9-month course"
+        },
         "duration": "9か月",
         "tuition_min": 701250,
         "tuition_max": 701250,
@@ -70,9 +85,8 @@
       }
     ]
   },
-
   {
-    "_comment": "ISI日本語学校 —— 数据来自官网 /ja/course/tuition-fee/（2026-09 抓取）。学费为「初年度 年間学費」即年额，非课程总额。五个校舎分组的金额均经算术核验：合計 = 検定料+入学金+授業料+教材費+施設運営管理費，五列全部自洽，无需反推。短期コース（10週間単位）官网有两组数值不同、表头相同的表，无法判断区别（可能是不同年度或不同入学期），故未录入。",
+    "_comment": "ISI日本語学校 —— 数据来自官网 /ja/course/tuition-fee/（2026-09 抓取）。学费为「初年度 年間学費」即年额，非课程总额。五个校舎分组的金额均经算术核验：合計 = 検定料+入学金+授業料+教材費+施設運営管理費，五列全部自洽，无需反推。短期コース（10週間単位）官网有两组数值不同、表头相同的表，无法判断区别（可能是不同年度或不同入学期），故未录入。　※『ISIランゲージスクール』は本校と同一事業体。日本語教育振興協会の名簿には 『ISIランゲージスクール大阪校』（番号 B510）等として登録されているが、その名簿上の URL は ISI日本語学校の大阪校ページを指し、ISI 自身のグループ校一覧（isi-education.com/ja/about/isi-group-schools）にも 『ISIランゲージスクール』という独立校は掲載されていない。登録名と対外ブランド名の違いであり、別レコードは作らない（2026-10-02 確認）。",
     "slug": "isi-japanese-language-school",
     "name": "ISI日本語学校",
     "name_i18n": {
@@ -97,7 +111,10 @@
     "programs": [
       {
         "name": "進学日本語コース",
-        "name_i18n": { "zh": "升学日语课程", "en": "Academic Japanese course" },
+        "name_i18n": {
+          "zh": "升学日语课程",
+          "en": "Academic Japanese course"
+        },
         "duration": "長期",
         "tuition_min": 905000,
         "tuition_max": 1115000,
@@ -106,7 +123,10 @@
       },
       {
         "name": "日本語キャリアコース",
-        "name_i18n": { "zh": "日语 Career 课程（就职方向）", "en": "Japanese Career course" },
+        "name_i18n": {
+          "zh": "日语 Career 课程（就职方向）",
+          "en": "Japanese Career course"
+        },
         "duration": "長期",
         "tuition_min": 1055000,
         "tuition_max": 1055000,
@@ -115,7 +135,6 @@
       }
     ]
   },
-
   {
     "_comment": "赤門会日本語学校 —— 课程结构来自官网 /course/all.html（2026-09 抓取）。该页只有課程・入学時期・日本語レベル，没有金额：菜单项写作「コース案内&学費」但学费实际在各课程子页面。待抓 /course/general.html 与 /course/preparation.html 后补 tuition。注意 準備教育課程 是文部科学省指定课程，面向中等教育不满12年者取得日本大学入学资格 —— 对中国的中专・职高毕业生是实际需求，是一个明确的长尾入口。",
     "slug": "akamonkai-japanese-language-school",
@@ -142,7 +161,10 @@
     "programs": [
       {
         "name": "一般留学コース",
-        "name_i18n": { "zh": "一般留学课程", "en": "General study abroad course" },
+        "name_i18n": {
+          "zh": "一般留学课程",
+          "en": "General study abroad course"
+        },
         "duration": "～2年",
         "language_req": "",
         "tuition_min": 0,
@@ -152,7 +174,10 @@
       },
       {
         "name": "準備教育課程（文部科学省指定）",
-        "name_i18n": { "zh": "准备教育课程（文部科学省指定）", "en": "Preparatory education course (MEXT-designated)" },
+        "name_i18n": {
+          "zh": "准备教育课程（文部科学省指定）",
+          "en": "Preparatory education course (MEXT-designated)"
+        },
         "duration": "1年6ヵ月 または 2年",
         "language_req": "",
         "tuition_min": 0,
@@ -162,7 +187,10 @@
       },
       {
         "name": "ビジネス就職クラス",
-        "name_i18n": { "zh": "商务就职班", "en": "Business employment class" },
+        "name_i18n": {
+          "zh": "商务就职班",
+          "en": "Business employment class"
+        },
         "duration": "6か月～1年",
         "language_req": "N2",
         "tuition_min": 0,
@@ -172,8 +200,7 @@
       }
     ]
   },
-
-    {
+  {
     "_comment": "京進ランゲージアカデミー（KLA）—— 学费来自官网 /ja/admissions/tuition/（2026-09 抓取），经三重核验：税抜小計×10% = 表列消費税；小計+税 = 表列合計；且「6か月分 544,500 + 半年後 434,500 = 979,000」与一年一括完全相等。含検定料・入学金（均为一次性），故记为初年度年额。校舎は新宿・OLJ・名古屋北・琵琶湖・京都中央・大阪浪花・大阪中央・神戸の8校（2026-09 官网确认）。官网有简体中文版 /cn/，对中国学生是实际便利。",
     "slug": "kyoshin-language-academy",
     "name": "京進ランゲージアカデミー",
@@ -199,7 +226,10 @@
     "programs": [
       {
         "name": "長期コース（進学）",
-        "name_i18n": { "zh": "长期课程（升学）", "en": "Long-term course (university preparation)" },
+        "name_i18n": {
+          "zh": "长期课程（升学）",
+          "en": "Long-term course (university preparation)"
+        },
         "duration": "1年〜",
         "tuition_min": 979000,
         "tuition_max": 979000,
@@ -208,7 +238,6 @@
       }
     ]
   },
-
   {
     "_comment": "千駄ヶ谷グループ 1/3 —— 该校未在官网公开学费（2026-09 人工确认：group.jp-sji.org 下没有价格页面；此前推测的「JS 渲染」并不成立，是根本没有这个页面）。模板已支持：无学费时不显示学费列，改为指向官网募集要項。校名・课程・定员・入学期均已核实，可以发布。",
     "slug": "sendagaya-japanese-school",
@@ -235,7 +264,10 @@
     "programs": [
       {
         "name": "進学準備教育課程",
-        "name_i18n": { "zh": "升学准备教育课程", "en": "University preparation programme" },
+        "name_i18n": {
+          "zh": "升学准备教育课程",
+          "en": "University preparation programme"
+        },
         "duration": "",
         "tuition_min": 0,
         "tuition_max": 0,
@@ -244,7 +276,6 @@
       }
     ]
   },
-
   {
     "_comment": "千駄ヶ谷グループ 2/3 —— 大学院進学コース。N1 以上是官网明确写出的要求。该校未在官网公开学费（同 1/3）。",
     "slug": "sendagaya-japanese-institute",
@@ -271,7 +302,10 @@
     "programs": [
       {
         "name": "大学院進学コース",
-        "name_i18n": { "zh": "大学院升学课程", "en": "Graduate school preparation course" },
+        "name_i18n": {
+          "zh": "大学院升学课程",
+          "en": "Graduate school preparation course"
+        },
         "duration": "",
         "language_req": "N1",
         "tuition_min": 0,
@@ -281,7 +315,6 @@
       }
     ]
   },
-
   {
     "_comment": "千駄ヶ谷グループ 3/3 —— 就職課程。定員100名と最も小規模。该校未在官网公开学费（同 1/3）。",
     "slug": "sendagaya-language-school",
@@ -308,7 +341,10 @@
     "programs": [
       {
         "name": "就職課程",
-        "name_i18n": { "zh": "就职课程", "en": "Employment-track course" },
+        "name_i18n": {
+          "zh": "就职课程",
+          "en": "Employment-track course"
+        },
         "duration": "",
         "tuition_min": 0,
         "tuition_max": 0,
@@ -317,7 +353,6 @@
       }
     ]
   },
-
   {
     "_comment": "東京国際文化学院 —— 该校未在官网公开学费（2026-09 人工确认，官网无价格页面）。各校舎に中国語対応の事務スタッフが2名以上という点は中国人学生向けの実質的な情報なので記載。",
     "slug": "tokyo-international-culture-academy",
@@ -344,7 +379,10 @@
     "programs": [
       {
         "name": "日本語コース",
-        "name_i18n": { "zh": "日语课程", "en": "Japanese language course" },
+        "name_i18n": {
+          "zh": "日语课程",
+          "en": "Japanese language course"
+        },
         "duration": "",
         "tuition_min": 0,
         "tuition_max": 0,
@@ -352,5 +390,155 @@
         "tuition_note": ""
       }
     ]
+  },
+  {
+    "_comment": "共立日語学院（学校法人共立育英会）。住所は公式サイトで確認：〒113-0034 東京都文京区湯島2-17-12 共立育英会ビル。⚠ 同じ湯島地区に別法人の『共立日本語学校』（湯島2-20-4／kyoritsu-mile.ac.jp）が存在する。名称が酷似しているため混同しないこと。⚠ 英語名『Kyoritsu Japanese Language Academy』は公式サイト上で未確認（第三者表記に基づく）。公開前に要確認。⚠ 学費・コース情報は未取得。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
+    "slug": "kyoritsu-japanese-language-academy",
+    "name": "共立日語学院",
+    "name_i18n": {
+      "ja": "共立日語学院",
+      "zh": "共立日语学院",
+      "en": "Kyoritsu Japanese Language Academy"
+    },
+    "official_url": "https://www.kyoritsu.ac.jp/",
+    "school_type": "language",
+    "region": "関東",
+    "city": "東京（文京区・湯島）",
+    "language_req": "",
+    "min_education": "",
+    "status": "active",
+    "published": false,
+    "sort_order": 40,
+    "description_i18n": {
+      "ja": "共立日語学院（学校法人共立育英会）は、東京都文京区湯島に所在する日本語学校です。",
+      "zh": "共立日语学院（学校法人共立育英会）是位于东京都文京区汤岛的日语学校。",
+      "en": "Kyoritsu Japanese Language Academy, operated by the Kyoritsu Ikueikai educational foundation, is located in Yushima, Bunkyo Ward, Tokyo."
+    },
+    "programs": []
+  },
+  {
+    "_comment": "学校法人木下学園 カナン国際教育学院。住所は公式サイトで確認：〒136-0072 東京都江東区大島3-23-8。英語名は公式サイトの表記『CANAAN International Education Academy』をそのまま採用。⚠ 開校年・適正校認定の有無は第三者情報のみで未確認のため記載していない。⚠ 学費・コース情報は未取得。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
+    "slug": "canaan-international-education-academy",
+    "name": "カナン国際教育学院",
+    "name_i18n": {
+      "ja": "カナン国際教育学院",
+      "zh": "CANAAN 国际教育学院",
+      "en": "CANAAN International Education Academy"
+    },
+    "official_url": "https://www.canaan.ac.jp/",
+    "school_type": "language",
+    "region": "関東",
+    "city": "東京（江東区・大島）",
+    "language_req": "",
+    "min_education": "",
+    "status": "active",
+    "published": false,
+    "sort_order": 41,
+    "description_i18n": {
+      "ja": "学校法人木下学園が運営するカナン国際教育学院は、東京都江東区大島に所在する日本語学校です。",
+      "zh": "由学校法人木下学园运营的 CANAAN 国际教育学院，位于东京都江东区大岛。",
+      "en": "CANAAN International Education Academy, operated by the Kinoshita Gakuen educational foundation, is located in Ojima, Koto Ward, Tokyo."
+    },
+    "programs": []
+  },
+  {
+    "_comment": "カナン東京日本語学校。カナン国際教育学院と同じ CANAAN Education Group に属する。⚠ 公式サイトの会社概要ページに江東区亀戸の住所が2件（亀戸5-2-3／亀戸6-56-15）記載されており、どちらが校舎でどちらが本部かを特定できていない。番地は記載せず『江東区・亀戸』までとした。公開前に要確認。⚠ 英語名は公式サイトで未確認（ラテン表記は CANAAN / CanaanTokyo のみ確認）。⚠ 開校年・学費・コース情報は未取得。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
+    "slug": "canaan-tokyo-japanese-language-school",
+    "name": "カナン東京日本語学校",
+    "name_i18n": {
+      "ja": "カナン東京日本語学校",
+      "zh": "CANAAN 东京日语学校",
+      "en": "CANAAN Tokyo Japanese Language School"
+    },
+    "official_url": "https://canaantokyo.com/",
+    "school_type": "language",
+    "region": "関東",
+    "city": "東京（江東区・亀戸）",
+    "language_req": "",
+    "min_education": "",
+    "status": "active",
+    "published": false,
+    "sort_order": 42,
+    "description_i18n": {
+      "ja": "カナン東京日本語学校は、東京都江東区亀戸に所在する日本語学校です。カナン国際教育学院と同じグループに属します。",
+      "zh": "CANAAN 东京日语学校位于东京都江东区龟户，与 CANAAN 国际教育学院同属一个集团。",
+      "en": "CANAAN Tokyo Japanese Language School is located in Kameido, Koto Ward, Tokyo, and belongs to the same group as CANAAN International Education Academy."
+    },
+    "programs": []
+  },
+  {
+    "_comment": "渋谷外語学院（日振協番号 K009）。住所・最寄駅は日本語教育振興協会の名簿で確認：〒169-0075 東京都新宿区高田馬場1-34-6 八光ビル2F・3F、JR山手線ほか「高田馬場駅」徒歩1分。⚠ 校名に『渋谷』とあるが校舎は渋谷区ではなく新宿区高田馬場にある。検索結果には渋谷区桜丘町の住所を挙げるものがあるが、それは別法人の情報。city は名簿に合わせてある。⚠ 学費・コース情報は未取得。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
+    "slug": "shibuya-gaigo-gakuin",
+    "name": "渋谷外語学院",
+    "name_i18n": {
+      "ja": "渋谷外語学院",
+      "zh": "涩谷外语学院",
+      "en": "Shibuya Gaigo Gakuin"
+    },
+    "official_url": "https://shibuyajp.net/",
+    "school_type": "language",
+    "region": "関東",
+    "city": "東京（新宿区・高田馬場）",
+    "language_req": "",
+    "min_education": "",
+    "status": "active",
+    "published": false,
+    "sort_order": 43,
+    "description_i18n": {
+      "ja": "渋谷外語学院は、東京都新宿区高田馬場に所在する日本語学校です。JR山手線ほか「高田馬場駅」から徒歩1分です。",
+      "zh": "涩谷外语学院位于东京都新宿区高田马场，距 JR 山手线等「高田马场站」步行 1 分钟。校名含「涩谷」，但校舍在新宿区。",
+      "en": "Shibuya Gaigo Gakuin is located in Takadanobaba, Shinjuku Ward, Tokyo — a one-minute walk from Takadanobaba Station. Despite the name, the campus is in Shinjuku Ward, not Shibuya."
+    },
+    "programs": []
+  },
+  {
+    "_comment": "UJS Language Institute（日振協番号 A041）。住所・最寄駅は日本語教育振興協会の名簿で確認：〒106-0032 東京都港区六本木3-3-29、地下鉄日比谷線・大江戸線「六本木駅」徒歩6分、南北線「六本木一丁目駅」徒歩4分。名簿の URL は http だが https でも 200 を返すため https を採用。⚠ 日本語の正式校名表記（『UJS日本語学校』を併用）は公式サイトで両方の表記が確認できる。name は名簿の登録名に合わせた。⚠ 学費・コース情報は未取得。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
+    "slug": "ujs-language-institute",
+    "name": "UJS Language Institute",
+    "name_i18n": {
+      "ja": "UJS Language Institute",
+      "zh": "UJS 日语学校",
+      "en": "UJS Language Institute"
+    },
+    "official_url": "https://ujsli.jp/",
+    "school_type": "language",
+    "region": "関東",
+    "city": "東京（港区・六本木）",
+    "language_req": "",
+    "min_education": "",
+    "status": "active",
+    "published": false,
+    "sort_order": 44,
+    "description_i18n": {
+      "ja": "UJS Language Institute は、東京都港区六本木に所在する日本語学校です。地下鉄「六本木駅」から徒歩6分です。",
+      "zh": "UJS 日语学校位于东京都港区六本木，距地铁「六本木站」步行 6 分钟。",
+      "en": "UJS Language Institute is located in Roppongi, Minato Ward, Tokyo — a six-minute walk from Roppongi Station."
+    },
+    "programs": []
+  },
+  {
+    "_comment": "TCJ日本語学院留学校（日振協番号 A085、2026年10月更新）。住所・最寄駅は日本語教育振興協会の名簿で確認：〒160-0016 東京都新宿区信濃町34 トーシン信濃町駅前ビル4・5・6階、JR線「信濃町駅」徒歩1分。⚠ 旧校名は『東京中央日本語学院』。公式サイトも『旧校名：東京中央日本語学院』と明記しており、名簿の登録名も TCJ日本語学院留学校 に更新済み。旧名で表記しないこと。⚠ 学費・コース情報は未取得。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
+    "slug": "tcj-japanese-language-school",
+    "name": "TCJ日本語学院留学校",
+    "name_i18n": {
+      "ja": "TCJ日本語学院留学校",
+      "zh": "TCJ 日语学院留学校",
+      "en": "TCJ Japanese Language School for International Students"
+    },
+    "official_url": "https://tcj-education.com/",
+    "school_type": "language",
+    "region": "関東",
+    "city": "東京（新宿区・信濃町）",
+    "language_req": "",
+    "min_education": "",
+    "status": "active",
+    "published": false,
+    "sort_order": 45,
+    "description_i18n": {
+      "ja": "TCJ日本語学院留学校（旧校名：東京中央日本語学院）は、東京都新宿区信濃町に所在する日本語学校です。JR線「信濃町駅」から徒歩1分です。",
+      "zh": "TCJ 日语学院留学校（原校名：东京中央日语学院）位于东京都新宿区信浓町，距 JR「信浓町站」步行 1 分钟。",
+      "en": "TCJ Japanese Language School for International Students (formerly Tokyo Central Japanese Language School) is located in Shinanomachi, Shinjuku Ward, Tokyo — a one-minute walk from Shinanomachi Station."
+    },
+    "programs": []
   }
 ]
