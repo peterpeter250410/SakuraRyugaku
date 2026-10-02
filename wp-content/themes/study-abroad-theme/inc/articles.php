@@ -193,7 +193,7 @@ function sa_article_summary( $post = null ) {
 	// 没写摘要时退回 excerpt，再退回正文截断 —— 但不静默：
 	// 缺摘要是内容缺陷，由 seo-audit.sh 报出来，这里只保证页面不空着。
 	$ex = trim( wp_strip_all_tags( get_the_excerpt( $post ) ) );
-	return '' !== $ex ? $ex : wp_trim_words( wp_strip_all_tags( $post->post_content ), 55 );
+	return '' !== $ex ? $ex : sa_trim_meta_description( $post->post_content );
 }
 
 /**
@@ -474,7 +474,7 @@ add_action(
 		if ( sa_is_article() ) {
 			$sum = sa_article_summary( get_queried_object() );
 			if ( '' !== $sum ) {
-				sa_set_meta_description( wp_trim_words( wp_strip_all_tags( $sum ), 60 ) );
+				sa_set_meta_description( sa_trim_meta_description( $sum ) );
 			}
 			return;
 		}

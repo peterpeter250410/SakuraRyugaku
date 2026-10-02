@@ -45,6 +45,86 @@ function sa_set_meta_description( $desc ) {
 	$GLOBALS['sa_meta_desc'] = wp_strip_all_tags( (string) $desc );
 }
 
+/*
+ * 移除 WordPress 核心的 rel_canonical。
+ *
+ * 核心在 wp_head 上默认挂了 rel_canonical()，对 is_singular() 的页面输出
+ * 一条 canonical。本主题自己也输出一条，于是每个页面出现两条 —— 线上实测
+ * /en/about/ 与 /en/ 都是 2 条，/en/schools/xxx/ 只有 1 条（自定义端点
+ * 不满足 is_singular()，核心那条不触发）。
+ *
+ * 两条内容相同时搜索引擎通常会自己挑一条，但这是在赌它怎么挑。而且两者
+ * 的取值逻辑不同：核心用 get_permalink()，本主题的 sa_canonical_url()
+ * 额外处理了语种前缀、分页归位、query 剥离，以及自定义端点的覆盖 ——
+ * 一旦出现分歧，核心那条会把搜索引擎指到没有语种前缀的版本去。
+ *
+ * 移除是安全的：核心只在 is_singular() 时输出，而这类页面
+ * sa_canonical_url() 必定能从 get_permalink() 得到值；search / 404
+ * 两种刻意不输出 canonical 的情形，核心本来也不输出。
+ */
+remove_action( 'wp_head', 'rel_canonical' );
+
+/**
+ * 按字符数截断 meta description。
+ *
+ * 为什么不用 wp_trim_words()：
+ *
+ *   它数的是「词」还是「字符」取决于当前 locale —— 核心靠
+ *   _x( 'words', 'Word count type. Do not translate!' ) 来切换，
+ *   CJK 语言包把它翻成 characters_excluding_spaces。
+ *
+ *   结果是同一句 wp_trim_words( $desc, 60 ) 在不同语种下行为完全不同。
+ *   线上实测：/en/ 的文章与院校页被截在第 60 个字符、断在词中间
+ *   （"...1,115,000 yen de…"），而 /ja/ 的院校页 177 字符完好无损。
+ *
+ *   更根本的问题是口径错了：搜索结果按**像素宽度**截断，与之最接近的
+ *   代理指标是字符数，不是词数。用一个会随语种翻转的词数阈值去控制
+ *   字符级的呈现，错是迟早的。
+ *
+ * 上限按语种分：CJK 单字信息量大、像素也宽，装不下拉丁文那么多字符。
+ * 这两个数字是呈现经验值，不是规范 —— 搜索引擎从未公布过硬上限，
+ * 超出部分只是不显示，不会受罚。
+ *
+ * @param string   $text 原文。
+ * @param int|null $max  上限字符数，留空按语种取默认。
+ * @return string
+ */
+function sa_trim_meta_description( $text, $max = null ) {
+	$text = trim( preg_replace( '/\s+/u', ' ', wp_strip_all_tags( (string) $text ) ) );
+	if ( '' === $text ) {
+		return '';
+	}
+
+	$is_cjk = in_array( sa_current_locale(), array( 'ja', 'zh_CN' ), true );
+
+	if ( null === $max ) {
+		$max = $is_cjk ? 90 : 160;
+	}
+	$max = max( 20, (int) $max );
+
+	if ( mb_strlen( $text, 'UTF-8' ) <= $max ) {
+		return $text;
+	}
+
+	$cut = mb_substr( $text, 0, $max, 'UTF-8' );
+
+	/*
+	 * 拉丁文回退到最后一个空格，避免断在词中间。
+	 * 只有当这个空格不至于把句子砍掉太多时才回退 —— 否则一个超长单词
+	 * 会让描述缩水到只剩前半句。
+	 *
+	 * CJK 没有词边界，直接截即可。
+	 */
+	if ( ! $is_cjk ) {
+		$sp = mb_strrpos( $cut, ' ', 0, 'UTF-8' );
+		if ( false !== $sp && $sp > $max * 0.6 ) {
+			$cut = mb_substr( $cut, 0, $sp, 'UTF-8' );
+		}
+	}
+
+	return rtrim( $cut, " \t\n,.;:、，。・" ) . '…';
+}
+
 /**
  * 计算当前页面的 meta description。
  *
@@ -58,10 +138,10 @@ function sa_meta_description() {
 	if ( is_singular() ) {
 		$post = get_queried_object();
 		if ( $post instanceof WP_Post && ! empty( $post->post_excerpt ) ) {
-			return wp_trim_words( wp_strip_all_tags( $post->post_excerpt ), 40 );
+			return sa_trim_meta_description( $post->post_excerpt );
 		}
 		if ( $post instanceof WP_Post && ! empty( $post->post_content ) ) {
-			return wp_trim_words( wp_strip_all_tags( strip_shortcodes( $post->post_content ) ), 40 );
+			return sa_trim_meta_description( strip_shortcodes( $post->post_content ) );
 		}
 	}
 

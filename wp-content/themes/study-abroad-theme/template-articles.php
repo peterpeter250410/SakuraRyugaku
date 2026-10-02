@@ -53,7 +53,11 @@ get_header();
 
 						<?php if ( '' !== $sa_summary ) : ?>
 							<p class="sa-article-card__summary">
-								<?php echo esc_html( wp_trim_words( $sa_summary, 45 ) ); ?>
+								<?php
+								// 列表卡片的摘要也按字符截断，理由同 sa_trim_meta_description()：
+								// wp_trim_words 的词/字符模式随语种翻转，卡片长度会忽长忽短。
+								echo esc_html( sa_trim_meta_description( $sa_summary, 110 ) );
+								?>
 							</p>
 						<?php endif; ?>
 

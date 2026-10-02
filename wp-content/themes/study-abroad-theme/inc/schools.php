@@ -468,7 +468,7 @@ add_action(
 			);
 		}
 
-		sa_set_meta_description( wp_trim_words( $desc, 60 ) );
+		sa_set_meta_description( sa_trim_meta_description( $desc ) );
 	},
 	20
 );
