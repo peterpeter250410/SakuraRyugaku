@@ -1170,10 +1170,46 @@ if grep -q 'class="sa-hero__bg"' "${TMP}/home.html" 2>/dev/null; then
     # 就会越过 640w 去取 1280w（34.7 KB → 87.5 KB），而 LCP 资源凭空重了
     # 2.5 倍。页面看起来一模一样，肉眼查不出来。
     # sizes 受 DPR 影响、media 不受，所以「小屏就用这一档」只能靠 media 表达。
-    if grep -q '<source[^>]*media="(max-width: *640px)"[^>]*hero-bg-640w' "${TMP}/home.html" 2>/dev/null; then
-        ok "hero 小屏档位由 <source media> 钉死（不受 DPR 影响）"
-    else
+    #
+    # 断言的是「小屏档位由 media 钉死，且它确实比兜底档小」这个性质，
+    # 不是某个具体文件名。第一版写死了 hero-bg-640w，后来模板把手机档
+    # 换成 400w（640w 挪给平板档），检查没跟着改，于是对着一份正确的
+    # 模板报 WARN。断言具体取值的检查，每次调优都会变成假警报，
+    # 而假警报的代价是下一次真的回退时没人再当真。
+    #
+    # 同时必须先压平空白：<source> 的属性在模板里分行写，
+    # 单行 grep 永远匹配不到（这也是上一版的第二个毛病）。
+    HERO_PIC=$(tr '\n' ' ' < "${TMP}/home.html" 2>/dev/null | tr -s ' ' \
+        | grep -o '<picture>[^|]*hero-bg[^|]*</picture>' | head -1)
+
+    # 取「断点最小的那一档」服务的宽度 —— 必须按断点排序，不能按文件宽度排序。
+    #
+    # 按文件宽度取最小是错的，变异测试抓出来的：把手机档 400w 改成 1920w，
+    # 平板档（max-width: 1024px）的 640w 仍在，按宽度取最小就报 640w，
+    # 手机档坏成 1920w 也看不出来。断点与它服务的档位必须成对地读。
+    HERO_TIER=$(printf '%s' "$HERO_PIC" | grep -o '<source [^>]*>' \
+        | while IFS= read -r src; do
+            bp=$(printf '%s' "$src" | grep -o 'max-width: *[0-9]\{1,4\}px' | grep -o '[0-9]\{1,4\}' | head -1)
+            w=$(printf '%s' "$src" | grep -o 'hero-bg-[0-9]\{2,4\}w' | grep -o '[0-9]\{2,4\}' | head -1)
+            [ -n "$bp" ] && [ -n "$w" ] && echo "${bp} ${w}"
+          done | sort -n | head -1)
+
+    HERO_SM_BP=${HERO_TIER%% *}
+    HERO_SM_W=${HERO_TIER##* }
+    HERO_FB_W=$(printf '%s' "$HERO_IMG" \
+        | grep -o 'hero-bg-[0-9]\{2,4\}w' | grep -o '[0-9]\{2,4\}' \
+        | sort -n | head -1)
+
+    if [ -z "$HERO_TIER" ]; then
         warn "hero 未用 <source media> 限定小屏档位 —— 高 DPR 手机会取更大的档，LCP 资源无谓变重"
+    elif [ "$HERO_SM_BP" -gt 900 ]; then
+        warn "hero 最小的 media 断点是 ${HERO_SM_BP}px —— 手机档（≤640px 量级）没有单独钉死"
+    elif [ -z "$HERO_FB_W" ]; then
+        ok "hero 手机档由 <source media> 钉死：≤${HERO_SM_BP}px 服务 ${HERO_SM_W}w（不受 DPR 影响）"
+    elif [ "$HERO_SM_W" -lt "$HERO_FB_W" ]; then
+        ok "hero 手机档由 <source media> 钉死：≤${HERO_SM_BP}px 服务 ${HERO_SM_W}w（兜底 ${HERO_FB_W}w，不受 DPR 影响）"
+    else
+        warn "hero ≤${HERO_SM_BP}px 档服务 ${HERO_SM_W}w，不小于兜底的 ${HERO_FB_W}w —— media 限定没起到减重作用"
     fi
 
     if printf '%s' "$HERO_IMG" | grep -q 'loading="lazy"'; then
