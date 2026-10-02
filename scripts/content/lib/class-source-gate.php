@@ -450,11 +450,36 @@ class SA_Source_Gate {
 	private static function extract_numbers( $sentence ) {
 		$s = preg_replace( '/\[source:\s*\d+\s*\]/i', ' ', $sentence );
 
-		preg_match_all( '/\d[\d,]*/u', $s, $m, PREG_OFFSET_CAPTURE );
-
-		$syn  = self::unit_synonyms();
 		$out  = array();
 		$seen = array();
+
+		/*
+		 * 时刻（9:15 / 13:30）先单独抽出来。
+		 *
+		 * 不这样做的话它们会被拆成「9」和「15」两个两位数，双双落进
+		 * 「≤3 位且无量词 → 跳过」的分支，于是整条时刻完全不被核对。
+		 * 实测把 9:15 改成 8:15，闸门毫无反应。
+		 *
+		 * 授業時間は打工できる時間帯を決める —— 本記事ではまさにそこから
+		 * アルバイトの可否を論じている。間違えれば実害が出る種類の数字で、
+		 * 「小さい数だから」で見逃してよいものではない。
+		 */
+		preg_match_all( '/\b(\d{1,2}):(\d{2})\b/u', $s, $tm, PREG_SET_ORDER );
+		foreach ( $tm as $t ) {
+			$key = $t[0] . '|time';
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$out[] = array( 'num' => $t[0], 'unit' => 'time', 'raw' => $t[0] );
+		}
+
+		// 时刻已单独处理，从文本里剔除，避免再被当成两个普通数字。
+		$s = preg_replace( '/\b\d{1,2}:\d{2}\b/u', ' ', $s );
+
+		preg_match_all( '/\d[\d,]*/u', $s, $m, PREG_OFFSET_CAPTURE );
+
+		$syn = self::unit_synonyms();
 
 		foreach ( $m[0] as $hit ) {
 			$raw    = $hit[0];
@@ -516,6 +541,48 @@ class SA_Source_Gate {
 	 * @return bool
 	 */
 	private static function number_present( $num, $unit, $page ) {
+		/*
+		 * 时刻は書き方が割れる。
+		 *
+		 * 英語の本文では 9:15 と書くが、日本語のサイトは「9時15分」と書く ——
+		 * ヒューマンアカデミーの校舎ページがまさにそれで、コロン表記は一度も出てこない。
+		 * コロンだけ探しても永遠に見つからず、正しい記述が落とされる。
+		 *
+		 * 先頭ゼロの有無（9:15 と 09:15）も両方試す。
+		 */
+		if ( 'time' === $unit ) {
+			$parts = explode( ':', $num );
+			$h     = (int) $parts[0];
+			$mi    = isset( $parts[1] ) ? $parts[1] : '00';
+
+			$forms = array(
+				$h . ':' . $mi,
+				sprintf( '%02d', $h ) . ':' . $mi,
+				$h . '時' . (int) $mi . '分',
+				$h . '時' . $mi . '分',
+				$h . '：' . $mi, // 全角コロン
+			);
+			// 00 分は「9時」とだけ書かれることがある。
+			if ( '00' === $mi ) {
+				$forms[] = $h . '時';
+			}
+
+			$hay = str_replace( ' ', '', $page );
+			foreach ( array_unique( $forms ) as $f ) {
+				$f_nospace = str_replace( ' ', '', $f );
+				if ( false !== strpos( $hay, $f_nospace ) ) {
+					return true;
+				}
+				// 全角数字版も試す。
+				$fw = strtr( $f_nospace, array( '0' => '０', '1' => '１', '2' => '２', '3' => '３', '4' => '４',
+					'5' => '５', '6' => '６', '7' => '７', '8' => '８', '9' => '９' ) );
+				if ( false !== strpos( $hay, $fw ) ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		$candidates = array( $num );
 
 		if ( strlen( $num ) > 3 ) {
