@@ -18,7 +18,16 @@
  * 输入 JSON 的字段与 publish-article.php 一致，便于校验通过后直接拿去发布：
  *   { title, slug, locale, group, summary, body_html, sources[], keyword_id }
  *
- * 退出码：0 = 全部通过，1 = 有闸门不通过，2 = 输入有问题。
+ * 退出码：
+ *   0  全部闸门通过，且每条来源都在本机实际核对过
+ *   1  有闸门不通过 —— 内容有问题，不要发布
+ *   2  输入有问题（文件缺失、JSON 不合法、缺必填字段）
+ *   3  内容未发现问题，但有来源**本机无法访问**，因而没有核对过
+ *
+ * 退出码 3 单独存在，是因为「没查」和「查过且通过」必须分开。
+ * 生产服务器那台 CentOS 7 的 curl 7.29.0 / OpenSSL 1.0.2k 不支持 TLS 1.3，
+ * 够不着要求 TLS 1.3 的学校官网 —— 把这种情况报成 0 等于谎称核对过，
+ * 报成 1 又会让每篇文章都红，最后整道闸门被忽略。
  *
  * @package StudyAbroadContent
  */
@@ -71,6 +80,7 @@ foreach ( array( 'title', 'slug', 'locale', 'summary', 'body_html' ) as $req ) {
 $sources = isset( $art['sources'] ) ? (array) $art['sources'] : array();
 $lang    = ( 0 === strpos( $art['locale'], 'en' ) ) ? 'en' : 'cjk';
 $fails   = 0;
+$unverified = 0;
 
 echo "稿件：{$art['title']}\n";
 echo "  slug={$art['slug']}  locale={$art['locale']}  来源 " . count( $sources ) . " 条\n";
@@ -95,13 +105,23 @@ echo "  实际抓取 {$r['checked']} 个 URL\n";
 foreach ( $r['warnings'] as $w ) {
 	echo "  [警告] {$w}\n";
 }
-if ( $r['pass'] ) {
-	echo "  ✓ 通过\n";
-} else {
+
+$unver = isset( $r['unverifiable'] ) ? (array) $r['unverifiable'] : array();
+foreach ( $unver as $u ) {
+	echo "  ⚠ {$u}\n";
+}
+$unverified = count( $unver );
+
+if ( ! $r['pass'] ) {
 	foreach ( $r['errors'] as $e ) {
 		echo "  ✗ {$e}\n";
 	}
 	$fails++;
+} elseif ( $unverified > 0 ) {
+	echo "  ⚠ 本机够不着 {$unverified} 条来源，其中的数字**没有核对过**。\n";
+	echo "    这不代表内容有误，只代表这台机器没能验证。\n";
+} else {
+	echo "  ✓ 通过\n";
 }
 
 /* ---- 闸门 2：重复度 ---------------------------------------------------- */
@@ -166,13 +186,24 @@ if ( $sum_len < $lo || $sum_len > $hi ) {
 /* ---- 结论 -------------------------------------------------------------- */
 
 echo "\n", str_repeat( '=', 72 ), "\n";
-if ( 0 === $fails ) {
-	echo "全部闸门通过。可以发布：\n";
-	echo "  wp eval-file scripts/content/wp/publish-article.php " . escapeshellarg( $file ) . " --allow-root\n";
-	exit( 0 );
+
+if ( $fails > 0 ) {
+	echo "{$fails} 道闸门未通过，不要发布。\n";
+	exit( 1 );
 }
-echo "{$fails} 道闸门未通过，不要发布。\n";
-exit( 1 );
+
+$publish_cmd = '  wp eval-file scripts/content/wp/publish-article.php '
+	. escapeshellarg( $file ) . " --allow-root\n";
+
+if ( $unverified > 0 ) {
+	echo "内容未发现问题，但有 {$unverified} 条来源本机访问不了，其中的数字没有核对过。\n\n";
+	echo "发布前请确认这些数字已经在**别的机器上**核对过（退出码 3）。\n";
+	echo "若已确认，可以发布：\n" . $publish_cmd;
+	exit( 3 );
+}
+
+echo "全部闸门通过，每条来源都已实际核对。可以发布：\n" . $publish_cmd;
+exit( 0 );
 
 /**
  * 从词库里查该选题允许引用的域名。

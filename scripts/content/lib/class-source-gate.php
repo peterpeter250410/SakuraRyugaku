@@ -80,9 +80,10 @@ class SA_Source_Gate {
 	 * @return array{pass:bool,errors:array<int,string>,warnings:array<int,string>,checked:int}
 	 */
 	public function check( $body, array $sources, array $allowed_domains = array() ) {
-		$errors   = array();
-		$warnings = array();
-		$checked  = 0;
+		$errors       = array();
+		$warnings     = array();
+		$unverifiable = array();
+		$checked      = 0;
 
 		$text = wp_strip_tags_compat( self::attribute_tables( $body ) );
 
@@ -93,7 +94,13 @@ class SA_Source_Gate {
 
 		if ( empty( $sources ) ) {
 			$errors[] = '文章没有任何来源条目。';
-			return array( 'pass' => false, 'errors' => $errors, 'warnings' => $warnings, 'checked' => 0 );
+			return array(
+				'pass'         => false,
+				'errors'       => $errors,
+				'warnings'     => $warnings,
+				'unverifiable' => $unverifiable,
+				'checked'      => 0,
+			);
 		}
 
 		foreach ( $referenced as $n ) {
@@ -131,7 +138,14 @@ class SA_Source_Gate {
 			$fetched = $this->fetch( $url );
 			$checked++;
 
-			if ( ! $fetched['ok'] ) {
+			if ( $fetched['ok'] ) {
+				continue;
+			}
+
+			if ( $fetched['env_fail'] ) {
+				// 本机够不着，不代表来源有问题 —— 记为「无法核实」，不计入错误。
+				$unverifiable[] = "来源 [{$n}] 本机无法访问（cURL {$fetched['errno']}: {$fetched['errstr']}）：{$url}";
+			} else {
 				$errors[] = "来源 [{$n}] 抓取失败（HTTP {$fetched['status']}）：{$url}";
 			}
 		}
@@ -157,7 +171,12 @@ class SA_Source_Gate {
 			$src  = $sources[ $n - 1 ];
 			$page = $this->fetch( $src['url'] );
 			if ( ! $page['ok'] ) {
-				continue; // 抓取失败已经报过。
+				/*
+				 * 页面取不到就没法核对数字。上面已经按「来源有问题」或
+				 * 「本机够不着」记过一笔，这里不重复，但也绝不能把
+				 * 「没查」当成「查过且通过」—— 那是最坏的一种假阳性。
+				 */
+				continue;
 			}
 
 			foreach ( $nums as $item ) {
@@ -168,11 +187,55 @@ class SA_Source_Gate {
 			}
 		}
 
+		/*
+		 * pass 只看 errors。本机够不着的来源不算内容缺陷，
+		 * 但调用方必须据 unverifiable 另行决断 —— 见 check-article.php 的退出码 3。
+		 */
 		return array(
-			'pass'     => empty( $errors ),
-			'errors'   => $errors,
-			'warnings' => $warnings,
-			'checked'  => $checked,
+			'pass'         => empty( $errors ),
+			'errors'       => $errors,
+			'warnings'     => $warnings,
+			'unverifiable' => $unverifiable,
+			'checked'      => $checked,
+		);
+	}
+
+	/**
+	 * 这次抓取失败，是本机环境的问题还是来源本身的问题。
+	 *
+	 * 为什么必须区分：
+	 *
+	 *   闸门的职责是「这个数字在来源页上对不对」。抓不到页面有两种完全不同的原因：
+	 *
+	 *     来源的问题  —— 404、页面没了、域名过期。这是内容缺陷，该拦。
+	 *     本机的问题  —— TLS 谈不拢、DNS 不通、出站被墙。来源好端端的，
+	 *                    只是这台机器够不着。这不是内容缺陷。
+	 *
+	 *   混为一谈的后果在生产服务器上已经出现了：那台 CentOS 7 的
+	 *   curl 7.29.0 / OpenSSL 1.0.2k 不支持 TLS 1.3，而 ISI 官网走的
+	 *   Chinafy 节点要求 TLS 1.3，于是每一篇引用学校官网的文章都报同一个
+	 *   「抓取失败」。
+	 *
+	 *   一个天天喊狼来了的检查，最后一定会被绕过 —— 然后它就再也拦不住
+	 *   真正该拦的东西了。误报的代价不是「多看一眼」，是整道闸门失效。
+	 *
+	 * @param int $errno cURL 错误码。
+	 * @return bool
+	 */
+	private static function is_env_failure( $errno ) {
+		return in_array(
+			(int) $errno,
+			array(
+				5,  // CURLE_COULDNT_RESOLVE_PROXY
+				6,  // CURLE_COULDNT_RESOLVE_HOST   DNS 不通
+				7,  // CURLE_COULDNT_CONNECT        连不上
+				28, // CURLE_OPERATION_TIMEDOUT
+				35, // CURLE_SSL_CONNECT_ERROR      TLS 握手失败（本机 TLS 版本过旧即属此类）
+				51, // CURLE_PEER_FAILED_VERIFICATION
+				60, // CURLE_SSL_CACERT             本机根证书过期
+				77, // CURLE_SSL_CACERT_BADFILE
+			),
+			true
 		);
 	}
 
@@ -284,6 +347,8 @@ class SA_Source_Gate {
 		);
 		$raw    = curl_exec( $ch );
 		$status = (int) curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+		$errno  = (int) curl_errno( $ch );
+		$errstr = (string) curl_error( $ch );
 		curl_close( $ch );
 
 		$text = '';
@@ -295,9 +360,13 @@ class SA_Source_Gate {
 		}
 
 		$out = array(
-			'ok'     => ( 200 === $status && '' !== trim( $text ) ),
-			'status' => $status,
-			'text'   => $text,
+			'ok'      => ( 200 === $status && '' !== trim( $text ) ),
+			'status'  => $status,
+			'text'    => $text,
+			'errno'   => $errno,
+			'errstr'  => $errstr,
+			// 本机环境所限、而非来源本身有问题 —— 两者必须分开，理由见 is_env_failure()。
+			'env_fail' => self::is_env_failure( $errno ),
 		);
 
 		$this->cache[ $url ] = $out;
