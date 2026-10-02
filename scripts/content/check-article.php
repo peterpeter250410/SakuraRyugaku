@@ -154,7 +154,28 @@ if ( null === $corpus_file ) {
 /* ---- 闸门 3：文风 ------------------------------------------------------ */
 
 echo "\n【闸门 3】文风评分\n";
-$tell = SA_AI_Tell::analyze( $art['body_html'], $lang );
+/*
+ * 文風を見る前に、本文を読者が読む形に戻す。
+ *
+ * ここは長らく body_html をそのまま渡していた。SA_AI_Tell の説明には
+ * 「純文本（呼び出し側がタグを落とす）」と書いてあるのに、落としていなかった。
+ *
+ * 何が起きていたか：
+ *   ・タグの文字列まで語数に数えるので、千語あたりの套话密度が薄まる
+ *   ・body_html は改行を含まない一行なので、段落を \n\n で切る指標は
+ *     常に「段落1つ」と判定し、点が入りようがなかった —— 死んだ指標
+ *   ・[source:N] は発布時に剥がれるのに、評点のときだけ本文に混ざっていた
+ *
+ * 結果として闸门の報告する点数は実際より低く出ていた。
+ * 正しく剥がすと 0 点だった記事が 11 点になる（それでも閾値内だが、
+ * 「0 点だから手を入れる必要がない」と読んでいた判断の根拠が無かったことになる）。
+ *
+ * 発布経路（publish-article.php）と同じ変換をここでも行う：
+ * 標記を外し、ブロック要素を段落の切れ目に変えてからタグを落とす。
+ */
+$tell_text = preg_replace( '/\s*\[source:\s*\d+\s*\]/i', '', $art['body_html'] );
+$tell_text = wp_strip_tags_compat( $tell_text );
+$tell      = SA_AI_Tell::analyze( $tell_text, $lang );
 printf( "  总分 %d（%s）阈值 %d\n", $tell['score'], $tell['verdict'], SA_CHK_AI_TELL_MAX );
 foreach ( $tell['metrics'] as $name => $m ) {
 	printf( "    %-20s value=%-8s %2d 分  %s\n", $name, $m['value'], $m['points'], $m['note'] );

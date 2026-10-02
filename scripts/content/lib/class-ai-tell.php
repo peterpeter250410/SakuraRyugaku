@@ -40,8 +40,21 @@ class SA_AI_Tell {
 	 */
 	public static function filler_phrases() {
 		return array(
-			// 万能过渡词：删掉句子照样成立。
-			'additionally', 'moreover', 'furthermore', 'in addition to this',
+			/*
+			 * 万能过渡词：删掉句子照样成立。
+			 *
+			 * additionally / moreover / furthermore はここに入れない。
+			 * この三語が埋め草になるのは句首に立ったときで、それは
+			 * transition_openers が別途数えている —— 両方に入れると
+			 * 同じ一語で二重に減点される。
+			 *
+			 * さらに additionally は句中で実義を持つ。文科省の
+			 * 「12年未満の場合は、さらに指定準備教育課程を修了する必要がある」を
+			 * must additionally complete と訳した箇所がそれで、この語を外すと
+			 * 「加えて修める」が「代わりに修める」に変わってしまう。
+			 * 文字列の有無だけで数えると、削れない語を削れと言うことになる。
+			 */
+			'in addition to this',
 			'it is important to note', "it's important to note",
 			'it is worth noting', "it's worth noting",
 			'that being said', 'with that said',
@@ -54,7 +67,36 @@ class SA_AI_Tell {
 			// 空洞的价值判断。
 			'it is essential', "it's essential", 'crucial to understand',
 			'a game changer', 'unlock the', 'embark on',
+		);
+	}
+
+	/**
+	 * 句首に立ったときだけ套话になる言い回し。
+	 *
+	 * 文字列として在るかどうかで数えると、実義のある用法まで巻き込む。
+	 * 実際に起きた誤検出が二つある。
+	 *
+	 *   「12年未満の場合は、さらに指定準備教育課程を修了する必要がある」を
+	 *   must additionally complete… と訳した箇所。この additionally を外すと
+	 *   「加えて修める」が「代わりに修める」に変わる —— 削れない語である。
+	 *
+	 *   「it turns on whether you are doing something else instead」の
+	 *   whether you are。これは従属節を導く語であって、埋め草ではない。
+	 *   表に入れたのは本来「Whether you're a beginner or an expert, …」という
+	 *   広告文句を捕まえるためで、それは句首の用法に限られる。
+	 *
+	 * 句首の additionally は transition_openers が別途数えているので、
+	 * ここで重ねて数える必要もない。
+	 *
+	 * スコアを下げるために文章を書き換えるのは本末転倒である。
+	 * 道具のほうが間違っているなら、直すのは道具のほう。
+	 *
+	 * @return array<int,string>
+	 */
+	public static function filler_sentence_initial() {
+		return array(
 			'whether you are', "whether you're",
+			'whether it is', "whether it's",
 		);
 	}
 
@@ -127,6 +169,17 @@ class SA_AI_Tell {
 			$c = substr_count( $lower, $p );
 			if ( $c > 0 ) {
 				$hits[ $p ] = $c;
+			}
+		}
+
+		/*
+		 * 句首限定の言い回しは、文の先頭に立つときだけ数える。
+		 * 文頭＝テキストの先頭、または . ! ? 改行のあと。
+		 */
+		foreach ( self::filler_sentence_initial() as $p ) {
+			$c = preg_match_all( '/(?:^|[.!?]\s+|\n\s*)' . preg_quote( $p, '/' ) . '\b/u', $lower );
+			if ( $c > 0 ) {
+				$hits[ $p . '（句首）' ] = $c;
 			}
 		}
 		$hit_total = array_sum( $hits );
