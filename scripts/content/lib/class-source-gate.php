@@ -296,7 +296,8 @@ class SA_Source_Gate {
 				continue;
 			}
 
-			$cited = array();
+			$cited   = array();
+			$missing = array();
 			foreach ( array_unique( array_map( 'intval', $sm[1] ) ) as $n ) {
 				if ( $n < 1 || $n > count( $sources ) ) {
 					continue; // 上面已经报过孤儿引用了，不重复报。
@@ -312,6 +313,8 @@ class SA_Source_Gate {
 				 */
 				if ( $page['ok'] ) {
 					$cited[ $n ] = $page['text'];
+				} else {
+					$missing[ $n ] = true;
 				}
 			}
 
@@ -327,11 +330,37 @@ class SA_Source_Gate {
 						break;
 					}
 				}
-				if ( ! $found ) {
-					$with  = '' !== $item['unit'] ? "（{$item['unit']}）" : '';
-					$where = '[' . implode( '][', array_keys( $cited ) ) . ']';
-					$errors[] = "数字 {$item['raw']}{$with} 在所引来源 {$where} 的页面上均未找到：「" . self::excerpt( $sent ) . '」';
+				if ( $found ) {
+					continue;
 				}
+
+				$with  = '' !== $item['unit'] ? "（{$item['unit']}）" : '';
+				$where = '[' . implode( '][', array_keys( $cited ) ) . ']';
+
+				/*
+				 * この文が引いている出典のうち一つでも取れていないなら、
+				 * 「見つからない」を内容の誤りとして報告してはならない。
+				 * 探せなかったページにこそ在るかもしれない。
+				 *
+				 * 実際に起きた：千駄ヶ谷の3校を比べる文が [3][1][2] を引いており、
+				 * 定員100名は [3]（就職課程）のページにしかない。
+				 * その回だけ [3] の取得が間欠的に失敗し、闸门は
+				 * 「100 は [1][2] に無い」= 内容の誤りと報告した。
+				 * 直後の再実行では通る。正しい記事を誤りに見せる方向の嘘で、
+				 * 終了コード3（本机够不着）を設けた理由そのものに反する。
+				 *
+				 * 「狼が来た」と言い続ける検査は最後に必ず迂回される。
+				 * 迂回された時点で、本当に止めるべきものも止まらなくなる。
+				 */
+				if ( ! empty( $missing ) ) {
+					$lack          = '[' . implode( '][', array_keys( $missing ) ) . ']';
+					$unverifiable[] = "数字 {$item['raw']}{$with} は取得できた来源 {$where} には無かったが、"
+						. "同じ文が引く来源 {$lack} を取得できていないため判定を保留する：「"
+						. self::excerpt( $sent ) . '」';
+					continue;
+				}
+
+				$errors[] = "数字 {$item['raw']}{$with} 在所引来源 {$where} 的页面上均未找到：「" . self::excerpt( $sent ) . '」';
 			}
 		}
 
@@ -710,7 +739,7 @@ class SA_Source_Gate {
 			 * 徒歩分数と定員は、学校を選ぶ人が実際に比べる数字なので、
 			 * 小さいからという理由で検査外にしてよいものではない。
 			 */
-			'minute' => array( 'minute', 'minutes', 'min', '分' ),
+			'minute' => array( 'minute', 'minutes', 'min', 'mins', '分' ),
 			'people' => array( 'student', 'students', 'people', 'places', '名', '人' ),
 			/*
 			 * 学校の「校」。
@@ -778,9 +807,15 @@ class SA_Source_Gate {
 			 *
 			 * 「l」単独は量詞に入れない —— l で始まる語すべてに前方一致する。
 			 */
-			'speed' => array( 'km/h', 'kph', 'km per hour', 'kilometres per hour', 'kilometers per hour', 'キロ', 'km', '킬' ),
+			'speed' => array( 'km/h', 'kph', 'kms', 'km per hour', 'kilometres per hour', 'kilometers per hour', 'キロ', 'km' ),
 			'milligram' => array( 'mg', '㎎', 'ミリグラム', 'milligram', 'milligrams' ),
-			'litre' => array( 'litre', 'litres', 'liter', 'liters', 'ℓ', 'リットル', 'L' ),
+			/*
+			 * 'L' は入れない。照合は大小文字を無視するので、「2027 list」の
+			 * list に前方一致して「2027リットル」になる —— 実際にそうなり、
+			 * 正しい記述が2件とも誤りとして報告された。
+			 * 一文字の量詞は、この表に入れてよいものがほとんど無い。
+			 */
+			'litre' => array( 'litre', 'litres', 'liter', 'liters', 'ℓ', 'リットル' ),
 			/*
 			 * 「自転車安全利用五則」の則番号と、国・地域の数。
 			 * どちらも出典が番号で構造化している記述で、取り違えると
@@ -1229,7 +1264,21 @@ class SA_Source_Gate {
 			$unit = '';
 			foreach ( $syn as $key => $words ) {
 				foreach ( $words as $w ) {
-					if ( preg_match( '/^[\s\-]*' . preg_quote( $w, '/' ) . '/iu', $tail ) ) {
+					/*
+					 * 3文字以下の英字の量詞には語尾境界を要求する。
+					 *
+					 * 照合は大小文字を無視する前方一致なので、短い英字は
+					 * 無関係な語の頭に当たる。実際に起きた：升の量詞に 'L' を
+					 * 入れたところ、「the 2027 list adds …」の list に当たり、
+					 * 「2027リットル」として核対しようとして、正しい記述が
+					 * 2件とも誤りと報告された。
+					 *
+					 * 対象を短い語に限るのは、長い語の前方一致は有用だから ——
+					 * 'year' は「years」に当たってほしい。短い語については
+					 * 複数形を表に明示してある（day/days, min/mins）。
+					 */
+					$boundary = preg_match( '/^[A-Za-z]{1,3}$/', $w ) ? '\b' : '';
+					if ( preg_match( '/^[\s\-]*' . preg_quote( $w, '/' ) . $boundary . '/iu', $tail ) ) {
 						$unit = $key;
 						break 2;
 					}
