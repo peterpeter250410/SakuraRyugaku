@@ -589,6 +589,36 @@ class SA_Source_Gate {
 			$candidates[] = number_format( (float) $num );
 		}
 
+		/*
+		 * 和暦。
+		 *
+		 * 日本の官公庁文書は西暦をほとんど使わない。入管庁の運用見直し通知
+		 * （moj.go.jp/isa/10_00258.html）は全編「令和８年」で、ページ全体に
+		 * 「2026」という文字列は一度も現れない。
+		 *
+		 * 英語記事には当然 2026 と書く。換算しなければ、正しく一次資料を
+		 * 引いた記事がすべて「出典に数字が無い」と弾かれる ——
+		 * 日本の公的機関を出典にする記事は全滅する。
+		 *
+		 * 令和元年＝2019年、平成元年＝1989年。
+		 */
+		$y = (int) $num;
+		if ( $y >= 1926 && $y <= 2100 ) {
+			$reiwa = $y - 2018; // 2019 → 1
+			if ( $reiwa >= 1 ) {
+				$candidates[] = '令和' . $reiwa . '年';
+				$candidates[] = '令和' . self::to_fullwidth( (string) $reiwa ) . '年';
+				if ( 1 === $reiwa ) {
+					$candidates[] = '令和元年';
+				}
+			}
+			$heisei = $y - 1988; // 1989 → 1
+			if ( $heisei >= 1 && $heisei <= 31 ) {
+				$candidates[] = '平成' . $heisei . '年';
+				$candidates[] = '平成' . self::to_fullwidth( (string) $heisei ) . '年';
+			}
+		}
+
 		// 日式「万」：1200000 → 120万
 		$v = (float) $num;
 		if ( $v >= 10000 && fmod( $v, 10000 ) === 0.0 ) {
@@ -596,11 +626,7 @@ class SA_Source_Gate {
 		}
 
 		// 全角。
-		$candidates[] = strtr(
-			$num,
-			array( '0' => '０', '1' => '１', '2' => '２', '3' => '３', '4' => '４',
-				'5' => '５', '6' => '６', '7' => '７', '8' => '８', '9' => '９' )
-		);
+		$candidates[] = self::to_fullwidth( $num );
 
 		$candidates = array_values( array_unique( $candidates ) );
 
@@ -660,6 +686,23 @@ class SA_Source_Gate {
 		}
 
 		return false;
+	}
+
+	/**
+	 * 半角数字を全角に。
+	 *
+	 * 日本の官公庁サイトは全角数字を多用する —— 入管庁の資格外活動ページは
+	 * 「２８時間」と書いており、半角の 28 はページ全体に一度も出てこない。
+	 *
+	 * @param string $s 文字列。
+	 * @return string
+	 */
+	private static function to_fullwidth( $s ) {
+		return strtr(
+			(string) $s,
+			array( '0' => '０', '1' => '１', '2' => '２', '3' => '３', '4' => '４',
+				'5' => '５', '6' => '６', '7' => '７', '8' => '８', '9' => '９' )
+		);
 	}
 
 	/**
