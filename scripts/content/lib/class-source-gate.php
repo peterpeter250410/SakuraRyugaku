@@ -35,6 +35,19 @@
  *   ページ上に「15分」が（時刻の一部として）存在するため闸门は通してしまう。
  *   変異テストで実際に素通りした。
  *
+ * この限界が最も露わになるのは、行の多い表を出典にしたときである。
+ *
+ *   厚労省の地域別最低賃金一覧は 47 行あり、発効日の欄には
+ *   令和8年10月1日・10月2日・10月3日・…・11月1日・12月1日・12月2日 と
+ *   ほとんどの日付が揃っている。
+ *   そのため「東京は10月1日発効」を「10月2日」に改竄しても、
+ *   ページ上に令和8年10月2日が（別の県の行として）存在するので通る。
+ *   変異テストで実際に素通りした。
+ *   逆に、どの行にも無い日付（令和8年12月5日）に改竄すれば捕まる。
+ *
+ *   つまり表が密であるほど、闸门は「存在するか」しか言えなくなる。
+ *   県名と日付の対応は、書き手が表を読んで確かめる以外にない。
+ *
  * つまり挡得住的是**凭空编造的数字** —— 自动生成内容最主要的失真来源。
  * 挡不住的是、同じページの別の文脈に偶然同じ数字があるケース。
  * 判別には意味の理解が要る。正規表現にはできない。できるふりをしない。
@@ -638,6 +651,58 @@ class SA_Source_Gate {
 		}
 		$s = preg_replace( '/\bArticles?\s+\d{1,3}(?:\s*-\s*\d{1,2})?/iu', ' ', $s );
 
+		/*
+		 * 日付を一つのトークンとして拾う。
+		 *
+		 * 「1 October 2026」と書くと、2026 は和暦換算で照合されるが
+		 * 月と日はどちらも量詞なしの1〜2桁なので検査外に落ちる ——
+		 * 変異テストで「on 2 December」を「on 5 December」に書き換えても
+		 * 闸门が黙ることを確認した。
+		 *
+		 * 規制の文章では発効日・改正日そのものが論点になる。
+		 * 最低賃金の記事は「同じ年度でも都道府県ごとに発効日が違う」ことが
+		 * 主題で、日付を一日ずらせば記事の主張が崩れる。
+		 * 時刻（9:15）や条番号（第22条の4）を個別トークンにしたのと同じ理由。
+		 *
+		 * 照合は和暦の形（令和８年１０月１日）に組み立てる。
+		 * 日本の官公庁文書は西暦でも月日を漢数字混じりで書くため、
+		 * 半角・全角の両方を試す。
+		 */
+		$months = array(
+			'january' => 1, 'february' => 2, 'march' => 3, 'april' => 4,
+			'may' => 5, 'june' => 6, 'july' => 7, 'august' => 8,
+			'september' => 9, 'october' => 10, 'november' => 11, 'december' => 12,
+		);
+		$mon_alt = implode( '|', array_keys( $months ) );
+
+		// 「1 October 2026」と「October 1, 2026」の両方。
+		$date_res = array(
+			'/\b(\d{1,2})\s+(' . $mon_alt . ')\s+(\d{4})\b/iu',
+			'/\b(' . $mon_alt . ')\s+(\d{1,2}),?\s+(\d{4})\b/iu',
+		);
+		foreach ( $date_res as $idx => $re ) {
+			preg_match_all( $re, $s, $dm, PREG_SET_ORDER );
+			foreach ( $dm as $dd ) {
+				if ( 0 === $idx ) {
+					$day = (int) $dd[1];
+					$mon = $months[ strtolower( $dd[2] ) ];
+					$yr  = (int) $dd[3];
+				} else {
+					$mon = $months[ strtolower( $dd[1] ) ];
+					$day = (int) $dd[2];
+					$yr  = (int) $dd[3];
+				}
+				$num = $yr . '-' . $mon . '-' . $day;
+				$key = $num . '|date';
+				if ( isset( $seen[ $key ] ) ) {
+					continue;
+				}
+				$seen[ $key ] = true;
+				$out[]        = array( 'num' => $num, 'unit' => 'date', 'raw' => $dd[0] );
+			}
+			$s = preg_replace( $re, ' ', $s );
+		}
+
 		preg_match_all( '/\bparagraphs?\s+(\d{1,2})\b/iu', $s, $pm, PREG_SET_ORDER );
 		foreach ( $pm as $p ) {
 			$key = $p[1] . '|paragraph';
@@ -881,6 +946,45 @@ class SA_Source_Gate {
 			return false;
 		}
 
+		/*
+		 * 日付。和暦の形に組み立てて照合する。
+		 * 西暦で書かれている場合もあるので、そちらも試す。
+		 */
+		if ( 'date' === $unit ) {
+			list( $yr, $mon, $day ) = array_map( 'intval', explode( '-', $num ) );
+
+			$forms = array();
+			$eras  = array();
+			$reiwa = $yr - 2018;
+			if ( $reiwa >= 1 ) {
+				$eras[] = '令和' . $reiwa;
+				if ( 1 === $reiwa ) {
+					$eras[] = '令和元';
+				}
+			}
+			$heisei = $yr - 1988;
+			if ( $heisei >= 1 && $heisei <= 31 ) {
+				$eras[] = '平成' . $heisei;
+			}
+			$eras[] = (string) $yr;
+
+			foreach ( $eras as $e ) {
+				$forms[] = $e . '年' . $mon . '月' . $day . '日';
+			}
+
+			$hay = str_replace( ' ', '', $page );
+			foreach ( array_unique( $forms ) as $f ) {
+				$f = str_replace( ' ', '', $f );
+				if ( false !== strpos( $hay, $f ) ) {
+					return true;
+				}
+				if ( false !== strpos( $hay, self::to_fullwidth( $f ) ) ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		if ( 'time' === $unit ) {
 			$parts = explode( ':', $num );
 			$h     = (int) $parts[0];
@@ -1043,6 +1147,31 @@ class SA_Source_Gate {
 				if ( false !== strpos( $hay, str_replace( ',', '', $c ) ) || false !== strpos( $page, $c ) ) {
 					return true;
 				}
+			}
+		}
+
+		/*
+		 * 4桁も、千位区切りのカンマ付きの形でページに在れば次級証拠と認める。
+		 *
+		 * 厚労省の地域別最低賃金一覧は単位を表頭（【円】）に一度だけ書き、
+		 * 各行は「東京 1,280 （ 1,226 ) 54 4.4% 令和8年10月1日」で、
+		 * 数字の隣に「円」が無い。ISI の学費表（単位：日本円）と同じ構造で、
+		 * 隣接だけを見ると一次資料そのままの数字が全部落ちる。
+		 *
+		 * 5桁という既存の閾値を下げるのではなく、カンマ付きという形を要求する。
+		 * 「1,280」という文字列は千位区切りが打たれた数量であって、
+		 * 電話番号や郵便番号や条番号には現れない —— 当初の誤放行（℡045-370-9755 が
+		 * 「45 hours」を通した）は区切りなしの数字列だったから起きた。
+		 * カンマを落として突き合わせる既存ルールと違い、ここでは落とさない。
+		 * 形が証拠なので、形を崩したら意味がない。
+		 *
+		 * 3桁以下は対象外。1,280 は千位区切りがあり得るが 280 には無く、
+		 * 小さい数字に次級証拠を与えると誤放行の方向に倒れる。
+		 */
+		if ( strlen( $num ) >= 4 && false === strpos( $num, '.' ) && ctype_digit( $num ) ) {
+			$grouped = number_format( (float) $num );
+			if ( false !== strpos( $grouped, ',' ) && false !== strpos( $page, $grouped ) ) {
+				return true;
 			}
 		}
 

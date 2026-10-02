@@ -1,0 +1,49 @@
+{
+  "title": "MEXT-Designated Preparatory Courses: What They Fix and Who Runs Them",
+  "slug": "mext-designated-preparatory-course-explained",
+  "locale": "en_US",
+  "group": "junbi-kyoiku-designated",
+  "keyword_id": "junbi-kyoiku-designated",
+  "summary": "A designated preparatory course is not a better Japanese class. It is the only thing that closes a schooling-years gap, and the designated list is short.",
+  "body_html": "<p>If your prior schooling runs fewer than 12 years, you cannot enter a Japanese university on it — and no amount of Japanese study changes that. [source:1] What changes it is completing a designated preparatory education course. [source:1]</p><p>That word, designated, is the whole thing. It is a ministry designation held by specific named courses at specific named institutions, published as a list. [source:2] A school without it cannot close the gap, however it describes its curriculum.</p><h2>What the designation does, precisely</h2><p>The rule is 12 years of regular school education abroad. [source:1] Where the completed course is fewer than 12 years, you must additionally complete a designated preparatory education course or a designated training institution course. [source:1]</p><p>Note the word \"additionally\". The preparatory course does not replace your schooling — it is added on top of it. You are not making up the missing years in the abstract; you are completing a course that the ministry accepts as closing that specific gap.</p><p>This is also why it cannot be substituted. A JLPT certificate proves Japanese ability. An entrance exam score proves academic readiness. Neither of them is a designated course, so neither of them makes you eligible.</p><h2>The list is not what people expect</h2><p>Two assumptions tend to be wrong.</p><p><strong>It is not just language schools.</strong> University-attached centres hold the designation too — the Tokyo University of Foreign Studies international student Japanese language education centre, and the Osaka University Japanese language and culture education centre. [source:2] So do the Japan Student Services Organization's own Tokyo and Osaka Japanese language education centres. [source:2]</p><p>If you would rather do your preparatory year inside a university environment than at a language school, that option exists and is rarely presented.</p><p><strong>It is a short list.</strong> The ministry publishes it with an as-of date, and entries carry their own applicability dates. [source:2] Several rows are historical — they apply only to people who entered the course between two given dates. [source:2] So an institution appearing on the page is not the same as that course being open to you now.</p><p>Read the remarks column before anything else. A course that stopped accepting students years ago still appears, because the list is a record of designations rather than a prospectus.</p><h2>Which of the schools we cover hold it</h2><p>Two of them, and both appear on the ministry's current list.</p><p><strong>Sendagaya Japanese School</strong>, in Shinjuku. [source:2] Its preparatory education course runs 2 years from an April start and 1 year 6 months from October, with intakes in April and October and a stated capacity of 1,728. [source:3] The school states that only around 30 schools nationwide hold the accreditation. [source:3]</p><p><strong>Akamonkai Japanese Language School</strong>'s main school, in Arakawa. [source:2] It describes its preparatory course as the ministry-designated course for people whose secondary education runs to fewer than 12 years, to obtain the qualification to enter a Japanese university, running 1 year 6 months or 2 years. [source:4]</p><p>Both descriptions match the ministry's list, which is the useful part: you can check a school's claim against a government page rather than taking its word.</p><h2>How to verify a claim yourself</h2><p>This matters because the designation is valuable and the wording around it gets loose. \"Preparation course\", \"university preparation programme\" and \"preparatory education course\" are not interchangeable — only the last one, as designated, has legal effect on your eligibility.</p><ul><li>Open the ministry's list and search for the institution name. [source:2] If it is not there, it does not hold the designation.</li><li>Check the course name, not just the institution. The designation attaches to a named course. [source:2]</li><li>Check the remarks column for date restrictions. [source:2]</li><li>Check the as-of date on the list itself. [source:2] A designation can be added or withdrawn between revisions.</li><li>Ask the school, in writing, to confirm that the course you are being offered is the designated one. A school that holds the designation will answer this instantly.</li></ul><h2>Before you commit to a preparatory year</h2><p>Make sure you actually need one. There are other routes to eligibility that do not involve an extra course — a designated 11-year course list, and recognition of schools accredited by international bodies. [source:1] If one of those applies to you, a preparatory year is a year and a tuition bill you did not need to spend.</p><p>And confirm your own schooling first. The ministry says explicitly that whether your course was regular school education, and which year of it you completed, is a question for your country's embassy. [source:1] Get that answer before you enrol anywhere, because it determines whether this entire article applies to you.</p><p>The full set of eligibility routes is laid out in <a href=\"guides/japanese-university-entrance-qualification-routes\">do you actually qualify for a Japanese university</a>. For how one designated course sits alongside its sibling schools, see <a href=\"guides/sendagaya-three-schools-difference\">the Sendagaya group comparison</a>, and for the other designated school we cover, <a href=\"guides/akamonkai-vs-isi-comparison\">Akamonkai compared with ISI</a>. Profiles: <a href=\"schools/sendagaya-japanese-school\">Sendagaya Japanese School</a>, <a href=\"schools/akamonkai-japanese-language-school\">Akamonkai</a>.</p><p>The designated list is maintained by the Ministry of Education and revised; course structures are set by the schools and carry effective-from dates. The pages linked below are the authority. We prepare and forward application documents — eligibility is determined by the institution you apply to, not by us.</p>",
+  "sources": [
+    {
+      "url": "https://www.mext.go.jp/a_menu/koutou/shikaku/07111314.htm",
+      "title": "大学入学資格について",
+      "publisher": "文部科学省（Ministry of Education, Culture, Sports, Science and Technology）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.mext.go.jp/a_menu/koutou/shikaku/07111314/001.htm",
+      "title": "文部科学大臣指定準備教育課程一覧（令和7年4月1日現在）",
+      "publisher": "文部科学省（Ministry of Education, Culture, Sports, Science and Technology）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://group.jp-sji.org/sjs/",
+      "title": "進学準備教育課程 | 千駄ヶ谷日本語教育研究所グループ",
+      "publisher": "千駄ヶ谷日本語教育研究所グループ",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.akamonkai.ac.jp/course/all.html",
+      "title": "全コース一覧 | 赤門会日本語学校",
+      "publisher": "赤門会日本語学校",
+      "accessed": "2026-10-02"
+    }
+  ],
+  "internal_links_used": [
+    "guides/japanese-university-entrance-qualification-routes",
+    "guides/sendagaya-three-schools-difference",
+    "guides/akamonkai-vs-isi-comparison",
+    "schools/sendagaya-japanese-school",
+    "schools/akamonkai-japanese-language-school"
+  ],
+  "claims_without_sources": [
+    "指定課程の現行校数 —— 文科省は「◯校」という数え方をしていない。千駄ヶ谷が自校ページで「約30校」と述べている点は出典付きで引いたが、こちらで行を数えた数は書いていない。一覧には適用期間が限定された歴史的な行が多数含まれており、単純な行数は現行校数と一致しない。",
+    "収録校以外で指定を持つ学校の評価・比較 —— 一覧に載っている他校（大原日本語学院、KCP、新宿日本語学校など）は本サイトが未収録で、課程内容を確認していないため、名前を挙げての比較はしていない。大学附属センターと日本学生支援機構のセンターのみ、「語学学校以外にもある」という論点に必要なので挙げた。",
+    "指定が取り消される条件・頻度 —— 文科省は一覧に as-of 日付を付けているが、追加・取消の基準や頻度を公表していない。「改定の間に変わりうる」とだけ書いた。",
+    "準備教育課程を経た場合の進学実績 —— どの学校も公表していない。",
+    "研修施設課程（準備教育課程とは別の指定）の中身 —— 一覧の存在は出典どおりだが、別一覧の内容を確認していないため、経路として言及するに留めた。"
+  ]
+}

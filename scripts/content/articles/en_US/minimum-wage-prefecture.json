@@ -1,0 +1,42 @@
+{
+  "title": "Minimum Wage by Prefecture, and Why Your Raise May Be Late",
+  "slug": "japan-minimum-wage-by-prefecture-students",
+  "locale": "en_US",
+  "group": "minimum-wage-prefecture",
+  "keyword_id": "minimum-wage-prefecture",
+  "summary": "Japan sets minimum wage by prefecture, not nationally — and the new rates do not all start on the same day. Some take effect two months after others.",
+  "body_html": "<p>Japan has no single minimum wage. It has one per prefecture, set separately, and this year they do not all start on the same date.</p><p>Both facts matter if you are working part-time on a student permit, and the second one is almost never mentioned.</p><h2>The spread is wider than people expect</h2><p>For the current fiscal year, the figures reported by the regional councils put Tokyo at 1,280 yen per hour, effective 1 October 2026. [source:2] Kanagawa is 1,279 yen, also from 1 October 2026. [source:2]</p><p>At the other end, Miyazaki is 1,085 yen and Okinawa is 1,086 yen. [source:2]</p><p>Work the same shift in Tokyo and in Miyazaki and the hourly difference is most of a canned coffee. Across a month of permitted hours it compounds into something that shows up in your rent.</p><p>This is the part of the cost-of-living calculation students usually get backwards. Tokyo rent is higher — that is well known. Tokyo's minimum wage is also the highest in the country, and on a capped number of weekly hours the wage side is not a rounding error.</p><h2>The effective dates are staggered, and that is the useful part</h2><p>Here is what no guide tells you: the new rates do not start together.</p><p>Tokyo's took effect on 1 October 2026. [source:2] Iwate's takes effect on 1 December 2026, and Okinawa's on 2 December 2026. [source:2]</p><p>So for part of the autumn, two students doing identical work in different prefectures are on different rate schedules — one already raised, one still waiting for a rise that has been announced but not yet started.</p><p>Which means if you are in a prefecture with a later date and your pay has not changed, nothing is necessarily wrong. Check your prefecture's effective date before you raise it with your employer. And after that date has passed, check your payslip, because the raise is not optional.</p><h2>How to read your own situation</h2><p>Three things to establish, in this order.</p><p><strong>Which prefecture governs your job.</strong> The regional minimum wage applies by prefecture, so it is the prefecture your workplace is in that matters. If you live in Saitama or Chiba and work in Tokyo — which a lot of students do — it is the Tokyo rate that applies to those hours.</p><p>Saitama is 1,196 yen and Chiba is 1,195 yen, against Tokyo's 1,280 yen. [source:2] Commuting inward is worth real money per hour.</p><p><strong>Your prefecture's effective date.</strong> The ministry publishes the full list of amounts and effective dates. [source:1] [source:2] Find yours rather than assuming October.</p><p><strong>Your actual hourly rate, after the date.</strong> Compare it against the figure, not against what you were told when you were hired.</p><h2>If you are being paid below it</h2><p>The minimum wage is a legal floor, not a guideline, and this is where students often stay quiet out of a fear that turns out to be misplaced.</p><p>The immigration agency's renewal guideline does require that your employment and working conditions comply with labour law, and it says expressly that this includes part-time work. [source:3] Read that on its own and it sounds like your employer's breach becomes your problem.</p><p>Now read the sentence the agency adds. Where it comes to light that a recommendation or similar measure has been issued over a labour law breach, the agency states that ordinarily the foreign national is not at fault, and that this is fully weighed in the decision. [source:3]</p><p>The agency has written down that in the normal case it treats you as the party who was wronged, not as a participant. So the fear that reporting an underpaying employer will damage your visa is not supported by the guideline — the guideline says close to the opposite.</p><p>That does not make the conversation easy. It does mean the calculation is not \"my visa versus my wages\".</p><h2>What to do</h2><ul><li>Look up the rate for the prefecture your workplace is in, and its effective date. [source:1]</li><li>If the date has not arrived, wait for it rather than assuming you are being shortchanged. [source:2]</li><li>If it has passed and your rate is below the figure, that is a breach of a legal floor, not a negotiation.</li><li>Keep your payslips. They are the record, and you may need them for an entirely different purpose at renewal.</li><li>If you are choosing between areas to live, put the wage difference next to the rent difference. Saitama and Chiba sit below Tokyo on both. [source:2]</li></ul><p>For what the weekly hour cap actually is and how the permit works, see <a href=\"guides/student-visa-part-time-work-rules-2026\">the part-time work rules</a>. For the full list of what the agency weighs at renewal — including the National Health Insurance item that catches more students than wages do — see <a href=\"guides/student-visa-renewal-what-is-assessed\">what immigration actually looks at when you renew</a>.</p><p>Minimum wage amounts and effective dates are revised annually by the Ministry of Health, Labour and Welfare and the regional councils. The pages linked below are the authority — check the current fiscal year rather than relying on a figure quoted in an article, including this one.</p>",
+  "sources": [
+    {
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/roudoukijun/minimumichiran/",
+      "title": "地域別最低賃金の全国一覧",
+      "publisher": "厚生労働省（Ministry of Health, Labour and Welfare）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.mhlw.go.jp/content/11200000/001753404.pdf",
+      "title": "令和8年度 地域別最低賃金 全国一覧",
+      "publisher": "厚生労働省（Ministry of Health, Labour and Welfare）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/resources/nyuukokukanri07_00058.html",
+      "title": "在留資格の変更、在留期間の更新許可のガイドライン（最終改正令和８年６月）",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    }
+  ],
+  "internal_links_used": [
+    "guides/student-visa-part-time-work-rules-2026",
+    "guides/student-visa-renewal-what-is-assessed"
+  ],
+  "claims_without_sources": [
+    "「◯県が10月、◯県が11月、◯県が12月」という発効月ごとの件数 —— 一覧から自分で数えた集計であり、厚労省は件数を示していない。したがって件数は書かず、最も早い例（東京10月1日）と最も遅い例（岩手12月1日・沖縄12月2日）を出典付きで挙げるに留めた。",
+    "最高額と最低額の差（円）—— 両方の額は出典どおりだが、差額はこちらの算術であり一覧に載っていない。差を数字で書かず、「同じシフトで差が出る」という定性的な記述にした。",
+    "都道府県ごとの家賃相場 —— 本サイトは不動産の一次資料を持たない。「東京の家賃は高い」という一般的な了解には触れたが、金額は一切書いていない。",
+    "居住地と勤務地が異なる場合にどちらの最低賃金が適用されるかの法的根拠 —— 地域別最低賃金が都道府県単位であることは出典どおりだが、勤務地基準であることの条文を確認していない。本文では「勤務地の都道府県」と書いており、これは一般的な運用理解であって出典の明記ではない。",
+    "最低賃金未満で働いた場合の未払い賃金の請求方法 —— 労働基準監督署の管轄で、本記事の出典にはない。",
+    "「答申された改定額」が確定額と異なる可能性 —— 一覧の列見出しは「答申された改定額」であり、本文でも「審議会が答申した額」と書いた。発効日を過ぎた分は効力を持つが、答申から発効までの間に変更があり得るかは確認していない。",
+    "県名と発効日・金額の「対応」—— 各金額と各日付が一覧に存在することは闸门が核対したが、それが東京／沖縄／岩手の行のものであるという対応は闸门では検証できない。47行の表には令和8年10月1日から12月2日までほとんどの日付が揃っており、日付を一日ずらしても別の県の行として存在するため素通りする（変異テストで確認）。対応関係は PDF の表を実際にパースして突き合わせた —— 闸门ではなく書き手の責任として確認している。"
+  ]
+}

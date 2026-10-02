@@ -352,7 +352,12 @@
           "intent": "informational",
           "evidence": "serp",
           "evidence_note": "SERP 実測：「準備教育課程」を英語で解説したものはほぼ無く、あっても一校の宣伝文。文科省の指定一覧そのものに当たった記事が見当たらない。",
-          "priority": 1
+          "priority": 1,
+          "sources_required": [
+            "mext.go.jp",
+            "official_school_site"
+          ],
+          "_sources_note": "指定の事実は文科省の一覧が一次資料だが、「その課程が実際にどう運営されているか」（課程長・入学期）は校方官網しか書いていない。両方を許す。"
         },
         {
           "id": "jlpt-vs-eju",
@@ -392,7 +397,10 @@
           "intent": "informational",
           "evidence": "inferred",
           "evidence_note": "推断。最低賃金の解説と在留更新の解説はそれぞれ存在するが、更新ガイドラインの「雇用・労働条件が適正であること」が打工の労働条件を本人の審査に取り込んでいる点を結びつけた記事は見当たらない。GSC 実証は無い。",
-          "priority": 1
+          "priority": 1,
+          "status": "absorbed",
+          "absorbed_by": "minimum-wage-prefecture",
+          "_absorbed_note": "更新ガイドラインの第6項（雇用・労働条件が適正であること）は renewal-criteria で考慮要素として扱い、minimum-wage-prefecture では「最低賃金未満で雇われた場合に本人が責を負わない」という保護条項まで含めて扱った。同じ一箇所の条文で三本目を立てると互いに薄めるだけで、重複度闸门が防ごうとしているものに自分でぶつかる。"
         },
         {
           "id": "minimum-wage-prefecture",
@@ -437,6 +445,18 @@
           "intent": "informational",
           "evidence": "competitor",
           "evidence_note": "住居地の届出は競品も触れるが、所属機関・配偶者に関する届出や紛失時の再交付までを期限付きで整理したものが薄い。",
+          "priority": 2
+        },
+        {
+          "id": "online-procedures",
+          "title": "Which Immigration Procedures You Can Actually Do Online",
+          "slug": "immigration-procedures-online-students",
+          "intent": "informational",
+          "evidence": "serp",
+          "evidence_note": "SERP 実測：電子届出システムや在留申請オンラインの個別案内は入管庁にあるが、「留学生がどれをオンラインで済ませられ、どれには何が前提として要るか」を一枚にまとめた英語記事が無い。マイナンバーカードが在留手続のオンライン申請の前提になる点が特に抜けている。",
+          "sources_required": [
+            "moj.go.jp"
+          ],
           "priority": 2
         }
       ]
