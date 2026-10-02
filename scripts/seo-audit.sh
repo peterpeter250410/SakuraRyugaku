@@ -766,7 +766,10 @@ if [ "$(status_of "$ART_SITEMAP")" = "200" ]; then
         # meta description 截断检查。
         # wp_trim_words() 的词／字计数随语言包切换，曾在 /en/ 上把描述切在 60 字符处（已修）。
         ART_DESC=$(printf '%s' "$ART_TXT" | grep -o '<meta name="description" content="[^"]*"' | head -1 | sed 's/.*content="//; s/"$//')
-        ART_DESC_LEN=${#ART_DESC}
+        # 先还原 HTML 实体再量长度：一个撇号在页面上是 &#039;（6 字符），
+        # 直接数会把 156 字符的描述报成 161，让人以为超限去改一个不存在的问题。
+        ART_DESC=$(printf '%s' "$ART_DESC" | sed "s/&#0\{0,3\}39;/'/g; s/&apos;/'/g; s/&quot;/\"/g; s/&#8230;/…/g; s/&lt;/</g; s/&gt;/>/g; s/&amp;/\&/g")
+        ART_DESC_LEN=$(printf '%s' "$ART_DESC" | wc -m | tr -d ' ')
         if [ "$ART_DESC_LEN" -lt 50 ]; then
             bad "文章 meta description 仅 ${ART_DESC_LEN} 字符，疑被截断: ${ART_FIRST}"
         else
