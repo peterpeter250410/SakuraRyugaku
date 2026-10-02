@@ -690,6 +690,124 @@ else
     warn "/schools/ → ${SCHOOLS_CODE}（若刚部署，需执行 wp rewrite flush --hard）"
 fi
 
+# ---------- B4d. 文章页（/guides/） ----------
+head2 "B4d. 文章页（/guides/）"
+
+# sitemap 是唯一能一次拿到全部已发布文章 URL 的地方（列表页分页）。
+ART_SITEMAP="${SITE_URL}/wp-sitemap-posts-sa_article-1.xml"
+if [ "$(status_of "$ART_SITEMAP")" = "200" ]; then
+    fetch "$ART_SITEMAP" "${TMP}/art-sitemap.xml"
+    ART_URLS=$(grep -o '<loc>[^<]*</loc>' "${TMP}/art-sitemap.xml" 2>/dev/null | sed 's/<[^>]*>//g')
+    ART_N=$(printf '%s\n' "$ART_URLS" | grep -c . | tr -d ' ')
+
+    if [ "${ART_N:-0}" -eq 0 ]; then
+        info "sitemap 中暂无已发布文章"
+    else
+        ok "sitemap 中有 ${ART_N} 篇文章"
+
+        # 重复发布检测。
+        #
+        # publish-article.php 早先只有 insert 路径，重跑一次同一份稿件就会
+        # 多出一篇正文完全相同的文章 —— 因为原 slug 已被占用，新的那篇会挂上
+        # 语种后缀（…-en-us），于是两个 URL 同时进 sitemap 讲同一件事。
+        # 这正是搜索引擎判重复内容的形态，而且肉眼看列表页不容易发现。
+        # 脚本已改为按 (group, locale) 更新，这里是守住它不再回归。
+        DUPE_SUFFIXED=$(printf '%s\n' "$ART_URLS" | grep -E -- '-(ja|zh-cn|en-us)/$' || true)
+        if [ -n "$DUPE_SUFFIXED" ]; then
+            bad "发现带语种后缀的文章 URL —— 几乎一定是重复发布留下的副本，需确认后删除："
+            printf '%s\n' "$DUPE_SUFFIXED" | sed 's/^/        /'
+        else
+            ok "无带语种后缀的疑似重复文章 URL"
+        fi
+
+        ART_FIRST=$(printf '%s\n' "$ART_URLS" | head -1)
+        fetch "$ART_FIRST" "${TMP}/article.html"
+        ART_TXT=$(tr '\n' ' ' < "${TMP}/article.html" 2>/dev/null)
+
+        # canonical 必须恰好一条：主题自带一条，WP 核心的 rel_canonical 也会输出一条，
+        # 两条同时存在过（已修），这里守住。
+        ART_CANON_N=$(printf '%s' "$ART_TXT" | grep -o 'rel="canonical"' | wc -l | tr -d ' ')
+        if [ "$ART_CANON_N" = "1" ]; then
+            ok "文章页 canonical 恰好 1 条"
+        else
+            bad "文章页 canonical ${ART_CANON_N} 条（应为 1）: ${ART_FIRST}"
+        fi
+
+        # [source:N] 是给闸门用的机器标记，发布时应被剥掉。漏在正文里读者会困惑。
+        ART_MARKERS=$(printf '%s' "$ART_TXT" | grep -o '\[source:[0-9]*\]' | wc -l | tr -d ' ')
+        if [ "$ART_MARKERS" = "0" ]; then
+            ok "正文无残留 [source:N] 标记"
+        else
+            bad "正文残留 ${ART_MARKERS} 处 [source:N] 标记: ${ART_FIRST}"
+        fi
+
+        # 出处区块。文章里的数字都标了来源，页面上必须让读者看得到出处。
+        if printf '%s' "$ART_TXT" | grep -q 'sa-article__sources'; then
+            ok "出处区块已渲染"
+        else
+            bad "文章页缺少出处区块: ${ART_FIRST}"
+        fi
+
+        # Article + citation 结构化数据，且 author 必须是组织而非编造的人名。
+        if printf '%s' "$ART_TXT" | grep -q '"@type":"Article"'; then
+            ok "Article 结构化数据存在"
+            printf '%s' "$ART_TXT" | grep -q '"citation"' \
+                && ok "结构化数据含 citation（出处）" \
+                || warn "结构化数据缺 citation: ${ART_FIRST}"
+            if printf '%s' "$ART_TXT" | grep -qE '"author":\{"@type":"(Organization|Person)"'; then
+                printf '%s' "$ART_TXT" | grep -q '"author":{"@type":"Organization"' \
+                    && ok "author 为 Organization（未编造人名署名）" \
+                    || bad "author 为 Person —— 本站文章无真实作者本人，不应署人名: ${ART_FIRST}"
+            fi
+        else
+            bad "文章页缺少 Article 结构化数据: ${ART_FIRST}"
+        fi
+
+        # meta description 截断检查。
+        # wp_trim_words() 的词／字计数随语言包切换，曾在 /en/ 上把描述切在 60 字符处（已修）。
+        ART_DESC=$(printf '%s' "$ART_TXT" | grep -o '<meta name="description" content="[^"]*"' | head -1 | sed 's/.*content="//; s/"$//')
+        ART_DESC_LEN=${#ART_DESC}
+        if [ "$ART_DESC_LEN" -lt 50 ]; then
+            bad "文章 meta description 仅 ${ART_DESC_LEN} 字符，疑被截断: ${ART_FIRST}"
+        else
+            case "$ART_DESC" in
+                *…|*...) warn "文章 meta description 以省略号结尾（${ART_DESC_LEN} 字符），确认是否被截断" ;;
+                *) ok "文章 meta description 完整（${ART_DESC_LEN} 字符）" ;;
+            esac
+        fi
+
+        # 正文内的站内链接必须带语种前缀，否则落到日文页或 404。
+        ART_BAD_LINKS=0
+        for L in $(printf '%s' "$ART_TXT" | grep -o 'href="'"${SITE_URL}"'/en/[^"]*"' | sed 's/href="//; s/"$//' | sort -u); do
+            LC=$(status_of "$L")
+            if [ "$LC" != "200" ]; then
+                bad "文章内链 ${LC}: ${L}"
+                ART_BAD_LINKS=$((ART_BAD_LINKS + 1))
+            fi
+        done
+        [ "$ART_BAD_LINKS" = "0" ] && ok "文章内链全部可访问"
+
+        # hreflang 只应输出同一翻译组里真实存在的语种。
+        # 指向不存在的译文等于给搜索引擎一批 404，而文章目前只有英文版。
+        for HL in $(printf '%s' "$ART_TXT" | grep -o 'rel="alternate" hreflang="[^"]*" href="[^"]*"' | sed 's/.*href="//; s/"$//' | sort -u); do
+            HLC=$(status_of "$HL")
+            [ "$HLC" = "200" ] \
+                && ok "hreflang 目标可访问: ${HL}" \
+                || bad "hreflang 指向 ${HLC}: ${HL}"
+        done
+    fi
+else
+    info "文章 sitemap 不可访问（若尚无已发布文章，属正常）"
+fi
+
+# 不存在的文章必须 404，不能是可被收录的空页面
+ART_NX=$(status_of "${SITE_URL}/en/guides/__nonexistent-article-check__/")
+if [ "$ART_NX" = "404" ]; then
+    ok "不存在的文章正确返回 404"
+else
+    bad "不存在的文章返回 ${ART_NX}（应为 404）"
+fi
+
 # ---------- B6. lang 属性 ----------
 head2 "B5. html lang 属性"
 for pair in "home.html:/" "home_zh.html:/zh/" "home_en.html:/en/"; do
