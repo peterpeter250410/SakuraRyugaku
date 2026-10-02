@@ -380,16 +380,51 @@ class SA_Source_Gate {
 		);
 		$raw    = curl_exec( $ch );
 		$status = (int) curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+		$ctype  = (string) curl_getinfo( $ch, CURLINFO_CONTENT_TYPE );
 		$errno  = (int) curl_errno( $ch );
 		$errstr = (string) curl_error( $ch );
 		curl_close( $ch );
 
-		$text = '';
+		$text     = '';
+		$env_fail = self::is_env_failure( $errno );
+
 		if ( false !== $raw ) {
-			// script/style 里的内容不是正文，留着会造成误命中。
-			$clean = preg_replace( '#<(script|style)\b[^>]*>.*?</\1>#is', ' ', (string) $raw );
-			$text  = wp_strip_tags_compat( $clean );
-			$text  = preg_replace( '/\s+/u', ' ', $text );
+			if ( self::looks_like_pdf( $raw, $ctype ) ) {
+				/*
+				 * PDF も一次資料として扱う。
+				 *
+				 * 日本の官公庁は最も硬い数字を PDF でしか出さない ——
+				 * 在留審査処理期間の月次平均日数（留学の在留資格認定証明書なら
+				 * 41.0 日）は PDF の表の中だけにあり、HTML ページには
+				 * 「平均日数を公表しています」という説明しか載っていない。
+				 *
+				 * PDF を読めないままにすると、闸门は構造的に
+				 * 「最も権威のある出典ほど核対できない」状態になる。
+				 * それは一次資料に当たるという方針そのものを無効にする。
+				 */
+				$pdf = self::pdf_to_text( $raw );
+				if ( null === $pdf ) {
+					/*
+					 * pdftotext が無い環境では「PDF だから中身を見ていない」と
+					 * 言い切る。内容が誤りだから落とすのではないので、
+					 * HTTP 不達と同じ env_fail に寄せる（終了コード 3 側）。
+					 *
+					 * ここで「通す」のは嘘、「落とす」のも嘘。
+					 * 「この機械では確かめていない」が唯一正しい報告。
+					 */
+					$env_fail = true;
+					$errstr   = '' !== $errstr
+						? $errstr
+						: 'PDF 来源：本机没有 pdftotext（poppler-utils），未能提取文本核对';
+				} else {
+					$text = preg_replace( '/\s+/u', ' ', $pdf );
+				}
+			} else {
+				// script/style 里的内容不是正文，留着会造成误命中。
+				$clean = preg_replace( '#<(script|style)\b[^>]*>.*?</\1>#is', ' ', (string) $raw );
+				$text  = wp_strip_tags_compat( $clean );
+				$text  = preg_replace( '/\s+/u', ' ', $text );
+			}
 		}
 
 		$out = array(
@@ -399,7 +434,7 @@ class SA_Source_Gate {
 			'errno'   => $errno,
 			'errstr'  => $errstr,
 			// 本机环境所限、而非来源本身有问题 —— 两者必须分开，理由见 is_env_failure()。
-			'env_fail' => self::is_env_failure( $errno ),
+			'env_fail' => $env_fail,
 		);
 
 		$this->cache[ $url ] = $out;
@@ -559,7 +594,19 @@ class SA_Source_Gate {
 		}
 		$s = preg_replace( '/\b([A-C][1-2]|N[1-5])\b/u', ' ', $s );
 
-		preg_match_all( '/\d[\d,]*/u', $s, $m, PREG_OFFSET_CAPTURE );
+		/*
+		 * 小数点を含めて一つのトークンとして拾う。
+		 *
+		 * 入管庁の在留審査処理期間は「41.0」のように小数第一位まで公表される。
+		 * 小数点を含めないと「41」と「0」に割れ、「0」は桁数不足で捨てられ、
+		 * 「41」はページ上の「41.0」と隣接判定が合わず——正しい引用が落ちる。
+		 *
+		 * 平均日数を「41 日」と丸めて書くのも誤りではないが、出典が
+		 * 小数第一位まで出しているなら本文もそう書くほうが正確で、
+		 * 闸门も通る。丸めを許すと「41.4 を 41 と書く」と
+		 * 「41.0 を 41 と書く」が区別できなくなる。
+		 */
+		preg_match_all( '/\d[\d,]*(?:\.\d+)?/u', $s, $m, PREG_OFFSET_CAPTURE );
 
 		$syn = self::unit_synonyms();
 
@@ -790,7 +837,91 @@ class SA_Source_Gate {
 			}
 		}
 
+		/*
+		 * 小数も整页出現性を次級証拠として認める（有効数字 3 桁以上）。
+		 *
+		 * 理由は 5 桁整数と同じで、形が特徴的だから。入管庁の処理期間 PDF は
+		 *     留学  41.0  45.4  32.4  57.9  46.1
+		 * という行で、「日数」は何行も上の見出しにしかない。
+		 * 隣接だけを見ると、一次資料にそのまま載っている数字が落ちる。
+		 *
+		 * ただし有効数字 2 桁（1.5 など）は除く —— 「1.5年コース」のような
+		 * 無関係な小数はページ上にいくらでもあり、誤放行の方向に倒れる。
+		 * 3 桁（41.0）なら偶然の衝突は受け入れられる水準。
+		 */
+		if ( false !== strpos( $num, '.' ) ) {
+			$digits = preg_replace( '/\D/', '', $num );
+			if ( strlen( $digits ) >= 3 && false !== strpos( str_replace( ',', '', $page ), $num ) ) {
+				return true;
+			}
+		}
+
 		return false;
+	}
+
+	/**
+	 * 取得したバイト列が PDF かどうか。
+	 *
+	 * Content-Type だけで判断しない。moj.go.jp の PDF は
+	 * application/pdf を返すが、サーバの設定次第で
+	 * application/octet-stream になることもあるので、
+	 * 先頭の %PDF- マジックも見る。
+	 *
+	 * @param string $raw   レスポンス本体。
+	 * @param string $ctype Content-Type ヘッダ。
+	 * @return bool
+	 */
+	private static function looks_like_pdf( $raw, $ctype ) {
+		if ( false !== stripos( (string) $ctype, 'application/pdf' ) ) {
+			return true;
+		}
+		return 0 === strncmp( (string) $raw, '%PDF-', 5 );
+	}
+
+	/**
+	 * PDF からテキストを取り出す。pdftotext が無ければ null。
+	 *
+	 * 自前で PDF をパースはしない。本文は FlateDecode で圧縮されていて、
+	 * 正しく解くには結局 PDF の構文解析が必要になる。闸门にその責任を
+	 * 持たせると、闸门自身がバグの出どころになる —— 核対する側が
+	 * 信用できないなら核対の意味がない。
+	 *
+	 * @param string $raw PDF のバイト列。
+	 * @return string|null テキスト、または pdftotext が使えないとき null。
+	 */
+	private static function pdf_to_text( $raw ) {
+		static $available = null;
+
+		if ( null === $available ) {
+			$probe     = array();
+			$rc        = 0;
+			@exec( 'command -v pdftotext 2>/dev/null', $probe, $rc );
+			$available = ( 0 === $rc && ! empty( $probe ) );
+		}
+
+		if ( ! $available ) {
+			return null;
+		}
+
+		$tmp = tempnam( sys_get_temp_dir(), 'sa-pdf-' );
+		if ( false === $tmp || false === file_put_contents( $tmp, $raw ) ) {
+			if ( false !== $tmp ) {
+				@unlink( $tmp );
+			}
+			return null;
+		}
+
+		$out = array();
+		$rc  = 0;
+		// -layout は表の列並びを保つ。崩すと行と数字の対応が読めなくなる。
+		@exec( 'pdftotext -layout -enc UTF-8 ' . escapeshellarg( $tmp ) . ' - 2>/dev/null', $out, $rc );
+		@unlink( $tmp );
+
+		if ( 0 !== $rc ) {
+			return null;
+		}
+
+		return implode( "\n", $out );
 	}
 
 	/**

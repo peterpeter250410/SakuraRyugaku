@@ -1,0 +1,40 @@
+{
+  "title": "Certificate of Eligibility: How Long the Wait Actually Is",
+  "slug": "certificate-of-eligibility-processing-time",
+  "locale": "en_US",
+  "group": "coe-processing",
+  "keyword_id": "coe-processing",
+  "summary": "The official standard is 1 to 3 months. The published average for student applications is 41.0 days. Both are true, and neither is a date you can plan around.",
+  "body_html": "<p>Two numbers are published, and they answer different questions.</p><p>The standard processing period for a Certificate of Eligibility is 1 to 3 months. [source:1] The average that student applications actually took, in the most recent month published, is 41.0 days. [source:2]</p><p>Neither one is a promise. The difference between them is where most of the useful information sits.</p><h2>What the 41.0 figure is [source:2]</h2><p>The agency publishes average processing days by residence status, monthly. [source:3] For the Student status, the Certificate of Eligibility average was 41.0 days in the month published most recently. [source:2]</p><p>Two things in the footnotes change how you should read that.</p><p><strong>Rejections and withdrawn applications are excluded.</strong> [source:2] So this is the average of applications that were granted. It tells you how long a successful case took, not how long your case will take if something about it needs a second look.</p><p><strong>Time spent waiting for you is counted.</strong> If the agency asks for additional documents, the days until those documents arrive are inside the average. [source:2] That part of the clock is yours, not theirs — and it is the part you can actually influence.</p><p>For scale, the same table puts Business Manager applications at 241.9 days. [source:2] The Student status is one of the faster ones. That is not reassurance so much as context: a slow month for Student applications still looks nothing like the slow end of the table.</p><h2>The seasonal pattern the agency states outright</h2><p>This is the part worth planning around, and it is in a footnote rather than a headline.</p><p>The agency's own note says that applications increase ahead of Japanese language school course openings in April and October, and that processing times for the Student status tend to lengthen as a result. [source:2]</p><p>Read that again, because it inverts the obvious strategy. The intakes almost everyone targets are the intakes whose applications are slowest to process. If you are aiming at April, you are in the queue with everyone else aiming at April.</p><p>It also means a published average is a seasonal figure, not a constant. An average drawn from a quiet month tells you little about the month your own application lands in.</p><h2>Why \"1 to 3 months\" is not a deadline [source:1]</h2><p>The official guidance on when to apply says only to submit with enough time to receive the certificate before entry. [source:1] No fixed date, no minimum lead time.</p><p>That vagueness is deliberate and it is honest — the agency cannot commit to a date it does not control. But it pushes the planning problem onto you, and the practical consequence is that the standard period is a range you should treat as an outer bound, not a schedule.</p><p>If your school's deadline for enrolment documents assumes the short end of that range, ask what happens if the certificate arrives at the long end.</p><h2>You are probably not the one applying</h2><p>The application can be filed by you, by a staff member of the institution receiving you, or by an approved filing agent. [source:1] In practice, for language school students, it is the school.</p><p>This changes what you can do about the timeline. You cannot call and chase it. What you can do is get your documents to the school early, because the school files as a batch and your file waits for the slowest document in it.</p><p>Also worth knowing: postal submission is not accepted. [source:1] The application goes in at a regional immigration office, or online. [source:1] Since March 2023 the certificate itself can be received by email. [source:1] If your school still works on paper, ask whether the electronic route is available to them — it removes a courier leg at the end.</p><h2>One new step that may apply to you</h2><p>A pre-entry tuberculosis screening programme has begun. [source:1] It applies to nationals of specific countries, named on the agency's page, and the details sit with the health ministry. [source:1]</p><p>If your nationality is covered, this is an additional step with its own timing, and it is new enough that advice written even a year ago will not mention it. Confirm with your school whether it applies to you before you build a schedule.</p><h2>What to actually do</h2><ul><li>Plan against the long end of the standard period, not the published average. [source:1] The average describes granted applications in one month; your application is a single case in a specific month.</li><li>Ask your school when they file, not when they want your documents. The gap between those two dates is where delay hides.</li><li>If you are applying for an April or October start, assume the slow end. The agency says so itself. [source:2]</li><li>Get anything that might prompt a request for additional documents right the first time — financial evidence above all. Those days land in your column.</li><li>Check whether the tuberculosis screening applies to your nationality. [source:1]</li></ul><p>One more thing to settle early, because it is now checked rather than inferred: your Japanese ability has to be evidenced at the application stage, by test certificate or by interview. See <a href=\"guides/japanese-proficiency-proof-student-visa-2026\">how the Japanese-ability requirement is actually verified</a>. And if you are working backwards from a specific start date, we have laid out <a href=\"guides/april-intake-application-timeline\">the April intake timeline in reverse</a>.</p><p>Processing figures are published monthly and move month to month. The source tables are linked below — check the current month rather than relying on a figure quoted in an article, including this one. Applications are assessed case by case, and the agency's own pages are the only authority.</p>",
+  "sources": [
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/16-1.html",
+      "title": "在留資格認定証明書交付申請",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/content/001470530.pdf",
+      "title": "在留審査処理期間（日数）令和8年7月許可分",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/resources/nyuukokukanri07_00140.html",
+      "title": "在留審査処理期間",
+      "publisher": "出入国在留管理庁（Immigration Services Agency of Japan）",
+      "accessed": "2026-10-02"
+    }
+  ],
+  "internal_links_used": [
+    "guides/japanese-proficiency-proof-student-visa-2026",
+    "guides/april-intake-application-timeline"
+  ],
+  "claims_without_sources": [
+    "「学校はまとめて申請するので、あなたのファイルは一番遅い書類を待つ」—— 実務上の一般的な帰結で、入管庁の記述ではない。出典マーカーは付けていない。",
+    "「財政証明が追加資料要求の最大の原因」—— 入管庁は追加資料の内訳を公表していない。したがって「財政証明を最優先で正確に」とだけ書き、原因の順位は主張していない。",
+    "結核スクリーニング対象国の具体的な国名 —— 当庁ページは厚生労働省の特設サイトへのリンクで示しており、国名を当該ページから直接確認していないため列挙していない。「対象なら学校に聞け」とした。",
+    "公表値の月次推移・季節変動の具体的な幅 —— 入管庁は月ごとの表を出しているが、複数月を自分で集計して「◯月は◯日になる」と書けば、それは出典の記述ではなく当方の分析になる。傾向は当庁の脚注が述べている範囲（4月・10月に向けて長期化）だけに留めた。",
+    "オンライン申請が語学学校にとって利用可能かどうか —— 機関側の届出状況に依存し、当庁ページからは判断できない。「学校に聞け」とした。"
+  ]
+}
