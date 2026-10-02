@@ -254,6 +254,36 @@ function sa_is_noindex() {
 	if ( is_page( sa_noindex_slugs() ) ) {
 		return true;
 	}
+
+	/*
+	 * WordPress 核心的分类法与时间归档。
+	 *
+	 * 本站的内容模型是「院校」（自定义表）与「文章」（CPT），两者都有
+	 * 自己的列表页与 sitemap。core 的 category / tag / author / date
+	 * 归档没有被纳入任何入口，也没有对应模板 —— 回落到 index.php，
+	 * 产出一个无人维护、内容与别处重复的页面。
+	 *
+	 * Search Console 已经把 /category/uncategorized/ 报成「已抓取 —— 尚未
+	 * 编入索引」。那是 WordPress 装好就存在的默认分类，一篇文章都没有，
+	 * 却占着抓取预算，并且给站点贡献了一个空页面。
+	 *
+	 * 这里用 noindex 而不是 robots.txt 的 Disallow：要让爬虫读到 noindex，
+	 * 就必须允许它抓到这个页面（本文件开头的注记讲的就是这件事）。
+	 */
+	if ( is_category() || is_tag() || is_tax() || is_author() || is_date() ) {
+		return true;
+	}
+
+	/*
+	 * 刻意不对分页页面加 noindex。
+	 *
+	 * 「第2页以后没有索引价值」听起来合理，但 Google 明确不建议对分页序列
+	 * 使用 noindex：被 noindex 的页面随时间推移会被抓得越来越少，
+	 * 其上的链接也会被降权，于是只能从第2页进入的条目反而更难被发现。
+	 *
+	 * 这里需要的是自指 canonical（sa_canonical_url() 已经这么做了）
+	 * 加上 sitemap 覆盖，而不是 noindex。
+	 */
 	// 带追踪参数的 URL 不应被单独索引（canonical 已指向干净 URL，此处双保险）。
 	return (bool) apply_filters( 'sa_is_noindex', false );
 }
@@ -687,6 +717,21 @@ add_filter(
 		// 参数化 URL 不必抓取（canonical 已指向干净 URL）。
 		$lines[] = 'Disallow: /*?s=';
 		$lines[] = 'Disallow: /*?replytocom=';
+
+		/*
+		 * 缓存目录。
+		 *
+		 * Search Console 把 /cache/ 与 /en/cache/ 都报成了已发现的 URL。
+		 * 这里面没有给人读的内容，被抓到只会消耗抓取预算，
+		 * 而且目录列表会把服务器上的文件结构暴露出去。
+		 *
+		 * 这一条用 Disallow 而不是 noindex：没有 HTML 可以承载 noindex，
+		 * 而且这里要阻止的是抓取本身，不只是索引。
+		 * 需要注意的是，robots.txt 只是请求 —— 真正的拦截要在 nginx 侧做，
+		 * 见 docs/ops-cache-dir.md。
+		 */
+		$lines[] = 'Disallow: /cache/';
+		$lines[] = 'Disallow: /*/cache/';
 		// 静态资源必须放行，否则 Google 无法渲染页面、Core Web Vitals 评分受损。
 		$lines[] = 'Allow: /wp-content/uploads/';
 		$lines[] = 'Allow: /wp-content/themes/';
