@@ -392,7 +392,7 @@
     ]
   },
   {
-    "_comment": "共立日語学院（学校法人共立育英会）。住所は公式サイトで確認：〒113-0034 東京都文京区湯島2-17-12 共立育英会ビル。⚠ 同じ湯島地区に別法人の『共立日本語学校』（湯島2-20-4／kyoritsu-mile.ac.jp）が存在する。名称が酷似しているため混同しないこと。⚠ 英語名『Kyoritsu Japanese Language Academy』は公式サイト上で未確認（第三者表記に基づく）。公開前に要確認。⚠ 学費・コース情報は未取得。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
+    "_comment": "共立日語学院（学校法人共立育英会）。住所は公式サイトで確認：〒113-0034 東京都文京区湯島2-17-12 共立育英会ビル。⚠ 同じ湯島地区に別法人の『共立日本語学校』（湯島2-20-4／kyoritsu-mile.ac.jp）が存在する。名称が酷似しているため混同しないこと。⚠ 英語名『Kyoritsu Japanese Language Academy』は公式サイト上で未確認（第三者表記に基づく）。公開前に要確認。⚠ 学費は公式サイト（日本語版・中国語版とも）に価格ページが見当たらず、未取得（2026-10-02 確認）。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
     "slug": "kyoritsu-japanese-language-academy",
     "name": "共立日語学院",
     "name_i18n": {
@@ -417,7 +417,7 @@
     "programs": []
   },
   {
-    "_comment": "学校法人木下学園 カナン国際教育学院。住所は公式サイトで確認：〒136-0072 東京都江東区大島3-23-8。英語名は公式サイトの表記『CANAAN International Education Academy』をそのまま採用。⚠ 開校年・適正校認定の有無は第三者情報のみで未確認のため記載していない。⚠ 学費・コース情報は未取得。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
+    "_comment": "学校法人木下学園 カナン国際教育学院。住所は公式サイトで確認：〒136-0072 東京都江東区大島3-23-8。英語名は公式サイトの表記『CANAAN International Education Academy』をそのまま採用。⚠ 開校年・適正校認定の有無は第三者情報のみで未確認のため記載していない。学費は公式サイトの「学費一覧」で確認済み（初年度合計は全期 845,000円/年で共通、2年目以降の追加費用のみ入学期で異なる）。5項目の内訳と合計の算術一致を確認済み。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
     "slug": "canaan-international-education-academy",
     "name": "カナン国際教育学院",
     "name_i18n": {
@@ -439,7 +439,56 @@
       "zh": "由学校法人木下学园运营的 CANAAN 国际教育学院，位于东京都江东区大岛。",
       "en": "CANAAN International Education Academy, operated by the Kinoshita Gakuen educational foundation, is located in Ojima, Koto Ward, Tokyo."
     },
-    "programs": []
+    "programs": [
+      {
+        "name": "4月期生 進学2年",
+        "name_i18n": {
+          "zh": "4月生 升学2年课程",
+          "en": "April intake, 2-year academic course"
+        },
+        "duration": "2年",
+        "tuition_min": 845000,
+        "tuition_max": 845000,
+        "tuition_basis": "year",
+        "tuition_note": "初年度合計。2年目以降の追加費用は 775,000円/年。選考料20,000・入学金50,000・学費695,000・施設維持費50,000・教材費30,000 の合計。出典：カナン国際教育学院 公式サイト「学費一覧」(canaan.ac.jp/admission/tuition_list、2026-10-02 取得)。"
+      },
+      {
+        "name": "7月期生 進学1年9ヶ月",
+        "name_i18n": {
+          "zh": "7月生 升学1年9个月课程",
+          "en": "July intake, 1 year 9 months"
+        },
+        "duration": "1年9ヶ月",
+        "tuition_min": 845000,
+        "tuition_max": 845000,
+        "tuition_basis": "year",
+        "tuition_note": "初年度合計。残り9ヶ月の追加費用は 583,750円。出典：カナン国際教育学院 公式サイト「学費一覧」(canaan.ac.jp/admission/tuition_list、2026-10-02 取得)。"
+      },
+      {
+        "name": "10月期生 進学1年6ヶ月",
+        "name_i18n": {
+          "zh": "10月生 升学1年6个月课程",
+          "en": "October intake, 1 year 6 months"
+        },
+        "duration": "1年6ヶ月",
+        "tuition_min": 845000,
+        "tuition_max": 845000,
+        "tuition_basis": "year",
+        "tuition_note": "初年度合計。残り6ヶ月の追加費用は 392,500円。出典：カナン国際教育学院 公式サイト「学費一覧」(canaan.ac.jp/admission/tuition_list、2026-10-02 取得)。"
+      },
+      {
+        "name": "1月期生 進学1年3ヶ月",
+        "name_i18n": {
+          "zh": "1月生 升学1年3个月课程",
+          "en": "January intake, 1 year 3 months"
+        },
+        "duration": "1年3ヶ月",
+        "tuition_min": 845000,
+        "tuition_max": 845000,
+        "tuition_basis": "year",
+        "tuition_note": "初年度合計。残り3ヶ月の追加費用は 201,250円。出典：カナン国際教育学院 公式サイト「学費一覧」(canaan.ac.jp/admission/tuition_list、2026-10-02 取得)。"
+      }
+    ]
   },
   {
     "_comment": "カナン東京日本語学校。カナン国際教育学院と同じ CANAAN Education Group に属する。⚠ 公式サイトの会社概要ページに江東区亀戸の住所が2件（亀戸5-2-3／亀戸6-56-15）記載されており、どちらが校舎でどちらが本部かを特定できていない。番地は記載せず『江東区・亀戸』までとした。公開前に要確認。⚠ 英語名は公式サイトで未確認（ラテン表記は CANAAN / CanaanTokyo のみ確認）。⚠ 開校年・学費・コース情報は未取得。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
@@ -467,7 +516,7 @@
     "programs": []
   },
   {
-    "_comment": "渋谷外語学院（日振協番号 K009）。住所・最寄駅は日本語教育振興協会の名簿で確認：〒169-0075 東京都新宿区高田馬場1-34-6 八光ビル2F・3F、JR山手線ほか「高田馬場駅」徒歩1分。⚠ 校名に『渋谷』とあるが校舎は渋谷区ではなく新宿区高田馬場にある。検索結果には渋谷区桜丘町の住所を挙げるものがあるが、それは別法人の情報。city は名簿に合わせてある。⚠ 学費・コース情報は未取得。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
+    "_comment": "渋谷外語学院（日振協番号 K009）。住所・最寄駅は日本語教育振興協会の名簿で確認：〒169-0075 東京都新宿区高田馬場1-34-6 八光ビル2F・3F、JR山手線ほか「高田馬場駅」徒歩1分。⚠ 校名に『渋谷』とあるが校舎は渋谷区ではなく新宿区高田馬場にある。検索結果には渋谷区桜丘町の住所を挙げるものがあるが、それは別法人の情報。city は名簿に合わせてある。学費は公式告知で確認済み（2027年4月改定、年額930,000円・税込）。内訳と合計の算術一致を確認済み。⚠ 当校は近年2回値上げしている（2024年10月、2027年4月）。年度をまたぐ際は必ず最新告知を確認すること。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
     "slug": "shibuya-gaigo-gakuin",
     "name": "渋谷外語学院",
     "name_i18n": {
@@ -489,10 +538,23 @@
       "zh": "涩谷外语学院位于东京都新宿区高田马场，距 JR 山手线等「高田马场站」步行 1 分钟。校名含「涩谷」，但校舍在新宿区。",
       "en": "Shibuya Gaigo Gakuin is located in Takadanobaba, Shinjuku Ward, Tokyo — a one-minute walk from Takadanobaba Station. Despite the name, the campus is in Shinjuku Ward, not Shibuya."
     },
-    "programs": []
+    "programs": [
+      {
+        "name": "学生ビザコース（2027年4月以降）",
+        "name_i18n": {
+          "zh": "学生签证课程（2027年4月起）",
+          "en": "Student visa course (from April 2027)"
+        },
+        "duration": "",
+        "tuition_min": 930000,
+        "tuition_max": 930000,
+        "tuition_basis": "year",
+        "tuition_note": "年額・消費税10%込。選考料20,000・入学金50,000・授業料830,000・教材費/施設費20,000・留学生保険10,000 の合計。2026-06-11 付の公式告知による改定後の金額で、2027年4月期の在籍者から適用。⚠ 改定前（2024年10月〜）の授業料は1年コース720,000円・2年コース1,440,000円。検索結果に出てくる680,000/1,360,000は2024年10月より前の旧価格なので使用しないこと。出典：渋谷外語学院 公式告知「Notification of Tuition Fee Adjustment (Effective April 2027)」(2026-06-11 付、2026-10-02 取得)。"
+      }
+    ]
   },
   {
-    "_comment": "UJS Language Institute（日振協番号 A041）。住所・最寄駅は日本語教育振興協会の名簿で確認：〒106-0032 東京都港区六本木3-3-29、地下鉄日比谷線・大江戸線「六本木駅」徒歩6分、南北線「六本木一丁目駅」徒歩4分。名簿の URL は http だが https でも 200 を返すため https を採用。⚠ 日本語の正式校名表記（『UJS日本語学校』を併用）は公式サイトで両方の表記が確認できる。name は名簿の登録名に合わせた。⚠ 学費・コース情報は未取得。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
+    "_comment": "UJS Language Institute（日振協番号 A041）。住所・最寄駅は日本語教育振興協会の名簿で確認：〒106-0032 東京都港区六本木3-3-29、地下鉄日比谷線・大江戸線「六本木駅」徒歩6分、南北線「六本木一丁目駅」徒歩4分。名簿の URL は http だが https でも 200 を返すため https を採用。⚠ 日本語の正式校名表記（『UJS日本語学校』を併用）は公式サイトで両方の表記が確認できる。name は名簿の登録名に合わせた。学費は公式サイトのコースページで確認済み。3コースとも内訳と総額の算術一致を確認済み。⚠ コース名は course01（日本語進学コース）ページ上の3表に基づく推定で、表自体にコース名ラベルはない。公開前に要確認。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
     "slug": "ujs-language-institute",
     "name": "UJS Language Institute",
     "name_i18n": {
@@ -514,10 +576,47 @@
       "zh": "UJS 日语学校位于东京都港区六本木，距地铁「六本木站」步行 6 分钟。",
       "en": "UJS Language Institute is located in Roppongi, Minato Ward, Tokyo — a six-minute walk from Roppongi Station."
     },
-    "programs": []
+    "programs": [
+      {
+        "name": "日本語進学コース 2年",
+        "name_i18n": {
+          "zh": "日语升学课程 2年",
+          "en": "Academic Japanese course, 2 years"
+        },
+        "duration": "2年",
+        "tuition_min": 1536000,
+        "tuition_max": 1536000,
+        "tuition_basis": "total",
+        "tuition_note": "総額。1年目総額 840,000円（選考料30,000・入学金50,000・学生管理費29,000・留学生傷害保険料20,000・JLPT受験料15,000・授業料696,000）＋2年目授業料 696,000円。出典：UJS Language Institute 公式サイト「日本語進学コース」(ujsli.jp/course01/、2026-10-02 取得)。"
+      },
+      {
+        "name": "日本語進学コース 1年6ヶ月",
+        "name_i18n": {
+          "zh": "日语升学课程 1年6个月",
+          "en": "Academic Japanese course, 1 year 6 months"
+        },
+        "duration": "1年6ヶ月",
+        "tuition_min": 1178000,
+        "tuition_max": 1178000,
+        "tuition_basis": "total",
+        "tuition_note": "総額。1年目総額 830,000円＋2年目授業料 348,000円。出典：UJS Language Institute 公式サイト「日本語進学コース」(ujsli.jp/course01/、2026-10-02 取得)。"
+      },
+      {
+        "name": "日本語進学コース 1年",
+        "name_i18n": {
+          "zh": "日语升学课程 1年",
+          "en": "Academic Japanese course, 1 year"
+        },
+        "duration": "1年",
+        "tuition_min": 820000,
+        "tuition_max": 820000,
+        "tuition_basis": "total",
+        "tuition_note": "総額。選考料30,000・入学金50,000・学生管理費19,000・留学生傷害保険料10,000・JLPT受験料15,000・授業料696,000 の合計。出典：UJS Language Institute 公式サイト「日本語進学コース」(ujsli.jp/course01/、2026-10-02 取得)。"
+      }
+    ]
   },
   {
-    "_comment": "TCJ日本語学院留学校（日振協番号 A085、2026年10月更新）。住所・最寄駅は日本語教育振興協会の名簿で確認：〒160-0016 東京都新宿区信濃町34 トーシン信濃町駅前ビル4・5・6階、JR線「信濃町駅」徒歩1分。⚠ 旧校名は『東京中央日本語学院』。公式サイトも『旧校名：東京中央日本語学院』と明記しており、名簿の登録名も TCJ日本語学院留学校 に更新済み。旧名で表記しないこと。⚠ 学費・コース情報は未取得。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
+    "_comment": "TCJ日本語学院留学校（日振協番号 A085、2026年10月更新）。住所・最寄駅は日本語教育振興協会の名簿で確認：〒160-0016 東京都新宿区信濃町34 トーシン信濃町駅前ビル4・5・6階、JR線「信濃町駅」徒歩1分。⚠ 旧校名は『東京中央日本語学院』。公式サイトも『旧校名：東京中央日本語学院』と明記しており、名簿の登録名も TCJ日本語学院留学校 に更新済み。旧名で表記しないこと。学費は公式サイトの課程ページで確認済み。7つの合計（各課程の年度合計・課程合計）すべて内訳との算術一致を確認済み。出典：日本語教育振興協会 認定校名簿および各校公式サイト（2026-10-02 取得）。",
     "slug": "tcj-japanese-language-school",
     "name": "TCJ日本語学院留学校",
     "name_i18n": {
@@ -539,6 +638,43 @@
       "zh": "TCJ 日语学院留学校（原校名：东京中央日语学院）位于东京都新宿区信浓町，距 JR「信浓町站」步行 1 分钟。",
       "en": "TCJ Japanese Language School for International Students (formerly Tokyo Central Japanese Language School) is located in Shinanomachi, Shinjuku Ward, Tokyo — a one-minute walk from Shinanomachi Station."
     },
-    "programs": []
+    "programs": [
+      {
+        "name": "進学準備2年課程 / 就職準備2年課程",
+        "name_i18n": {
+          "zh": "升学准备2年课程 / 就职准备2年课程",
+          "en": "2-year academic / employment preparation course"
+        },
+        "duration": "2年",
+        "tuition_min": 2154000,
+        "tuition_max": 2154000,
+        "tuition_basis": "total",
+        "tuition_note": "課程合計。1年目 1,110,000円＋2年目 1,044,000円。内訳（1年目）入学検定料22,000・入学金44,000・授業料990,000・設備費18,500・教材費22,000・健康管理費3,500・保険料10,000。出典：TCJ日本語学院 公式サイト「進学準備2年課程」等 (tcj-education.com、2026-10-02 取得)。"
+      },
+      {
+        "name": "進学準備1年9カ月課程",
+        "name_i18n": {
+          "zh": "升学准备1年9个月课程",
+          "en": "1 year 9 months academic preparation course"
+        },
+        "duration": "1年9カ月",
+        "tuition_min": 1893300,
+        "tuition_max": 1893300,
+        "tuition_basis": "total",
+        "tuition_note": "課程合計。1年目 1,110,000円＋2年目 783,300円。出典：TCJ日本語学院 公式サイト「進学準備2年課程」等 (tcj-education.com、2026-10-02 取得)。"
+      },
+      {
+        "name": "進学準備1年6カ月課程",
+        "name_i18n": {
+          "zh": "升学准备1年6个月课程",
+          "en": "1 year 6 months academic preparation course"
+        },
+        "duration": "1年6カ月",
+        "tuition_min": 1632500,
+        "tuition_max": 1632500,
+        "tuition_basis": "total",
+        "tuition_note": "課程合計。1年目 1,110,000円＋2年目 522,500円。出典：TCJ日本語学院 公式サイト「進学準備2年課程」等 (tcj-education.com、2026-10-02 取得)。"
+      }
+    ]
   }
 ]
