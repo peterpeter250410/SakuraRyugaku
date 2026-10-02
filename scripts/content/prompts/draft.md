@@ -36,6 +36,16 @@ Students may work up to 28 hours per week once the permit is granted. [source:1]
 ✓ <p>Nagano is 905,000 yen. [source:1] Shinjuku is 1,115,000 yen. [source:1]</p>
 ```
 
+**可核实的数字一律用阿拉伯数字，不要拼写成单词。**
+
+```
+✗ five minutes' walk     → 闸门看不见，写错也查不出来
+✓ a 5 minute walk        → 会去来源页核对「徒歩5分」
+```
+
+闸门只认数字字符。拼写出来的数字完全绕过核对 —— 这不是可以接受的风格选择，
+是让那个事实失去保护。
+
 **表格例外**：表格继承「引出它那句话」的标记，不必在每个格子里标。
 
 ```

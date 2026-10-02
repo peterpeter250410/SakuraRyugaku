@@ -23,12 +23,24 @@
  *
  * ── 这道闸门做不到什么（必须说清楚）─────────────────────────────
  *
- * 第 3 项验证的是「这个数字在被引用的页面上出现过」，不是「这个数字在那篇文章里
- * 的含义与本文的用法一致」。举例：来源页写「申请费 28,000 円」，本文写
- * 「每周可打工 28 小时」并引用同一页 —— 数字 28 确实出现过，这道闸门会放行。
+ * 第 3 项验证的是「这个数字紧挨着这个量词、在被引用的页面上出现过」，
+ * 不是「它在那页里的含义与本文的用法一致」。
  *
- * 它能挡住的是**凭空编造的数字**，这是自动生成内容最主要的失真来源。
- * 挡不住的是张冠李戴。后者需要理解语义，靠正则做不到，别假装做得到。
+ * 实测到的一个例子，比抽象描述有用：
+ *
+ *   ヒューマンアカデミー福岡校のページには
+ *       「地下鉄『天神』駅より徒歩5分」   ← 本当の徒歩分数
+ *       「授業時間：午前 9時15分～…」      ← 授業開始時刻
+ *   の両方がある。本文の「a 5 minute walk」を「15 minute」に改竄しても、
+ *   ページ上に「15分」が（時刻の一部として）存在するため闸门は通してしまう。
+ *   変異テストで実際に素通りした。
+ *
+ * つまり挡得住的是**凭空编造的数字** —— 自动生成内容最主要的失真来源。
+ * 挡不住的是、同じページの別の文脈に偶然同じ数字があるケース。
+ * 判別には意味の理解が要る。正規表現にはできない。できるふりをしない。
+ *
+ * 運用上の帰結：数字が「出典ページに在る」ことは闸门が保証するが、
+ * 「その意味で在る」ことは保証しない。後者は書き手の責任のまま残る。
  *
  * @package StudyAbroadContent
  */
@@ -158,31 +170,52 @@ class SA_Source_Gate {
 				continue;
 			}
 
-			if ( ! preg_match( '/\[source:\s*(\d+)\s*\]/i', $sent, $sm ) ) {
+			/*
+			 * 一文が複数の出典を引くことは普通にある。
+			 *     「Tokyo's capacity is 2,440. [source:2] Osaka's is 2,800. [source:3]」
+			 * 以前は preg_match で最初の一つしか読まず、2,800 まで出典[2]に
+			 * 照らしていた。マーカーは全部拾い、数字はそのいずれかに在れば可とする。
+			 *
+			 * 緩めているように見えるが、そうではない —— 書き手が明示的に引いた
+			 * 出典の集合に限った話で、引いていない出典は候補に入らない。
+			 */
+			if ( ! preg_match_all( '/\[source:\s*(\d+)\s*\]/i', $sent, $sm ) ) {
 				$errors[] = '出现未标注来源的数字：「' . self::excerpt( $sent ) . '」';
 				continue;
 			}
 
-			$n = (int) $sm[1];
-			if ( $n < 1 || $n > count( $sources ) ) {
-				continue; // 上面已经报过孤儿引用了，不重复报。
+			$cited = array();
+			foreach ( array_unique( array_map( 'intval', $sm[1] ) ) as $n ) {
+				if ( $n < 1 || $n > count( $sources ) ) {
+					continue; // 上面已经报过孤儿引用了，不重复报。
+				}
+				$page = $this->fetch( $sources[ $n - 1 ]['url'] );
+				/*
+				 * 页面取不到就没法核对。上面已按「来源有问题」或「本机够不着」
+				 * 记过一笔，这里不重复 —— 但绝不能把「没查」当成「查过且通过」，
+				 * 那是最坏的一种假阳性。取不到的来源不进候选集。
+				 */
+				if ( $page['ok'] ) {
+					$cited[ $n ] = $page['text'];
+				}
 			}
 
-			$src  = $sources[ $n - 1 ];
-			$page = $this->fetch( $src['url'] );
-			if ( ! $page['ok'] ) {
-				/*
-				 * 页面取不到就没法核对数字。上面已经按「来源有问题」或
-				 * 「本机够不着」记过一笔，这里不重复，但也绝不能把
-				 * 「没查」当成「查过且通过」—— 那是最坏的一种假阳性。
-				 */
+			if ( empty( $cited ) ) {
 				continue;
 			}
 
 			foreach ( $nums as $item ) {
-				if ( ! self::number_present( $item['num'], $item['unit'], $page['text'] ) ) {
-					$with = '' !== $item['unit'] ? "（{$item['unit']}）" : '';
-					$errors[] = "数字 {$item['raw']}{$with} 在来源 [{$n}] 的页面上找不到：「" . self::excerpt( $sent ) . '」';
+				$found = false;
+				foreach ( $cited as $text ) {
+					if ( self::number_present( $item['num'], $item['unit'], $text ) ) {
+						$found = true;
+						break;
+					}
+				}
+				if ( ! $found ) {
+					$with  = '' !== $item['unit'] ? "（{$item['unit']}）" : '';
+					$where = '[' . implode( '][', array_keys( $cited ) ) . ']';
+					$errors[] = "数字 {$item['raw']}{$with} 在所引来源 {$where} 的页面上均未找到：「" . self::excerpt( $sent ) . '」';
 				}
 			}
 		}
@@ -403,8 +436,23 @@ class SA_Source_Gate {
 		 */
 		$merged = array();
 		foreach ( $parts as $p ) {
-			if ( preg_match( '/^\[source:\s*\d+\s*\]/i', $p ) && ! empty( $merged ) ) {
-				$merged[ count( $merged ) - 1 ] .= ' ' . $p;
+			/*
+			 * 先頭のマーカーだけを前の文へ返し、残りは独立した文のままにする。
+			 *
+			 * 以前はマーカーで始まる塊を丸ごと前へ併合していた。すると
+			 *     「Tokyo's capacity is 2,440. [source:2] Osaka's is 2,800. [source:3]」
+			 * が一塊になり、後述のとおりマーカーは最初の一つしか読まれないため、
+			 * 2,800 を出典[2]に照らして「無い」と誤判定していた。
+			 * 正しく書かれた記事が弾かれる方向の誤りで、実際に弾かれた。
+			 */
+			// 連続するマーカー（[source:1] [source:2]）はまとめて剥がす。
+			// 一つずつだと二つ目が後続の文に残り、その文が引いていない出典として扱われる。
+			if ( preg_match( '/^((?:\[source:\s*\d+\s*\]\s*)+)(.*)$/is', $p, $mm ) && ! empty( $merged ) ) {
+				$merged[ count( $merged ) - 1 ] .= ' ' . trim( $mm[1] );
+				$rest = trim( $mm[2] );
+				if ( '' !== $rest ) {
+					$merged[] = $rest;
+				}
 				continue;
 			}
 			$merged[] = $p;
@@ -433,6 +481,19 @@ class SA_Source_Gate {
 			'year'  => array( 'year', 'years', 'annual', 'annually', '年間', '年' ),
 			'yen'   => array( 'yen', 'JPY', '円' ),
 			'page'  => array( 'page', 'pages', 'ページ' ),
+			/*
+			 * 「分」と「名」を入れておく理由。
+			 *
+			 * 学校の案内は「徒歩5分」「収容定員100名」という書き方をする。
+			 * この二つを量詞として登録しないと、5 も 100 も「3桁以下・量詞なし」
+			 * の分岐に落ちて検査対象から外れる —— 定員を 100 から 500 に
+			 * 書き換えても闸门は何も言わない。
+			 *
+			 * 徒歩分数と定員は、学校を選ぶ人が実際に比べる数字なので、
+			 * 小さいからという理由で検査外にしてよいものではない。
+			 */
+			'minute' => array( 'minute', 'minutes', 'min', '分' ),
+			'people' => array( 'student', 'students', 'people', 'places', '名', '人' ),
 		);
 	}
 

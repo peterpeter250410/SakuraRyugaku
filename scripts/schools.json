@@ -1,6 +1,6 @@
 [
   {
-    "_comment": "ヒューマンアカデミー日本語学校 —— 目前唯一学费数据完整的院校。学费为课程总额（非年额），五组数字经算术交叉验证：第一年 907,500 円，其后每 3 个月 206,250 円。⚠ 采集时表格被拍平，列标题丢失，课程与金额的对应关系是按算术一致性反推的，发布前必须对照官网原表核对。",
+    "_comment": "ヒューマンアカデミー日本語学校。⚠ 2026-10-02 修正：以前の記述は福岡校・広島校を既存校舎として挙げていたが、公式の校舎紹介ページでは横浜・広島・福岡の3校とも「2027年4月開校予定」「収容定員100名予定」「2027年度開講予定コースは文部科学省に認定申請中」と明記されており、いずれもまだ開校していない。予定校舎を既存校舎として書くことは、実在する学校名を冠したページ上での事実誤認であり、publish-school.sh の発布前チェックリストが明示的に禁じている項目でもある。あわせて、記載が漏れていた名古屋サテライト校を追加し、神戸校の開校年（2024年4月）を明記した。⚠ 旧記述にあった「いずれの校舎も最寄駅から徒歩10分以内」は全校舎を検証できていないため削除し、確認できた大阪（徒歩5分）・神戸（徒歩3分）のみ個別に記載した。学費は課程総額（年額ではない）。五組の数字は算術交差検証済み：初年度 907,500 円、以後3か月ごと 206,250 円。⚠ 採集時に表が平坦化され列見出しが失われたため、課程と金額の対応はまだ算術一致からの逆算にとどまる。公開済みページなので、次の機会に公式の表と突き合わせること。",
     "slug": "human-academy-japanese-school",
     "name": "ヒューマンアカデミー日本語学校",
     "name_i18n": {
@@ -18,9 +18,9 @@
     "published": false,
     "sort_order": 10,
     "description_i18n": {
-      "ja": "ヒューマンアカデミー日本語学校は、東京（高田馬場）・大阪（本町）・神戸（三宮）・福岡（天神）・広島（八丁堀）に校舎を置く日本語学校です。いずれの校舎も最寄駅から徒歩10分以内に位置しています。\n\nコースは9か月から2年まで、入学時期に応じて複数の期間が用意されています。\n\n※ 横浜校は2027年4月開校予定で、文部科学省への認定申請中です（2026年9月時点の公表情報）。",
-      "zh": "Human Academy 日本语学校在东京（高田马场）、大阪（本町）、神户（三宫）、福冈（天神）、广岛（八丁堀）设有校区，各校区均距最近车站步行 10 分钟以内。\n\n课程按入学时期提供 9 个月至 2 年的多种学习期间。\n\n※ 横滨校区预定于 2027 年 4 月开校，目前正在向文部科学省申请认定（截至 2026 年 9 月的公开信息）。",
-      "en": "Human Academy Japanese Language School has campuses in Tokyo (Takadanobaba), Osaka (Hommachi), Kobe (Sannomiya), Fukuoka (Tenjin) and Hiroshima (Hatchobori), each within a 10-minute walk of the nearest station.\n\nCourse lengths range from 9 months to 2 years, depending on the intake.\n\nNote: the Yokohama campus is scheduled to open in April 2027 and is currently applying for MEXT accreditation (per information published as of September 2026)."
+      "ja": "ヒューマンアカデミー日本語学校は、1987年開校の大阪校を起点に、東京（高田馬場）・大阪（本町）・神戸（三宮）に校舎を置く日本語学校です。名古屋にはサテライト校があります。\n\n各校舎の開校時期と収容定員は次のとおりです。\n・大阪校：1987年4月開校／収容定員 2,800名／地下鉄「本町」駅 徒歩5分\n・東京校：1991年10月開校／収容定員 2,440名／新宿区高田馬場\n・神戸校：2024年4月開校／各線「三宮」駅 徒歩3分\n\nコースは入学時期に応じて1年3か月から2年まで複数の期間が用意されています。\n\n※ 横浜校・広島校・福岡校はいずれも2027年4月の開校予定であり、2026年10月時点では開校していません。収容定員は各100名の予定、2027年度開講予定コースは文部科学省に認定申請中で、学校側も「計画は予定であり、内容に変更が生じる可能性がある」と明記しています。\n※ 神戸校は文部科学省への認定申請を予定している段階です。（出典：各校舎紹介ページ hajl.athuman.com/guide/、2026-10-02 取得）",
+      "zh": "Human Academy 日本语学校以 1987 年开校的大阪校为起点，目前在东京（高田马场）、大阪（本町）、神户（三宫）设有校区，名古屋设有卫星校区。\n\n各校区开校时间与收容定员：\n・大阪校：1987 年 4 月开校／收容定员 2,800 名／地铁「本町」站步行 5 分钟\n・东京校：1991 年 10 月开校／收容定员 2,440 名／新宿区高田马场\n・神户校：2024 年 4 月开校／各线「三宫」站步行 3 分钟\n\n课程按入学时期提供 1 年 3 个月至 2 年的多种学习期间。\n\n※ 横滨校、广岛校、福冈校均预定于 2027 年 4 月开校，截至 2026 年 10 月**尚未开校**。收容定员各预定 100 名，2027 年度预定开讲的课程正在向文部科学省申请认定，学校方面也明确写明「计划可能变更」。\n※ 神户校目前处于预定向文部科学省申请认定的阶段。（出典：各校舎紹介ページ hajl.athuman.com/guide/、2026-10-02 取得）",
+      "en": "Human Academy Japanese Language School traces back to its Osaka campus, which opened in 1987. It currently operates campuses in Tokyo (Takadanobaba), Osaka (Hommachi) and Kobe (Sannomiya), with a satellite campus in Nagoya.\n\nOpening dates and stated capacity:\n- Osaka: opened April 1987, capacity 2,800, 5 minutes' walk from Hommachi subway station\n- Tokyo: opened October 1991, capacity 2,440, Takadanobaba, Shinjuku Ward\n- Kobe: opened April 2024, 3 minutes' walk from Sannomiya station\n\nCourse lengths run from 1 year 3 months to 2 years depending on the intake.\n\nNote: the Yokohama, Hiroshima and Fukuoka campuses are all scheduled to open in April 2027 and are NOT open as of October 2026. Each is planned for a capacity of 100, and the courses planned for the 2027 academic year are pending accreditation from the Ministry of Education; the school states that these are plans and the content may change.\nNote: the Kobe campus is at the stage of planning to apply for Ministry of Education accreditation.（出典：各校舎紹介ページ hajl.athuman.com/guide/、2026-10-02 取得）"
     },
     "programs": [
       {
