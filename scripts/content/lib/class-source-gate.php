@@ -160,7 +160,7 @@ class SA_Source_Gate {
 				continue;
 			}
 
-			$fetched = $this->fetch( $url );
+			$fetched = $this->fetch( $url, isset( $src['pages'] ) ? trim( (string) $src['pages'] ) : '' );
 			$checked++;
 
 			if ( $fetched['ok'] ) {
@@ -200,8 +200,26 @@ class SA_Source_Gate {
 
 		/* ---- 3 & 5：数字核对 ---------------------------------------- */
 
+		$unchecked = array();
+
 		foreach ( self::sentences_with_numbers( $text ) as $sent ) {
-			$nums = self::extract_numbers( $sent );
+			$skipped = array();
+			$nums    = self::extract_numbers( $sent, $skipped );
+
+			/*
+			 * 検査外に落ちた数字の告知。
+			 *
+			 * 出典を引いている文に限る —— 見出しの「1.」や箇条書きの番号まで
+			 * 拾えば告警が噪音になり、噪音は無視される習慣を作る。
+			 * 出典マーカーのある文に書かれた数字は、書き手が事実の主張として
+			 * 出していて、かつ核対されていない。そこだけ知らせる価値がある。
+			 */
+			if ( ! empty( $skipped ) && preg_match( '/\[source:\s*\d+\s*\]/i', $sent ) ) {
+				foreach ( array_keys( $skipped ) as $raw ) {
+					$unchecked[ $raw ] = self::excerpt( $sent );
+				}
+			}
+
 			if ( empty( $nums ) ) {
 				continue;
 			}
@@ -216,6 +234,28 @@ class SA_Source_Gate {
 			 * 出典の集合に限った話で、引いていない出典は候補に入らない。
 			 */
 			if ( ! preg_match_all( '/\[source:\s*(\d+)\s*\]/i', $sent, $sm ) ) {
+				/*
+				 * 号番号だけの文は、出典マーカーがなくても誤りとしない。
+				 *
+				 * 「Item 3: were you doing what your status is for」は見出しであり、
+				 * 「that is item 7」は自記事内の節への参照である。どちらも
+				 * 文書の構造を指す符号で、世界について量を主張していない。
+				 * 見出しに [source:N] を書くことはできないので、ここを誤りに
+				 * すると構造的に直せない告警が残り続ける。
+				 *
+				 * 核対能力は失っていない —— 出典を引いている文に現れた号番号は、
+				 * 下の照合でページ上の「（５）」「第5号」に照らされる。
+				 * 量を表す数字はこの例外に入らない。
+				 */
+				$quantities = array_filter(
+					$nums,
+					static function ( $x ) {
+						return 'item' !== $x['unit'];
+					}
+				);
+				if ( empty( $quantities ) ) {
+					continue;
+				}
 				$errors[] = '出现未标注来源的数字：「' . self::excerpt( $sent ) . '」';
 				continue;
 			}
@@ -225,7 +265,10 @@ class SA_Source_Gate {
 				if ( $n < 1 || $n > count( $sources ) ) {
 					continue; // 上面已经报过孤儿引用了，不重复报。
 				}
-				$page = $this->fetch( $sources[ $n - 1 ]['url'] );
+				$page = $this->fetch(
+					$sources[ $n - 1 ]['url'],
+					isset( $sources[ $n - 1 ]['pages'] ) ? trim( (string) $sources[ $n - 1 ]['pages'] ) : ''
+				);
 				/*
 				 * 页面取不到就没法核对。上面已按「来源有问题」或「本机够不着」
 				 * 记过一笔，这里不重复 —— 但绝不能把「没查」当成「查过且通过」，
@@ -254,6 +297,19 @@ class SA_Source_Gate {
 					$errors[] = "数字 {$item['raw']}{$with} 在所引来源 {$where} 的页面上均未找到：「" . self::excerpt( $sent ) . '」';
 				}
 			}
+		}
+
+		/*
+		 * 検査外に落ちた数字をまとめて告知する。
+		 *
+		 * 警告であって誤りではない。闸门が「この数字は見ていない」と
+		 * 自分の保証範囲を申告しているだけで、書き手が判断する。
+		 */
+		foreach ( $unchecked as $raw => $where ) {
+			$warnings[] = "数字 {$raw} は量詞を伴わない3桁以下のため**核対していない**。"
+				. '闸门を通ったことは、この数字が来源页に在ることを意味しない：「'
+				. $where . '」'
+				. '（核対させるには量詞を書く —— 「a capacity of 900」のように）';
 		}
 
 		/*
@@ -403,9 +459,14 @@ class SA_Source_Gate {
 	 * @param string $url URL。
 	 * @return array{ok:bool,status:int,text:string}
 	 */
-	private function fetch( $url ) {
-		if ( isset( $this->cache[ $url ] ) ) {
-			return $this->cache[ $url ];
+	private function fetch( $url, $pages = '' ) {
+		/*
+		 * キャッシュキーにページ範囲を含める。同じ PDF を別の範囲で
+		 * 引く記事があるため、URL だけだと最初に読んだ範囲が使い回される。
+		 */
+		$ck = '' === $pages ? $url : $url . '#p=' . $pages;
+		if ( isset( $this->cache[ $ck ] ) ) {
+			return $this->cache[ $ck ];
 		}
 
 		$ch = curl_init( $url );
@@ -461,7 +522,7 @@ class SA_Source_Gate {
 				 * 「最も権威のある出典ほど核対できない」状態になる。
 				 * それは一次資料に当たるという方針そのものを無効にする。
 				 */
-				$pdf = self::pdf_to_text( $raw );
+				$pdf = self::pdf_to_text( $raw, $pages );
 				if ( null === $pdf ) {
 					/*
 					 * pdftotext が無い環境では「PDF だから中身を見ていない」と
@@ -496,7 +557,7 @@ class SA_Source_Gate {
 			'env_fail' => $env_fail,
 		);
 
-		$this->cache[ $url ] = $out;
+		$this->cache[ $ck ] = $out;
 		return $out;
 	}
 
@@ -588,6 +649,17 @@ class SA_Source_Gate {
 			 * 見た目がほぼ同じぶん、抜けていても気づきにくい。
 			 */
 			'month' => array( 'month', 'months', 'か月', 'ヶ月', 'ヵ月', '箇月', 'カ月', 'ケ月', '个月', '個月' ),
+			/*
+			 * 年齢。「年」ではなく「歳」で書かれるので、year とは別の量詞にする。
+			 *
+			 * 在留カードの写真提出は「１歳以上」が要件で、以前は「１６歳未満」が
+			 * 免除だった —— ここを取り違えると、子を連れて来る人が
+			 * 必要な書類を持たずに窓口へ行く。
+			 *
+			 * year より先に置く。「years of age」は year 側の 'years' にも
+			 * 前方一致するため、順序が逆だと年齢が「年」として照合される。
+			 */
+			'age'   => array( 'years of age', 'year of age', 'years old', 'year old', '歳', '才' ),
 			'year'  => array( 'year', 'years', 'annual', 'annually', '年間', '年' ),
 			'yen'   => array( 'yen', 'JPY', '円', '日元', '日圓', '日圆' ),
 			'page'  => array( 'page', 'pages', 'ページ' ),
@@ -648,6 +720,40 @@ class SA_Source_Gate {
 			 * 寮の棟数・女子寮の数は住む場所の選択肢そのもの。
 			 */
 			'dormitory' => array( 'dormitory', 'dormitories', 'dorm', 'dorms', '寮' ),
+			/*
+			 * 言語数。入管庁の資料は「19言語」「１９か国語」と書き方が割れる。
+			 * ガイドブックが何言語で出ているかは、読者が自分の言語版を
+			 * 探すかどうかを決める数字なので検査対象にする。
+			 */
+			'language' => array( 'language', 'languages', '言語', 'か国語', 'ヵ国語', 'カ国語', '箇国語' ),
+			/*
+			 * 章番号と版数。冊子を出典にする記事では、読者に「第9章を見ろ」と
+			 * 言うこと自体が案内の中身になる。章を一つずらすと読者は
+			 * 157ページの冊子の違う場所を開く。
+			 *
+			 * 版数は、読者が見ている冊子が最新かどうかを判断する唯一の手がかり。
+			 */
+			/*
+			 * 速度・濃度・容量。いずれも法令上の閾値として現れる。
+			 *
+			 * 歩道を通行できる特定小型原動機付自転車の上限は時速6キロ、
+			 * 酒気帯び運転は呼気1ℓ当たり0.15㎎以上。閾値を書き間違えると
+			 * 読者は「自分は該当しない」と読む。検査外にしてよい数字ではない。
+			 *
+			 * 「l」単独は量詞に入れない —— l で始まる語すべてに前方一致する。
+			 */
+			'speed' => array( 'km/h', 'kph', 'km per hour', 'kilometres per hour', 'kilometers per hour', 'キロ', 'km', '킬' ),
+			'milligram' => array( 'mg', '㎎', 'ミリグラム', 'milligram', 'milligrams' ),
+			'litre' => array( 'litre', 'litres', 'liter', 'liters', 'ℓ', 'リットル', 'L' ),
+			/*
+			 * 「自転車安全利用五則」の則番号と、国・地域の数。
+			 * どちらも出典が番号で構造化している記述で、取り違えると
+			 * 読者は別の規則・別の国の話を読む。
+			 */
+			'rule' => array( '則' ),
+			'country' => array( 'country', 'countries', 'か国', 'ヵ国', 'カ国', '箇国' ),
+			'chapter' => array( 'chapter', 'chapters', '章' ),
+			'edition' => array( 'edition', 'editions', '版' ),
 		);
 	}
 
@@ -659,10 +765,13 @@ class SA_Source_Gate {
 	 *
 	 * 刻意跳过 [source:N] 里的 N，那是标记不是事实。
 	 *
-	 * @param string $sentence 句子。
+	 * @param string                   $sentence 句子。
+	 * @param array<string,bool>|null &$skipped  传入数组时，把「2〜3桁・量詞なし」で
+	 *                                           検査対象から外した数字をここに記録する。
+	 *                                           呼び出し側が告知に使う（下の注記参照）。
 	 * @return array<int,array{num:string,unit:string,raw:string}> unit 为空表示无量词。
 	 */
-	private static function extract_numbers( $sentence ) {
+	private static function extract_numbers( $sentence, &$skipped = null ) {
 		$s = preg_replace( '/\[source:\s*\d+\s*\]/i', ' ', $sentence );
 
 		$out  = array();
@@ -694,6 +803,30 @@ class SA_Source_Gate {
 			$out[]        = array( 'num' => $num, 'unit' => 'article', 'raw' => $a[0] );
 		}
 		$s = preg_replace( '/\bArticles?\s+\d{1,3}(?:\s*-\s*\d{1,2})?/iu', ' ', $s );
+
+		/*
+		 * 条番号の範囲の後端。「Articles 19-7 to 19-13」。
+		 *
+		 * 上の正規表現は Articles の直後だけを見るので、範囲の後端（19-13）は
+		 * 「Article」を伴わず残り、一般の数字抽出で 19 と 13 に割れて
+		 * どちらも検査外に落ちていた。実際に3篇の記事でそうなっていた。
+		 *
+		 * 文中に Article(s) が現れている場合に限って、裸の「N-M」を条番号として
+		 * 扱う。この限定がないと、電話番号や年月日の区切りを条番号と読む。
+		 */
+		if ( preg_match( '/\bArticles?\b/iu', $sentence ) ) {
+			preg_match_all( '/\b(\d{1,3})\s*-\s*(\d{1,2})\b/u', $s, $arm, PREG_SET_ORDER );
+			foreach ( $arm as $ar ) {
+				$num = $ar[1] . '-' . $ar[2];
+				$key = $num . '|article';
+				if ( isset( $seen[ $key ] ) ) {
+					continue;
+				}
+				$seen[ $key ] = true;
+				$out[]        = array( 'num' => $num, 'unit' => 'article', 'raw' => $ar[0] );
+			}
+			$s = preg_replace( '/\b\d{1,3}\s*-\s*\d{1,2}\b/u', ' ', $s );
+		}
 
 		/*
 		 * 日付を一つのトークンとして拾う。
@@ -822,6 +955,34 @@ class SA_Source_Gate {
 		$s = preg_replace( '/\bparagraphs?\s+\d{1,2}\b/iu', ' ', $s );
 
 		/*
+		 * 条文の号番号。英文では「ground (6)」「grounds (3) through (10)」と
+		 * 丸括弧で書くのが自然で、出典側は「（６）」「（10）」と全角括弧で書く。
+		 *
+		 * 括弧つき数字を量詞なしの小さい数として扱うと検査外に落ちる。
+		 * 号番号を一つずらすと読者は違う号を読みに行く —— 在留資格の取消事由は
+		 * 号ごとに結果が別で、(5) は逃亡のおそれがあれば直ちに退去強制、
+		 * (6) は3か月の経過を要する。取り違えは条番号の誤りと同じ重さを持つ。
+		 *
+		 * 「(1)」が見出しの箇条番号であることもあるが、その場合も出典页に
+		 * 同じ号が在るかを見るだけなので、誤検知は「出典に在る」側に倒れる。
+		 */
+		$item_re = '/(?:\(\s*(\d{1,2})\s*\)|\bitems?\s+(\d{1,2})\b)/iu';
+		preg_match_all( $item_re, $s, $im, PREG_SET_ORDER );
+		foreach ( $im as $i ) {
+			$num_i = '' !== $i[1] ? $i[1] : ( isset( $i[2] ) ? $i[2] : '' );
+			if ( '' === $num_i ) {
+				continue;
+			}
+			$key = $num_i . '|item';
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$out[]        = array( 'num' => $num_i, 'unit' => 'item', 'raw' => $i[0] );
+		}
+		$s = preg_replace( $item_re, ' ', $s );
+
+		/*
 		 * 时刻（9:15 / 13:30）先单独抽出来。
 		 *
 		 * 不这样做的话它们会被拆成「9」和「15」两个两位数，双双落进
@@ -867,6 +1028,90 @@ class SA_Source_Gate {
 		$s = preg_replace( '/\b([A-C][1-2]|N[1-5])\b/u', ' ', $s );
 
 		/*
+		 * 郵便番号・地番。「810-0001」「4-4-11」。
+		 *
+		 * 一般の数字抽出に任せると 810 と 0001 に割れ、どちらも
+		 * 「3桁以下・量詞なし」または桁数不足で検査外に落ちる ——
+		 * 住所は丸ごと検査されないまま通っていた。
+		 *
+		 * 住所の誤りは読者を別の場所へ行かせる。ハイフンを含む
+		 * 7〜9文字のトークンは偶然一致する確率が低く、
+		 * 文字列そのものを照合するのが最も確実である。
+		 *
+		 * 条番号（19-16）と形が衝突するので、条文の抽出より後に置く。
+		 */
+		$code_re = '/\b(\d{3}\s*-\s*\d{4}|\d{1,4}-\d{1,4}-\d{1,4})\b/u';
+		preg_match_all( $code_re, $s, $cm, PREG_SET_ORDER );
+		foreach ( $cm as $c ) {
+			$norm = preg_replace( '/\s+/', '', $c[1] );
+			$key  = $norm . '|code';
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$out[]        = array( 'num' => $norm, 'unit' => 'code', 'raw' => $c[0] );
+		}
+		$s = preg_replace( $code_re, ' ', $s );
+
+		/*
+		 * 号番号を括弧なしで書く形。「ground 5」「grounds 3 through 10」。
+		 *
+		 * 在留資格の取消事由は号ごとに帰結が違う —— (5) は逃亡のおそれがあれば
+		 * 直ちに退去強制、(6) は3か月の経過を要し、(3)〜(10) は30日以内の出国。
+		 * 号を一つ取り違えた記述は、読者に自分の状況とは別の帰結を読ませる。
+		 *
+		 * 既発表の記事で ground 5 / 6 / 8 / 9 / 3 / 10 が
+		 * すべて検査外に落ちていたことが、この告知機構で判明した。
+		 */
+		$ground_re = '/\bgrounds?\s+(\d{1,2})(?:\s*(?:through|to|and|or|[-–—])\s*(\d{1,2}))?/iu';
+		preg_match_all( $ground_re, $s, $gm, PREG_SET_ORDER );
+		foreach ( $gm as $g ) {
+			foreach ( array( $g[1], isset( $g[2] ) ? $g[2] : '' ) as $gn ) {
+				if ( '' === $gn ) {
+					continue;
+				}
+				$key = $gn . '|item';
+				if ( isset( $seen[ $key ] ) ) {
+					continue;
+				}
+				$seen[ $key ] = true;
+				$out[]        = array( 'num' => $gn, 'unit' => 'item', 'raw' => 'ground ' . $gn );
+			}
+		}
+		$s = preg_replace( $ground_re, ' ', $s );
+
+		/*
+		 * 階数の序数。「the 2nd floor or higher」。
+		 * 出典は「2階以上」と書く。避難の判断に関わる記述で検査外にしたくない。
+		 */
+		/*
+		 * 版数の序数形。「the 8th edition」。出典は「第8版」と書く。
+		 */
+		$ed_re = '/\b(\d{1,2})(?:st|nd|rd|th)\s+edition\b/iu';
+		preg_match_all( $ed_re, $s, $em, PREG_SET_ORDER );
+		foreach ( $em as $e ) {
+			$key = $e[1] . '|edition';
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$out[]        = array( 'num' => $e[1], 'unit' => 'edition', 'raw' => $e[0] );
+		}
+		$s = preg_replace( $ed_re, ' ', $s );
+
+		$floor_re = '/\b(\d{1,2})(?:st|nd|rd|th)?\s+floor\b/iu';
+		preg_match_all( $floor_re, $s, $fm, PREG_SET_ORDER );
+		foreach ( $fm as $f ) {
+			$key = $f[1] . '|floor';
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$out[]        = array( 'num' => $f[1], 'unit' => 'floor', 'raw' => $f[0] );
+		}
+		$s = preg_replace( $floor_re, ' ', $s );
+
+		/*
 		 * 小数点を含めて一つのトークンとして拾う。
 		 *
 		 * 入管庁の在留審査処理期間は「41.0」のように小数第一位まで公表される。
@@ -906,8 +1151,17 @@ class SA_Source_Gate {
 
 			$n = str_replace( ',', '', $raw );
 
-			// 数字之后的一小段，用来判定量词（"28 hours" / "28-hour" / "780,000 yen"）。
-			$tail = mb_substr( substr( $s, $offset + strlen( $raw ) ), 0, 12, 'UTF-8' );
+			/*
+			 * 数字之后的一小段，用来判定量词（"28 hours" / "28-hour" / "780,000 yen"）。
+			 *
+			 * 窗口は16文字。当初12文字だったが、「 years of age」が13文字あり
+			 * 窓からはみ出していた —— 結果、年齢が「年」の量詞として照合され、
+			 * 「under 16 years of age」が「16年」を探しに行って
+			 * 正しい記述を誤りと報告した。出典は「１６歳」と書いている。
+			 *
+			 * 照合は先頭アンカーなので、窓を広げても短い量詞の判定は変わらない。
+			 */
+			$tail = mb_substr( substr( $s, $offset + strlen( $raw ) ), 0, 16, 'UTF-8' );
 
 			$unit = '';
 			foreach ( $syn as $key => $words ) {
@@ -935,12 +1189,58 @@ class SA_Source_Gate {
 			 * 「within 40 minutes of 30 buildings」のような文で
 			 * 誤った単位が付く方向に倒れる。
 			 */
+			/*
+			 * 区間の下限は、上限の量詞を引き継ぐ。
+			 *
+			 * 「1 to 3 months」「5 to 40 minutes」「3 to under 5 years」のように、
+			 * 英語では量詞を上限の側に一度だけ書く。後ろ12文字しか見ないと
+			 * 下限の「1」「5」「3」は量詞なしの1桁として検査外に落ちる。
+			 *
+			 * これは机上の懸念ではない。「標準処理期間は1か月から3か月」は
+			 * 複数の記事の中心的な数字で、告知機構を入れた時点で
+			 * 7篇の記事でこの形の下限が一度も核対されていないことが判明した。
+			 * 「2 to 3 months」と書き換えても闸门は黙る状態だった。
+			 *
+			 * 下限と上限で量詞が違う書き方（「from 3 days to 2 weeks」）は
+			 * 上限側に量詞が隣接しないので、この規則は発火しない。
+			 */
+			if ( '' === $unit ) {
+				$long_tail = mb_substr( substr( $s, $offset + strlen( $raw ) ), 0, 32, 'UTF-8' );
+				if ( preg_match(
+					'/^\s*(?:to|or|through|and|[-–—~〜]|から)\s*(?:up\s+to|no\s+more\s+than|at\s+least|less\s+than|fewer\s+than|more\s+than|under|over|about|around|approximately)?\s*'
+					. '\d[\d,]*(?:\.\d+)?\s*([^\s\d]{1,8})/u',
+					$long_tail,
+					$rm
+				) ) {
+					foreach ( $syn as $key2 => $words2 ) {
+						foreach ( $words2 as $w2 ) {
+							if ( preg_match( '/^' . preg_quote( $w2, '/' ) . '/iu', $rm[1] ) ) {
+								$unit = $key2;
+								break 2;
+							}
+						}
+					}
+				}
+			}
+
 			if ( '' === $unit ) {
 				$head = mb_substr( substr( $s, max( 0, $offset - 24 ), min( 24, $offset ) ), -24, null, 'UTF-8' );
 				$lead = array(
 					'people'  => '(?:capacity|capacities|places|enrolment|enrollment)\s+(?:of|for|:)?\s*$',
 					'yen'     => '(?:rent|fee|fees|tuition|cost|price)\s+(?:of|from|:)?\s*$',
 					'percent' => '(?:rate|ratio)\s+(?:of|:)?\s*$',
+					/*
+					 * 「aged 1 and over」「aged 16 or older」。年齢は語の前に置く
+					 * 言い方が英語では自然で、後ろだけ見ると量詞なしの小さい数に落ちる。
+					 */
+					'age'     => '(?:aged|age\s+of)\s+$',
+					'chapter' => '(?:chapters?)\s+$',
+					'rule'    => '(?:rules?)\s+$',
+					/*
+					 * under / over は入れない。「over 3 and up to 6 months」の 3 を
+					 * 年齢と読んで「3歳」を探しに行き、正しい記述を誤りと報告する。
+					 * 年齢であることが語そのもので分かる形だけに限る。
+					 */
 					/*
 					 * 電話番号。「dial 119」「call 110」の形で拾う。
 					 *
@@ -950,7 +1250,12 @@ class SA_Source_Gate {
 					 * 読者がその番号にかけるのは、かけ直す余裕がない場面である。
 					 * 「小さい数だから検査しない」の例外として扱う。
 					 */
-					'phone'   => '(?:dial|dialling|dialing|call|calls|calling|ring)\s+$',
+					/*
+					 * 「save 119 and 110 in your phone」のような言い方も拾う。
+					 * dial / call だけに限っていたため、保存を促す文で
+					 * 緊急通報番号が検査外に落ちていた（告知機構で判明）。
+					 */
+					'phone'   => '(?:dial|dialling|dialing|call|calls|calling|ring|save|saving|store|memorise|memorize)\s+(?:\d{2,4}\s*(?:and|or|,|、)\s*)*$',
 				);
 				foreach ( $lead as $key => $re ) {
 					if ( preg_match( '/' . $re . '/iu', $head ) ) {
@@ -966,8 +1271,23 @@ class SA_Source_Gate {
 			 *   无量词且 ≥4 位  —— 核对，位数够多时偶然撞上的概率低
 			 *   无量词且 ≤3 位  —— 跳过。这类多是列表序号、章节号，
 			 *                      逐个核对只会制造噪音，而噪音会让人开始忽略告警
+			 *
+			 * ただし、この「跳过」を黙って行わない。
+			 *
+			 * 「the graduate-school course 900」と書くと、900 は量詞を伴わない3桁
+			 * なのでここで落ち、一度も核対されないまま闸门を通る —— 変異テストで
+			 * 940 に書き換えても何も起きないことを確認した。書き手の側からは
+			 * 「核対されて通った」と「検査されずに通った」が同じ沈黙に見える。
+			 *
+			 * 落とした数字は呼び出し側に渡し、出典を引いている文に限って告知する。
+			 * 闸门がどこまで保証しているかを書き手に見せるためで、通過は妨げない。
+			 * 直し方は量詞を書くこと（「a capacity of 900」）——
+			 * そのほうが読者にとっても読みやすい。
 			 */
 			if ( '' === $unit && strlen( $n ) < 4 ) {
+				if ( is_array( $skipped ) ) {
+					$skipped[ $raw ] = true;
+				}
 				continue;
 			}
 
@@ -1038,6 +1358,81 @@ class SA_Source_Gate {
 		 * 条文番号。和文の出典は「第２２条の４」「第１９条第２項」と書く。
 		 * 半角・全角の両方を試す（官公庁サイトは全角が主）。
 		 */
+		/*
+		 * 号番号。出典側の書き方は割れる ——
+		 *   （５）  全角括弧＋全角数字（官公庁サイトの既定）
+		 *   （10）  全角括弧＋半角数字（2桁になると混在する。取消事由の页が実際そう）
+		 *   (5)     半角括弧
+		 *   第五号 / 第5号  条文を引用する文脈
+		 */
+		/*
+		 * 郵便番号・地番。半角・全角の両方と、全角ハイフン（－）を試す。
+		 * 官公庁・学校サイトは「１６９－００７５」と全角で書くことがある。
+		 */
+		if ( 'code' === $unit ) {
+			$hay   = str_replace( array( ' ', '　' ), '', $page );
+			$forms = array(
+				$num,
+				self::to_fullwidth( $num ),
+				str_replace( '-', '－', $num ),
+				str_replace( '-', '－', self::to_fullwidth( $num ) ),
+			);
+			foreach ( array_unique( $forms ) as $f ) {
+				if ( false !== strpos( $hay, $f ) ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/*
+		 * 階数。出典は「2階」。「以上」が続くかどうかは問わない。
+		 */
+		/*
+		 * 則番号。出典は「第２則」と全角で書く。量詞表の「則」だけでは
+		 * 「2」と「則」が隣接しないので（間に「第」が無く、順序も逆）、
+		 * 条番号と同じく形を組み立てて照合する。
+		 */
+		if ( 'rule' === $unit ) {
+			$hay = str_replace( array( ' ', '\u{3000}' ), '', $page );
+			foreach ( array( '第' . $num . '則', '第' . self::to_fullwidth( $num ) . '則' ) as $f ) {
+				if ( false !== strpos( $hay, $f ) ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		if ( 'floor' === $unit ) {
+			$hay = str_replace( array( ' ', '　' ), '', $page );
+			foreach ( array( $num . '階', self::to_fullwidth( $num ) . '階' ) as $f ) {
+				if ( false !== strpos( $hay, $f ) ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		if ( 'item' === $unit ) {
+			$fw    = self::to_fullwidth( $num );
+			$forms = array(
+				'（' . $fw . '）',
+				'（' . $num . '）',
+				'(' . $num . ')',
+				'(' . $fw . ')',
+				'第' . $num . '号',
+				'第' . $fw . '号',
+			);
+
+			$hay = str_replace( ' ', '', $page );
+			foreach ( array_unique( $forms ) as $f ) {
+				if ( false !== strpos( $hay, $f ) ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		if ( 'article' === $unit || 'paragraph' === $unit ) {
 			$forms = array();
 			if ( 'paragraph' === $unit ) {
@@ -1250,8 +1645,27 @@ class SA_Source_Gate {
 
 		$candidates = array( $num );
 
+		/*
+		 * 千位区切りを打った形も候補にする（1200000 → 1,200,000）。
+		 *
+		 * ctype_digit で整数に限る。これが無いと number_format が小数を
+		 * 四捨五入し、別の数量を候補に加えてしまう ——
+		 *     number_format( 0.25 ) === '0'
+		 *     number_format( 1.5 )  === '2'
+		 * 候補「0」は量詞の12文字以内にある任意の 0 と隣接するので、
+		 * ページに存在しない小数が核対を通る。実測で確認した：
+		 * 呼気アルコール濃度を 0.15 から 0.25 に書き換えても闸门が黙り、
+		 * 原因は候補リストに混入した「0」だった。
+		 *
+		 * 放行の方向に倒れる誤りなので、小数は小数のまま扱う。
+		 * 小数側も、整数部が4桁以上なら区切り形を作る（12345.6 → 12,345.6）。
+		 */
 		if ( strlen( $num ) > 3 ) {
-			$candidates[] = number_format( (float) $num );
+			if ( ctype_digit( $num ) ) {
+				$candidates[] = number_format( (float) $num );
+			} elseif ( preg_match( '/^(\d+)\.(\d+)$/', $num, $dm ) && strlen( $dm[1] ) > 3 ) {
+				$candidates[] = number_format( (float) $num, strlen( $dm[2] ) );
+			}
 		}
 
 		/*
@@ -1287,7 +1701,14 @@ class SA_Source_Gate {
 		// 日式「万」：1200000 → 120万
 		$v = (float) $num;
 		if ( $v >= 10000 && fmod( $v, 10000 ) === 0.0 ) {
-			$candidates[] = (string) ( (int) ( $v / 10000 ) ) . '万';
+			$man = (string) ( (int) ( $v / 10000 ) );
+			$candidates[] = $man . '万';
+			/*
+			 * 全角版も作る。官公庁の罰則表は「５万円以下」と全角で書く ——
+			 * 半角の「5万」しか候補に無かったため、ガイドブックに
+			 * そのまま載っている額が「見つからない」と報告された。
+			 */
+			$candidates[] = self::to_fullwidth( $man ) . '万';
 		}
 
 		// 全角。
@@ -1334,15 +1755,31 @@ class SA_Source_Gate {
 			return preg_quote( $w, '/' );
 		}, $words ) );
 
+		/*
+		 * 横方向の空白を除いた版も試す。
+		 *
+		 * PDF を pdftotext -layout で抜くと、組版上の位置合わせがそのまま
+		 * 空白として残る。ガイドブックの罰則表は「100 万円以下」と
+		 * 数字と万の間に空白が入っており、候補「100万」が一致しなかった ——
+		 * 「1,000,000 yen」と正しく書いた記述が、出典にその額が載っている
+		 * のに誤りとして報告された。
+		 *
+		 * 改行は残す。行をまたいで繋げると、表の別の行のセルと
+		 * 隣接していると誤判定しうる。列の結合は窓が12文字あるので実害が小さい。
+		 */
+		$page_tight = preg_replace( '/[ \t\x{3000}]+/u', '', $page );
+
 		foreach ( $candidates as $c ) {
 			$n_q = preg_quote( $c, '/' );
-			// 数字 → 量词
-			if ( preg_match( '/' . $n_q . '.{0,12}?(' . $unit_alt . ')/iu', $page ) ) {
-				return true;
-			}
-			// 量词 → 数字
-			if ( preg_match( '/(' . $unit_alt . ').{0,12}?' . $n_q . '/iu', $page ) ) {
-				return true;
+			foreach ( array( $page, $page_tight ) as $hay_v ) {
+				// 数字 → 量词
+				if ( preg_match( '/' . $n_q . '.{0,12}?(' . $unit_alt . ')/iu', $hay_v ) ) {
+					return true;
+				}
+				// 量词 → 数字
+				if ( preg_match( '/(' . $unit_alt . ').{0,12}?' . $n_q . '/iu', $hay_v ) ) {
+					return true;
+				}
 			}
 		}
 
@@ -1491,7 +1928,7 @@ class SA_Source_Gate {
 	 * @param string $raw PDF のバイト列。
 	 * @return string|null テキスト、または pdftotext が使えないとき null。
 	 */
-	private static function pdf_to_text( $raw ) {
+	private static function pdf_to_text( $raw, $pages = '' ) {
 		static $available = null;
 
 		if ( null === $available ) {
@@ -1515,8 +1952,29 @@ class SA_Source_Gate {
 
 		$out = array();
 		$rc  = 0;
+
+		/*
+		 * ページ範囲の指定があれば、その範囲だけを抜く。
+		 *
+		 * なぜ必要か —— 生活・就労ガイドブックは157ページ・約14万字あり、
+		 * この規模では「数字がページ上に在る」という証拠がほぼ無意味になる。
+		 * 実測した：自転車の罰則を「30万円」から「10万円」に書き換えても
+		 * 闸门が黙る。どちらの額も同じ表の別の行に載っているからである。
+		 *
+		 * 章を指定して抜けば、干し草の山が数千字に縮み、隣接判定が
+		 * ふたたび意味を持つ。冊子を出典にする記事では pages を必ず書く。
+		 */
+		$range = '';
+		if ( '' !== $pages ) {
+			if ( preg_match( '/^(\d{1,4})\s*-\s*(\d{1,4})$/', $pages, $pm ) ) {
+				$range = '-f ' . (int) $pm[1] . ' -l ' . (int) $pm[2] . ' ';
+			} elseif ( preg_match( '/^(\d{1,4})$/', $pages, $pm ) ) {
+				$range = '-f ' . (int) $pm[1] . ' -l ' . (int) $pm[1] . ' ';
+			}
+		}
+
 		// -layout は表の列並びを保つ。崩すと行と数字の対応が読めなくなる。
-		@exec( 'pdftotext -layout -enc UTF-8 ' . escapeshellarg( $tmp ) . ' - 2>/dev/null', $out, $rc );
+		@exec( 'pdftotext ' . $range . '-layout -enc UTF-8 ' . escapeshellarg( $tmp ) . ' - 2>/dev/null', $out, $rc );
 		@unlink( $tmp );
 
 		if ( 0 !== $rc ) {

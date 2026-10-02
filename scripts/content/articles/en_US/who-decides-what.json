@@ -1,0 +1,43 @@
+{
+  "title": "What Nobody Can Promise You About a Japanese School Application",
+  "slug": "who-decides-what-school-application",
+  "locale": "en_US",
+  "group": "who-decides-what",
+  "keyword_id": "who-decides-what",
+  "summary": "Three different parties decide three different things, and none of them is an agency. Once you know which is which, guarantee claims become easy to read.",
+  "body_html": "<p>Agencies advertise guaranteed admission, guaranteed visas, guaranteed outcomes. The claims are hard to evaluate on their own terms, so evaluate them structurally instead: work out who actually holds each decision.</p><p>There are three, and no intermediary holds any of them.</p><h2>Admission is the school's decision</h2><p>Whether a school accepts you is the school's call. It sets its own entry requirements, decides whether a class at your level has space, and issues its own admission letter.</p><p>An intermediary can prepare your documents, check them for completeness, and forward them. It cannot create a seat that does not exist, and it has no vote in the school's decision.</p><p>So a guaranteed-admission claim means one of a few things: the agency is confident in your case and overstating its role, it is describing a school whose effective requirement is only the ability to pay, or it is simply not telling the truth. The first is harmless but still not a guarantee.</p><h2>Residence status is the Immigration Services Agency's decision, and it is discretionary</h2><p>This is the one where the primary sources are unusually blunt, and reading them changes how the marketing sounds.</p><p>Renewal is granted only where there is reasonable cause to find it appropriate, and the agency states that this judgement is left entirely to the Minister of Justice's discretion, weighing the activity you intend, your situation of residence, and the necessity of your residence, considered as a whole. [source:1]</p><p>Then it publishes its considerations — and adds that even where every one of them is satisfied, the change or renewal may still not be granted once all circumstances are weighed together. [source:1]</p><p>Read that sentence as the agency ruling out the existence of a checklist. There is no set of conditions you can satisfy that obliges anyone to grant you anything. The agency has said so in writing about its own process.</p><p>There is also no appeal procedure against a renewal decision. [source:2]</p><p>At the entry stage the language is softer but the structure is identical. On when to apply for a certificate of eligibility, all the agency says is to submit documents with time to spare so that the certificate can be issued before entry. [source:3] No date, no minimum lead time, no commitment.</p><p>And the certificate itself is not a visa and not an entry permit — it is evidence to be submitted at the visa application and at the port of entry. Nobody downstream is bound by it.</p><p>So when an intermediary guarantees a visa, it is guaranteeing an outcome produced by discretion it has no access to. The agency's own description of its process rules the guarantee out.</p><h2>Who may even file is defined, and it is a short list</h2><p>There is a specific reason agencies can sound more official than they are: some of them are allowed to file, and the category is real.</p><p>A certificate of eligibility application may be submitted by the applicant, by a staff member of the organisation that intends to accept them, or by an approved filing agent. [source:3]</p><p>Being able to hand paper across a counter is a procedural permission. It is not a share of the decision, and the distinction matters because it is the one most often blurred: \"we handle the application\" is true, and it implies something that is not.</p><p>There is also a separate category — designated registered support organisations — but that belongs to specified skilled worker status, not to student status. If an agency cites a registration or approval, ask which register, for which status, and check it on the agency's own site rather than on the intermediary's.</p><h2>Money is yours, and should move directly</h2><p>Tuition is paid to the school. There is no stage at which it needs to pass through an intermediary's account.</p><p>This is the test that costs nothing to apply. Ask where the tuition goes. If the answer is an intermediary's account rather than the school's, you have learned the most important thing available about that intermediary — and you have learned it before the money moves.</p><p>The same applies to the school's own fee schedule. It is the school's document, in writing, with the amounts and the deadlines. An intermediary quoting a package figure that does not reconcile with the school's published schedule is quoting its own fee bundled into the school's, whether or not it says so.</p><h2>What can honestly be promised</h2><p>Not nothing. The list is just shorter and duller than the marketing.</p><ul><li>That your documents will be complete, internally consistent, and submitted on time.</li><li>That you will be told the actual requirements, including the ones that disqualify you, before you pay anything.</li><li>That the school's own fee schedule will be shown to you as the school published it.</li><li>That deadlines will be worked backwards from the published processing period rather than from the optimistic end of it.</li><li>That when the answer is no, you will be told it is no.</li></ul><p>Every item on that list is about process. None is about outcome, because outcomes are not ours to give — and an intermediary that promises one is telling you something about itself rather than about your chances.</p><h2>How to read a guarantee claim in ten seconds</h2><ul><li>\"Guaranteed admission\" — the school decides. Ask which school, and ask to see its requirements.</li><li>\"Guaranteed visa\" — the agency decides, by discretion, with no appeal. [source:1] [source:2]</li><li>\"Partner school\" or \"designated school\" — ask what the relationship is contractually, and whether it changes the school's admission decision. Usually it does not.</li><li>\"We'll handle everything\" — ask what \"everything\" includes, and who holds the money at each step.</li><li>\"Pay us the tuition\" — ask why it is not paid to the school.</li></ul><p>Our own position, stated plainly: we prepare and forward application documents. The school decides admission. The Immigration Services Agency decides residence status, at its discretion. [source:1] Tuition is paid directly to the school and never held by us. We are a channel, not a party to any of those decisions.</p><p>Related reading: what the agency actually weighs at renewal, in <a href=\"guides/student-visa-renewal-what-is-assessed\">what renewal assesses</a>; how long the certificate really takes, in <a href=\"guides/certificate-of-eligibility-processing-time\">processing time</a>; how to check a school is legally allowed to accept you, in <a href=\"guides/is-your-japanese-language-school-accredited\">accreditation</a>; and what a school's silence on its own site means, in <a href=\"guides/reading-japanese-language-school-websites\">reading school websites</a>.</p><p>The agency's pages are linked below and are the only authority on any of this. Individual cases are judged individually.</p>",
+  "sources": [
+    {
+      "url": "https://www.moj.go.jp/isa/applications/resources/nyuukokukanri07_00058.html",
+      "title": "在留資格の変更、在留期間の更新許可のガイドライン（最終改正令和８年６月）",
+      "publisher": "出入国在留管理庁",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/16-3.html",
+      "title": "在留期間更新許可申請",
+      "publisher": "出入国在留管理庁",
+      "accessed": "2026-10-02"
+    },
+    {
+      "url": "https://www.moj.go.jp/isa/applications/procedures/16-1.html",
+      "title": "在留資格認定証明書交付申請",
+      "publisher": "出入国在留管理庁",
+      "accessed": "2026-10-02"
+    }
+  ],
+  "internal_links_used": [
+    "guides/student-visa-renewal-what-is-assessed",
+    "guides/certificate-of-eligibility-processing-time",
+    "guides/is-your-japanese-language-school-accredited",
+    "guides/reading-japanese-language-school-websites"
+  ],
+  "claims_without_sources": [
+    "「入学は学校が決める」—— 当然のことだが、入管庁のページが述べている事柄ではないので出典マーカーを付けていない。学校ごとの入学許可の仕組みを一次資料で一般化することはできない。",
+    "「合格保証を謳う業者の内情は三通りのいずれかである」—— 当方の推論であり、業者の実態調査に基づくものではない。断定を避けた書き方にしてある。",
+    "「学費が業者の口座に入る形になっているかどうかが見分けになる」—— 当方の判断基準の提示であって、法令や官庁の指針が定めた基準ではない。",
+    "登録支援機関について —— 特定技能の制度であって留学には関係しないという位置づけのみを述べ、制度の詳細や登録状況は扱っていない。別の在留資格の話を本記事の出典で裏づけることはできないため。",
+    "「約束できること」の5項目 —— 本サイト自身の運用方針の開示であり、外部の出典で裏づけられる性質のものではない。",
+    "「提携校と称する関係が入学判断を変えることは通常ない」—— 契約内容は公開されないため確認できない。だからこそ「契約上どういう関係か聞け」という問いの形にしてある。"
+  ]
+}
