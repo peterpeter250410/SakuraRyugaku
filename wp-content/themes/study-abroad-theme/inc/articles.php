@@ -454,6 +454,56 @@ add_filter(
 );
 
 /**
+ * 语言切换器的 URL。
+ *
+ * 与上面的 sa_hreflang_url 过滤器用同一份翻译组数据，但行为必须不同：
+ *
+ *   hreflang 是机器读的对应关系声明。没有译文时就不该声明 ——
+ *   sa_hreflang_locales 已经把不存在的语种从集群里剔掉了。
+ *
+ *   切换器是人点的。没有译文时不能留一个指向 404 的链接，
+ *   也不该把那个语种从菜单里拿掉 —— 读英文文章的人想看日文版时，
+ *   菜单里只剩「English」一项会像是功能坏了。
+ *
+ * 所以没有译文时落到该语种的文章列表页：不是死胡同，
+ * 落点是同一主题、目标语种的内容，而且读者能看出发生了什么。
+ *
+ * 刻意不做 301 到正确语种的文章 —— 那是 template_redirect 那段注释
+ * 讲过的理由：URL 里的语种前缀是明确意图，悄悄改掉会让
+ * 「切换语种」这个动作的结果变得不可预期。这里是换链接的落点，
+ * 不是在用户已经点下去之后改变目的地。
+ */
+add_filter(
+	'sa_locale_switch_url',
+	function ( $url, $locale_key ) {
+		if ( ! sa_is_article() ) {
+			return $url;
+		}
+
+		$article = get_queried_object();
+
+		/*
+		 * 当前语种那一项永远指向这篇自己。
+		 *
+		 * 后台手工建的文章可能没有 _sa_group，翻译组查出来是空的 ——
+		 * 没有这个分支的话，连「正在看的这个语种」都会落到列表页，
+		 * 菜单里那个 aria-current 的项目指不回当前页面。
+		 */
+		if ( $locale_key === sa_article_locale( $article ) ) {
+			return sa_article_url( $article );
+		}
+
+		$map = sa_article_translations( sa_article_group( $article ) );
+
+		return isset( $map[ $locale_key ] )
+			? sa_article_url( $map[ $locale_key ] )
+			: sa_articles_url( $locale_key );
+	},
+	10,
+	2
+);
+
+/**
  * 标题与 meta description。
  */
 add_filter(

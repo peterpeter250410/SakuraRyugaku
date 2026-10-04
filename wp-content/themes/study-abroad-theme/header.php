@@ -92,7 +92,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 						foreach ( $sa_locales_all as $sa_key => $sa_loc ) {
 							// 切换语种时停留在当前页面的对应语种版本，而不是一律跳回首页。
 							// 把用户从内页甩回首页既伤转化，也让搜索引擎难以建立页面级语种对应关系。
-							$sa_lang_url = sa_current_url_in( $sa_key );
+							//
+							// 用 sa_locale_switch_url() 而不是 sa_current_url_in()：
+							// 后者只换路径前缀，对三语 slug 各异的文章会生成 404。
+							// 见 inc/i18n.php 的函数注释。
+							$sa_lang_url = sa_locale_switch_url( $sa_key );
 							$sa_is_cur   = ( $sa_key === $sa_cur_locale );
 
 							printf(

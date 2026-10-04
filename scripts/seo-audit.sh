@@ -687,7 +687,21 @@ if [ "$SCHOOLS_CODE" = "200" ]; then
         bad "不存在的院校返回 ${NX_CODE}（应为 404，否则会被收录为空页面）"
     fi
 else
-    warn "/schools/ → ${SCHOOLS_CODE}（若刚部署，需执行 wp rewrite flush --hard）"
+    # 主题自 SA_ROUTES_VERSION 起会在 init 自动软 flush 一次，
+    # 所以「刚部署还没 flush」这个解释已经不成立了 —— 这里 404 是真故障。
+    bad "/schools/ → ${SCHOOLS_CODE}（院校列表页不可访问）"
+    echo "         院校页路由由 inc/schools.php 的 add_rewrite_rule() 注册，"
+    echo "         规则只在 flush 之后才进 rewrite_rules 选项。"
+    echo "         主题已带版本门控的自动 flush（functions.php 的 SA_ROUTES_VERSION），"
+    echo "         因此需要区分两种原因："
+    echo "         1) 规则没进数据库 —— 看规则在不在:"
+    echo "              wp rewrite list --format=csv --path=${SITE_ROOT} --allow-root | grep schools"
+    echo "            在：说明规则没问题，往下看第 2 条。"
+    echo "            不在：自动 flush 没跑到，手工补一次:"
+    echo "              wp rewrite flush --path=${SITE_ROOT} --allow-root"
+    echo "              wp option get sa_routes_version --path=${SITE_ROOT} --allow-root"
+    echo "         2) 规则在但仍 404 —— 多半是没有已发布的院校记录:"
+    echo "              wp db query \"SELECT COUNT(*) FROM \$(wp db prefix --allow-root)sa_schools WHERE published=1\" --path=${SITE_ROOT} --allow-root"
 fi
 
 # ---------- B4d. 文章页（/guides/） ----------

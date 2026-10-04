@@ -373,6 +373,34 @@ function sa_current_url_in( $locale_key ) {
 	return sa_url( home_url( '/' . $relative ), $locale_key );
 }
 
+/**
+ * 语言切换器要用的 URL。
+ *
+ * 与 sa_current_url_in() 的区别，以及为什么必须分开：
+ *
+ *   sa_current_url_in() 只是把路径前缀换掉。对页面成立（各语种共用一个
+ *   slug），对文章不成立 —— 三语版本的 slug 是各自独立的，而且
+ *   语种不匹配的文章详情页会被 template_redirect 判成真 404。
+ *
+ *   线上实测的后果：日文文章 /guides/coe-shinsa-kikan/ 上点「English」，
+ *   切换器给出 /en/guides/coe-shinsa-kikan/ —— 404。
+ *   更普遍的是只有英文版的文章（现在 35 篇），切换器照样列出日文与中文，
+ *   两条都指向不存在的译文。一篇文章两个死链，乘以篇数。
+ *
+ *   hreflang 没有这个问题，因为它走 sa_hreflang_url 过滤器，
+ *   由 articles.php 换成同组真实译文的 URL。可见的切换器却直接调了
+ *   未经过滤的函数，于是「机器读到的对应关系是对的，人点下去是 404」。
+ *
+ * 因此切换器有自己的过滤点。默认行为与 sa_current_url_in() 相同，
+ * 文章相关的修正挂在 articles.php（语种与翻译组的知识属于那一侧）。
+ *
+ * @param string $locale_key 目标语种。
+ * @return string
+ */
+function sa_locale_switch_url( $locale_key ) {
+	return apply_filters( 'sa_locale_switch_url', sa_current_url_in( $locale_key ), $locale_key );
+}
+
 /* -------------------------------------------------------------------------
  * 把语种前缀加回前端链接
  * ---------------------------------------------------------------------- */

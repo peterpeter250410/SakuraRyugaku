@@ -42,6 +42,49 @@ require_once get_template_directory() . '/inc/sitemap.php';
 require_once get_template_directory() . '/inc/performance.php';
 
 /* -------------------------------------------------------------------------
+ * 重写规则：部署后自动 flush 一次
+ * ---------------------------------------------------------------------- */
+
+/**
+ * 路由版本。改动 inc/schools.php 或 inc/articles.php 的重写规则时递增。
+ *
+ * 为什么需要这个：
+ *
+ *   院校页的路由是 add_rewrite_rule() 注册的，文章是 register_post_type()
+ *   带 rewrite 注册的。两者都只有在 flush 之后才写进 rewrite_rules 选项。
+ *   主题代码里原本没有任何 flush，于是每次部署都要人工跑一次
+ *   `wp rewrite flush`，忘了就是一整套 404 —— 而且是静默的：
+ *   首页和页面照常工作，只有院校页和文章页挂掉。
+ *
+ *   线上实测到的就是这个：seo-audit 报 /schools/ → 404，
+ *   连带 9 条从文章正文指向院校页的内链全部 404。
+ *   规则本身没写错，只是没进数据库。
+ *
+ *   「部署步骤里加一条命令」不能解决这个问题 —— 需要被记住的步骤
+ *   终将被忘记。让代码自己知道规则变了，是唯一不依赖记性的办法。
+ */
+define( 'SA_ROUTES_VERSION', '2' );
+
+add_action(
+	'init',
+	function () {
+		if ( get_option( 'sa_routes_version' ) === SA_ROUTES_VERSION ) {
+			return;
+		}
+
+		/*
+		 * 软 flush（第一个参数 false）：只重算 rewrite_rules 选项，
+		 * 不去写 .htaccess。生产环境是 nginx，没有 .htaccess 可写，
+		 * 硬 flush 在这里除了多一次文件系统尝试之外没有任何作用。
+		 */
+		flush_rewrite_rules( false );
+
+		update_option( 'sa_routes_version', SA_ROUTES_VERSION, true );
+	},
+	99
+);
+
+/* -------------------------------------------------------------------------
  * 主题支持
  * ---------------------------------------------------------------------- */
 

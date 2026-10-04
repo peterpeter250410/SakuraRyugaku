@@ -72,7 +72,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		 * 真正让 /zh/ 与 /en/ 被抓取的是稳定、全站可见的内链。
 		 * 因此在页脚放一组始终可见、指向当前页各语种版本的链接。
 		 */
-		if ( function_exists( 'sa_current_url_in' ) ) :
+		if ( function_exists( 'sa_locale_switch_url' ) ) :
 			$sa_all_locales = sa_locales();
 			if ( count( $sa_all_locales ) > 1 ) :
 				?>
@@ -84,7 +84,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 						foreach ( $sa_all_locales as $sa_key => $sa_loc ) {
 							printf(
 								'<li><a href="%1$s" hreflang="%2$s" lang="%2$s"%3$s>%4$s</a></li>',
-								esc_url( sa_current_url_in( $sa_key ) ),
+								esc_url( sa_locale_switch_url( $sa_key ) ),
 								esc_attr( sa_locale_field( $sa_key, 'hreflang', $sa_key ) ),
 								$sa_key === $sa_cur ? ' aria-current="true"' : '',
 								esc_html( $sa_loc['label'] )
