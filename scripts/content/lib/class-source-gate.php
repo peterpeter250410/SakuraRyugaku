@@ -694,7 +694,7 @@ class SA_Source_Gate {
 	 */
 	private static function unit_synonyms() {
 		return array(
-			'hour'  => array( 'hour', 'hours', '時間' ),
+			'hour'  => array( 'hour', 'hours', 'hourly', '時間', '小时', '小時', '時' ),  // 小时：中文
 			'week'  => array( 'week', 'weeks', 'weekly', '週間', '週', '周' ),  // 周：中文
 			/*
 			 * 中文の量詞を入れる。
@@ -1140,6 +1140,27 @@ class SA_Source_Gate {
 			$out[]        = array( 'num' => $num, 'unit' => 'duration', 'raw' => $dd[0] );
 		}
 		$s = preg_replace( $dur_re, ' ', $s );
+
+		/*
+		 * 号番号の CJK 表記。「第5项」（中文）「第5項」「第5号」。
+		 *
+		 * 丸括弧と英語の item しか拾っていなかったため、中国語版では
+		 * 取消事由の号番号が全部検査外に落ちていた。号を取り違えると
+		 * 読者は自分の状況とは別の帰結を読む（第5項は逃亡のおそれで
+		 * 直ちに退去強制、第6項は3か月の経過を要する）。
+		 */
+		$cjk_item = '/第\s*([0-9０-９]{1,2})\s*[项項号]/u';
+		preg_match_all( $cjk_item, $s, $cim, PREG_SET_ORDER );
+		foreach ( $cim as $ci ) {
+			$num_ci = strtr( $ci[1], array( '０'=>'0','１'=>'1','２'=>'2','３'=>'3','４'=>'4','５'=>'5','６'=>'6','７'=>'7','８'=>'8','９'=>'9' ) );
+			$key    = $num_ci . '|item';
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$out[]        = array( 'num' => $num_ci, 'unit' => 'item', 'raw' => $ci[0] );
+		}
+		$s = preg_replace( $cjk_item, ' ', $s );
 
 		$item_re = '/(?:\(\s*(\d{1,2})\s*\)|\bitems?\s+(\d{1,2})\b)/iu';
 		preg_match_all( $item_re, $s, $im, PREG_SET_ORDER );
@@ -2025,6 +2046,32 @@ class SA_Source_Gate {
 		 */
 		$range_sep = '(?:\s*(?:[~〜～\-–—]|から|to|・)\s*)';
 		$range_gap = $range_sep . '[\d０-９][\d,０-９]*' . $gap;
+
+		/*
+		 * 量詞を内包した候補は、それ自体が完結した表記なので
+		 * 隣接をさらに求めてはいけない。
+		 *
+		 * 和暦の候補がまさにそれ。「2026年」と書くと量詞は year になり、
+		 * 候補には「令和8年」が入る。ところが隣接判定は
+		 * 「令和8年」のあとにもう一つ『年』を探しに行くので、
+		 * 出典に令和8年とそのまま載っていても見つからない。
+		 *
+		 * 英語版は「1 October 2026」のように日付トークンの経路を通るため
+		 * この穴に当たらず、中国語版で「2026年」と書いて初めて露出した。
+		 * 令和8年という文字列は単独で一意なので、素の一致で足りる。
+		 */
+		foreach ( $candidates as $c ) {
+			foreach ( $words as $w ) {
+				if ( false === mb_strpos( $c, $w ) ) {
+					continue;
+				}
+				foreach ( array( $page, $page_tight ) as $hay_v ) {
+					if ( false !== mb_strpos( $hay_v, $c ) ) {
+						return true;
+					}
+				}
+			}
+		}
 
 		foreach ( $candidates as $c ) {
 			$n_q = '(?<![\d０-９])' . preg_quote( $c, '/' );

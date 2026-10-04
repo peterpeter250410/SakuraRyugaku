@@ -219,7 +219,21 @@ if ( empty( $sa_links ) ) {
 	 * 同语种目录下所有文章的 slug。自己也算在内 ——
 	 * 文章链到自己是写法问题，但不是「目标不存在」。
 	 */
-	$sa_dir   = dirname( $file );
+	/*
+	 * 同語種のディレクトリは locale から引く。被検査ファイルの位置からは引かない。
+	 *
+	 * 変異テスト（mutate-test.php）は稿件を一時ディレクトリに複製してから
+	 * 闸门を回す。dirname( $file ) に頼ると、そこには兄弟ファイルが無いので
+	 * 内链の目標が全部「存在しない」と報告される —— 実際にそうなり、
+	 * 中国語版2本の変異テストが「元の稿が通らない」で止まった。
+	 *
+	 * 記事の置き場所は規約で決まっている（scripts/content/articles/<locale>/）。
+	 * 規約から引けば、ファイルがどこにあっても同じ答えになる。
+	 */
+	$sa_dir = __DIR__ . '/articles/' . ( isset( $art['locale'] ) ? (string) $art['locale'] : '' );
+	if ( ! is_dir( $sa_dir ) ) {
+		$sa_dir = dirname( $file );
+	}
 	$sa_slugs = array();
 	foreach ( (array) glob( $sa_dir . '/*.json' ) as $sa_f ) {
 		$sa_d = json_decode( (string) file_get_contents( $sa_f ), true );
