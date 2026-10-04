@@ -62,7 +62,17 @@ $check = static function ( $file ) use ( $root ) {
 		$rc
 	);
 	$txt = implode( "\n", $out );
-	return array( 'rc' => $rc, 'fail' => ( false !== strpos( $txt, '✗' ) ), 'out' => $txt );
+	return array(
+		'rc'   => $rc,
+		'fail' => ( false !== strpos( $txt, '✗' ) ),
+		/*
+		 * 判定保留。出典のどれかが取得できなかった回である。
+		 * 「闸门が気づかなかった」とは意味が違う ——
+		 * そもそも照らす相手が無かったのだから、何も分かっていない。
+		 */
+		'held' => ( 3 === $rc || false !== strpos( $txt, '⚠' ) ),
+		'out'  => $txt,
+	);
 };
 
 $base_res = $check( $base );
@@ -149,6 +159,7 @@ printf( "%s\n", basename( $path ) );
 printf( "数字 %d 個を一つずつ書き換える\n\n", count( $nums ) );
 
 $leaks = array();
+$held  = array();
 
 foreach ( $nums as $raw ) {
 	$new = $mutate_value( $raw );
@@ -202,8 +213,26 @@ foreach ( $nums as $raw ) {
 	file_put_contents( $f, json_encode( $copy, JSON_UNESCAPED_UNICODE ) );
 
 	$res = $check( $f );
+
+	/*
+	 * 取得できなかった出典があるなら、一度だけ引き直す。
+	 *
+	 * これが無いと、間欠的な通信失敗が「闸门の穴」として報告される ——
+	 * 実際に起きた：千駄ヶ谷の定員 900 を 600 に書き換えた回で
+	 * group.jp-sji.org の取得が落ち、[漏网] と出た。
+	 * あとで単体で確かめたら闸门は正しく捕まえていた。
+	 *
+	 * 道具が嘘の警告を出すなら、その道具で得た結論は全部疑わしくなる。
+	 */
+	if ( ! $res['fail'] && $res['held'] ) {
+		$res = $check( $f );
+	}
+
 	if ( $res['fail'] ) {
 		printf( "  [捕获] %s → %s\n", $raw, $new );
+	} elseif ( $res['held'] ) {
+		printf( "  [保留] %s → %s（出典を取得できず、判定が成立しない）\n", $raw, $new );
+		$held[] = $raw;
 	} else {
 		printf( "  [漏网] %s → %s\n", $raw, $new );
 		$leaks[] = $raw;
@@ -215,9 +244,18 @@ foreach ( $nums as $raw ) {
 @rmdir( $tmp_dir );
 
 echo "\n";
+
+if ( ! empty( $held ) ) {
+	printf(
+		"%d 個は出典を取得できず判定できなかった（通信の問題で、闸门の穴ではない）： %s\n",
+		count( $held ),
+		implode( ', ', $held )
+	);
+}
+
 if ( empty( $leaks ) ) {
-	printf( "全 %d 個の数字が核対されている。\n", count( $nums ) );
-	exit( 0 );
+	printf( "書き換えを検出できなかった数字は無い（判定できた %d 個中）。\n", count( $nums ) - count( $held ) );
+	exit( empty( $held ) ? 0 : 3 );
 }
 
 printf( "%d 個が書き換えても検出されなかった： %s\n", count( $leaks ), implode( ', ', $leaks ) );
