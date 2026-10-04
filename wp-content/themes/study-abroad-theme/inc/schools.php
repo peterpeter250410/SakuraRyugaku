@@ -164,6 +164,50 @@ add_action(
 );
 
 /**
+ * 院校页的 404 判定由本文件自己负责，WordPress 不要插手。
+ *
+ * 为什么必须显式接管：
+ *
+ *   院校页是 add_rewrite_rule() 注册的自定义端点，请求里只有
+ *   sa_schools=1 或 sa_school=xxx，不构成任何文章查询。于是主查询
+ *   查的是默认的 post 类型，而本站的内容在院校表与文章 CPT 里，
+ *   普通文章一篇都不需要有 —— 查询结果理应为空。
+ *
+ *   而 WP::handle_404() 的豁免条件是这样的：
+ *
+ *       if ( is_admin() || is_robots() || ! empty( $wp_query->posts ) ) 不 404
+ *       elseif ( is_home() || is_search() || is_feed() )                不 404
+ *
+ *   上面的 parse_query 为了让 body_class、标题推导、canonical 兜底
+ *   不按「博客首页」处理，把 is_home 设成了 false —— 那一步是对的，
+ *   但它同时拆掉了第二条豁免。于是院校页能不能活，就只剩
+ *   「主查询恰好查到了至少一篇普通文章」这一个条件。
+ *
+ *   站上长期只有一篇普通文章：WordPress 自带的 hello-world。
+ *   院校页一直靠它躲过 404 —— 那篇示例文章是无意中承重的。
+ *   清理 Search Console 垃圾 URL 时把它删掉，院校列表页与 8 个院校
+ *   详情页当场全部 404，连带文章正文里指向院校页的内链也全断。
+ *   规则没写错，模板也在，只是豁免消失了。
+ *
+ *   pre_handle_404 正是为自定义端点准备的钩子：返回 true 表示
+ *   「状态码我自己管」。之后 sa_is_school_page() 那一段仍然会对
+ *   找不到的院校发真 404，所以接管不等于一律放行。
+ *
+ * @see https://developer.wordpress.org/reference/hooks/pre_handle_404/
+ */
+add_filter(
+	'pre_handle_404',
+	function ( $preempt, $wp_query ) {
+		if ( ! empty( $wp_query->query_vars['sa_schools'] ) || ! empty( $wp_query->query_vars['sa_school'] ) ) {
+			return true;
+		}
+		return $preempt;
+	},
+	10,
+	2
+);
+
+/**
  * 找不到（或未发布）的院校返回 404，而不是渲染空页面。
  *
  * 返回软 404（200 + 空内容）会让搜索引擎收录无意义页面，

@@ -130,13 +130,25 @@ fi
 
 # ---------- A5. SEO 关键函数就位 ----------
 head2 "A5. SEO 模块完整性"
+# 后三项是曾经出过线上故障的点，放在这里防止被误删：
+#   sa_locale_switch_url —— 语言切换器必须走它，直接用 sa_current_url_in()
+#                           会对三语 slug 各异的文章生成 404。
+#   pre_handle_404       —— 院校页是自定义端点，主查询查不到文章是正常的。
+#                           不接管 404 判定，院校页能不能活就取决于站上
+#                           恰好有没有一篇普通文章（实测删掉 hello-world
+#                           之后院校页全部 404）。
+#   SA_ROUTES_VERSION    —— 重写规则的版本门控自动 flush。没有它，每次部署
+#                           都要人工跑 wp rewrite flush，忘了就是静默 404。
 for pair in \
     "inc/i18n.php:sa_bootstrap_locale" \
     "inc/i18n.php:sa_current_url_in" \
     "inc/seo.php:sa_canonical_url" \
     "inc/seo.php:sa_robots_meta" \
     "inc/sitemap.php:SA_Sitemap_Locale_Provider" \
-    "inc/performance.php:sa_webfont_url" ; do
+    "inc/performance.php:sa_webfont_url" \
+    "inc/i18n.php:sa_locale_switch_url" \
+    "inc/schools.php:pre_handle_404" \
+    "functions.php:SA_ROUTES_VERSION" ; do
     F="${pair%%:*}"; FN="${pair##*:}"
     if [ -f "${THEME}/${F}" ] && grep -q "$FN" "${THEME}/${F}"; then
         ok "${F} → ${FN}"
