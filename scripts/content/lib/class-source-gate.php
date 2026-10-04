@@ -695,7 +695,7 @@ class SA_Source_Gate {
 	private static function unit_synonyms() {
 		return array(
 			'hour'  => array( 'hour', 'hours', '時間' ),
-			'week'  => array( 'week', 'weeks', 'weekly', '週間', '週' ),
+			'week'  => array( 'week', 'weeks', 'weekly', '週間', '週', '周' ),  // 周：中文
 			/*
 			 * 中文の量詞を入れる。
 			 *
@@ -759,7 +759,19 @@ class SA_Source_Gate {
 			 * どれを書き換えても闸门が黙った。選校の判断を左右する数字が
 			 * まるごと無検査だった。
 			 */
-			'school' => array( 'school', 'schools', 'institution', 'institutions', '校', '機関' ),
+			/*
+			 * 学校・機関の数。
+			 *
+			 * 中文の量詞（所・家・個）も入れる。中国語版の記事は
+			 * 「100 所机构」と書くので、これが無いと量詞なしの3桁として
+			 * 検査外に落ちる —— 認定結果の数字は中国語圏の読者にとって
+			 * 最も重い判断材料のひとつで、落としてよいものではない。
+			 *
+			 * 照合側は出典（日本語）の「機関」「件」に当たればよい。
+			 * 量詞キーは記事側の表記から決まり、照合には同じキーの
+			 * 全同義語を使うので、言語をまたいでも成立する。
+			 */
+			'school' => array( 'school', 'schools', 'institution', 'institutions', '校', '機関', '件', '所机构', '所の機関', '所', '家' ),
 			/*
 			 * 建物の「棟」。
 			 *
@@ -829,6 +841,47 @@ class SA_Source_Gate {
 	}
 
 	/**
+	 * 量詞の候補を「長い順」に平らに並べたもの。
+	 *
+	 * なぜ必要か：量詞の照合は前方一致なので、キーの宣言順に試すと
+	 * 短い量詞が長い量詞の頭に当たって先に勝ってしまう。
+	 * 中国語版で「6,000日元」が day の「日」に当たり、yen の「日元」が
+	 * 表に在るのに出番が無かった —— 1文字の CJK 量詞には
+	 * 語尾境界という手が使えないので、順序で解く。
+	 *
+	 * 同じ長さのときは宣言順を保つ（usort は安定ではないので
+	 * 添字を第二キーに使う）。
+	 *
+	 * @return array<int,array{key:string,word:string}>
+	 */
+	private static function unit_candidates_by_length() {
+		static $flat = null;
+		if ( null !== $flat ) {
+			return $flat;
+		}
+
+		$flat = array();
+		$i    = 0;
+		foreach ( self::unit_synonyms() as $key => $words ) {
+			foreach ( $words as $w ) {
+				$flat[] = array( 'key' => $key, 'word' => $w, 'len' => mb_strlen( $w, 'UTF-8' ), 'i' => $i++ );
+			}
+		}
+
+		usort(
+			$flat,
+			static function ( $a, $b ) {
+				if ( $a['len'] !== $b['len'] ) {
+					return $b['len'] - $a['len'];
+				}
+				return $a['i'] - $b['i'];
+			}
+		);
+
+		return $flat;
+	}
+
+	/**
 	 * 从句子中抽出需要核对的数字，连同它的量词。
 	 *
 	 * 带量词是关键：只搜数字本身会撞上来源页上的电话号码、邮编、条款号。
@@ -874,6 +927,30 @@ class SA_Source_Gate {
 			$out[]        = array( 'num' => $num, 'unit' => 'article', 'raw' => $a[0] );
 		}
 		$s = preg_replace( '/\bArticles?\s+\d{1,3}(?:\s*-\s*\d{1,2})?/iu', ' ', $s );
+
+		/*
+		 * 条文番号の CJK 表記。「第19条之7」（中文）「第19条の7」（日文）。
+		 *
+		 * 英語の「Article 19-7」しか拾っていなかったため、中国語版・日本語版の
+		 * 記事では条番号が「19」「7」に割れ、どちらも検査外に落ちていた。
+		 * 条番号の取り違えは読者を別の条文へ行かせる。
+		 */
+		$cjk_art = '/第\s*([0-9０-９]{1,3})\s*条(?:\s*[之の]\s*([0-9０-９]{1,2}))?/u';
+		preg_match_all( $cjk_art, $s, $cam, PREG_SET_ORDER );
+		foreach ( $cam as $ca ) {
+			$main = strtr( $ca[1], array( '０'=>'0','１'=>'1','２'=>'2','３'=>'3','４'=>'4','５'=>'5','６'=>'6','７'=>'7','８'=>'8','９'=>'9' ) );
+			$sub  = isset( $ca[2] ) && '' !== $ca[2]
+				? strtr( $ca[2], array( '０'=>'0','１'=>'1','２'=>'2','３'=>'3','４'=>'4','５'=>'5','６'=>'6','７'=>'7','８'=>'8','９'=>'9' ) )
+				: '';
+			$num  = '' !== $sub ? $main . '-' . $sub : $main;
+			$key  = $num . '|article';
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$out[]        = array( 'num' => $num, 'unit' => 'article', 'raw' => $ca[0] );
+		}
+		$s = preg_replace( $cjk_art, ' ', $s );
 
 		/*
 		 * 条番号の範囲の後端。「Articles 19-7 to 19-13」。
@@ -1261,8 +1338,22 @@ class SA_Source_Gate {
 			 */
 			$tail = mb_substr( substr( $s, $offset + strlen( $raw ) ), 0, 16, 'UTF-8' );
 
+			/*
+			 * 量詞の候補は長い順に試す。
+			 *
+			 * キーの宣言順に試すと、短い量詞が長い量詞の頭に当たって先に勝つ。
+			 * 実際に起きた：中国語版の「6,000日元」が、day の「日」に当たって
+			 * 「6000 日」として核対され、出典に無いと報告された。
+			 * yen の「日元」は表に在るのに、day がキー順で先だったために
+			 * 出番が無かった。
+			 *
+			 * 1文字の CJK 量詞には語尾境界という手が無い（単語の区切りが無い）。
+			 * だから順序で解く —— 長い一致を優先すれば「日元」が「日」に勝つ。
+			 */
 			$unit = '';
-			foreach ( $syn as $key => $words ) {
+			foreach ( self::unit_candidates_by_length() as $cand ) {
+				$key   = $cand['key'];
+				$words = array( $cand['word'] );
 				foreach ( $words as $w ) {
 					/*
 					 * 3文字以下の英字の量詞には語尾境界を要求する。
@@ -1324,12 +1415,11 @@ class SA_Source_Gate {
 					$long_tail,
 					$rm
 				) ) {
-					foreach ( $syn as $key2 => $words2 ) {
-						foreach ( $words2 as $w2 ) {
-							if ( preg_match( '/^' . preg_quote( $w2, '/' ) . '/iu', $rm[1] ) ) {
-								$unit = $key2;
-								break 2;
-							}
+					// 区間の上限側の量詞判定も長い順に試す（上の理由と同じ）。
+					foreach ( self::unit_candidates_by_length() as $cand2 ) {
+						if ( preg_match( '/^' . preg_quote( $cand2['word'], '/' ) . '/iu', $rm[1] ) ) {
+							$unit = $cand2['key'];
+							break;
 						}
 					}
 				}

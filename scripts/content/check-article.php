@@ -187,6 +187,134 @@ if ( $tell['score'] > SA_CHK_AI_TELL_MAX ) {
 	echo "  ✓ 通过\n";
 }
 
+/* ---- 附加检查：站内链接的目标是否存在 ---------------------------------- */
+
+/*
+ * 为什么要在发布前查：
+ *
+ *   文章正文里的站内链接写的是 guides/<slug>，渲染时按当前语种加前缀。
+ *   如果那个 slug 在该语种下没有对应文章，线上就是一条 404 内链 ——
+ *   而 seo-audit 的 B4d 段只有在**发布之后**抓线上页面才能发现它。
+ *
+ *   这不是假想：中文化第一批时，who-decides-what 的中文版链向
+ *   guides/gengxin-kan-shenme（更新审查要素的中文版），而那篇当时还没写。
+ *   如果直接发布，就会往线上放一条死链，然后靠审计事后发现。
+ *
+ *   三语各自独立的 slug 让这件事更容易出错：英文版的内链图谱不能照搬，
+ *   每个语种只能链向该语种真实存在的文章。
+ *
+ *   同语种目录下扫一遍 slug 就够了，不需要数据库，也不需要线上页面。
+ */
+
+echo "\n【附加】站内链接\n";
+
+$sa_links = isset( $art['internal_links_used'] ) && is_array( $art['internal_links_used'] )
+	? $art['internal_links_used']
+	: array();
+
+if ( empty( $sa_links ) ) {
+	echo "  [警告] 没有站内链接。孤岛页面会长期停在「已发现 —— 尚未编入索引」。\n";
+} else {
+	/*
+	 * 同语种目录下所有文章的 slug。自己也算在内 ——
+	 * 文章链到自己是写法问题，但不是「目标不存在」。
+	 */
+	$sa_dir   = dirname( $file );
+	$sa_slugs = array();
+	foreach ( (array) glob( $sa_dir . '/*.json' ) as $sa_f ) {
+		$sa_d = json_decode( (string) file_get_contents( $sa_f ), true );
+		if ( is_array( $sa_d ) && isset( $sa_d['slug'] ) ) {
+			$sa_slugs[ (string) $sa_d['slug'] ] = true;
+		}
+	}
+
+	/*
+	 * 院校页の slug は別の出所から来る。
+	 *
+	 * 内链には二種類ある：guides/<slug> は文章、schools/<slug> は院校页
+	 * （自前のテーブルと add_rewrite_rule のルート）。
+	 * 文章のディレクトリだけを見ていると、院校页へのリンクを
+	 * 全部「存在しない」と報告する —— 実際にそうなり、
+	 * 線上の審計では可達と確認されている19本を誤りとして挙げた。
+	 *
+	 * 検査が嘘をつくなら、その検査で得た結論は全部疑わしくなる。
+	 */
+	$sa_school_slugs = array();
+	$sa_sfile        = dirname( __DIR__ ) . '/schools.json';
+	if ( is_readable( $sa_sfile ) ) {
+		$sa_sj = json_decode( (string) file_get_contents( $sa_sfile ), true );
+		$sa_sj = isset( $sa_sj['schools'] ) && is_array( $sa_sj['schools'] ) ? $sa_sj['schools'] : $sa_sj;
+		foreach ( (array) $sa_sj as $sa_row ) {
+			if ( is_array( $sa_row ) && isset( $sa_row['slug'] ) ) {
+				$sa_school_slugs[ (string) $sa_row['slug'] ] = true;
+			}
+		}
+	}
+
+	$sa_missing = array();
+	foreach ( $sa_links as $sa_l ) {
+		$sa_l = trim( (string) $sa_l, '/ ' );
+		if ( '' === $sa_l ) {
+			continue;
+		}
+
+		if ( 0 === strpos( $sa_l, 'schools/' ) ) {
+			$sa_slug = substr( $sa_l, strlen( 'schools/' ) );
+			/*
+			 * 院校页は published=0 なら本番で 404 になるが、その状態は
+			 * データベース側にあり schools.json からは判らない。
+			 * ここで見るのは「そんな slug の院校が存在するか」までとし、
+			 * 公開状態は seo-audit の線上検査に任せる。
+			 */
+			if ( ! isset( $sa_school_slugs[ $sa_slug ] ) ) {
+				$sa_missing[] = 'schools/' . $sa_slug;
+			}
+			continue;
+		}
+
+		$sa_slug = preg_replace( '#^guides/#', '', $sa_l );
+		$sa_slug = trim( (string) $sa_slug, '/' );
+		if ( '' === $sa_slug || isset( $sa_slugs[ $sa_slug ] ) ) {
+			continue;
+		}
+		$sa_missing[] = 'guides/' . $sa_slug;
+	}
+
+	if ( empty( $sa_missing ) ) {
+		printf( "  ✓ %d 条站内链接的目标都存在（同语种 %d 篇）\n", count( $sa_links ), count( $sa_slugs ) );
+	} else {
+		foreach ( $sa_missing as $sa_slug ) {
+			echo "  ✗ 站内链接指向不存在的目标：{$sa_slug}\n";
+			echo "     本语种的文章目录与 schools.json 里都没有这个 slug。发布后会是一条 404 内链。\n";
+		}
+		$fails++;
+	}
+
+	/*
+	 * 正文里出现、但 internal_links_used 没登记的链接也要报。
+	 * 两者不一致时，上面那段检查就形同虚设。
+	 */
+	if ( preg_match_all( '#href="(guides/[^"]+)"#i', (string) $art['body_html'], $sa_hm ) ) {
+		$sa_declared = array();
+		foreach ( $sa_links as $sa_l ) {
+			$sa_declared[ trim( (string) $sa_l, '/' ) ] = true;
+		}
+		$sa_undeclared = array();
+		foreach ( array_unique( $sa_hm[1] ) as $sa_href ) {
+			$sa_href = trim( $sa_href, '/' );
+			if ( ! isset( $sa_declared[ $sa_href ] ) ) {
+				$sa_undeclared[] = $sa_href;
+			}
+		}
+		if ( ! empty( $sa_undeclared ) ) {
+			foreach ( $sa_undeclared as $sa_u ) {
+				echo "  ✗ 正文里的链接未登记在 internal_links_used：{$sa_u}\n";
+			}
+			$fails++;
+		}
+	}
+}
+
 /* ---- 附加检查：摘要长度 ------------------------------------------------ */
 
 echo "\n【附加】摘要\n";
