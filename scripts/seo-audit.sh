@@ -803,8 +803,28 @@ if [ "$(status_of "$ART_SITEMAP")" = "200" ]; then
                 esac
             fi
 
-            printf '%s' "$ART_TXT" | grep -o 'href="'"${SITE_URL}"'/en/[^"]*"' \
-                | sed 's/href="//; s/"$//' >> "${TMP}/art-links.txt"
+            # 站内链接は、語種を限らず全部拾う。
+            #
+            # ここは長らく href="${SITE_URL}/en/…" だけを拾っていた。
+            # 英文記事しか無かった時期に書いたもので、/en/ が焼き付いていた。
+            # 結果、日本語版の /guides/… と中国語版の /zh/guides/… の内链は
+            # 一度も検査されず、実際に4本の404内链を見逃していた ——
+            # 記事が37本から40本に増えても重複除去後の本数が51本のまま
+            # 変わらないことで気づいた。検査の対象外にあるものは、
+            # どれだけ検査を回しても見つからない。
+            #
+            # ページ全体から拾うので、ヘッダ・フッタの言語切替器も入る。
+            # それは望ましい —— 切替器が404を指していた不具合は、
+            # この形なら検査が捕まえていた。
+            #
+            # アセットと wp- 配下は除き、アンカーは落とす。
+            # 重複除去は後段なので、本数はサイト内の相異 URL 数で収まる。
+            printf '%s' "$ART_TXT" | grep -o 'href="[^"]*"' \
+                | sed 's/^href="//; s/"$//' \
+                | awk -v p="${SITE_URL}/" 'index($0, p) == 1' \
+                | sed 's/#.*$//' \
+                | grep -vE '/wp-(content|includes|admin|json)|\.(css|js|png|jpe?g|webp|svg|ico|xml|txt|pdf)$' \
+                | grep -v '^$' >> "${TMP}/art-links.txt"
             printf '%s' "$ART_TXT" | grep -o 'rel="alternate" hreflang="[^"]*" href="[^"]*"' \
                 | sed 's/.*href="//; s/"$//' >> "${TMP}/art-hreflang.txt"
         done <<EOF_ARTS
@@ -829,6 +849,42 @@ EOF_ARTS
             [ "$LC" = "200" ] || { bad "文章内链 ${LC}: ${L}"; ART_BAD_LINKS=$((ART_BAD_LINKS+1)); }
         done
         [ "$ART_BAD_LINKS" = "0" ] && ok "文章内链全部可访问（去重后 ${ART_LINKS_U} 条）"
+
+        # 語種隔離：同じ slug は自分の語種前缀の下だけで有効であること。
+        #
+        # これは重複内容を防ぐ中核の保証で、inc/articles.php の
+        # template_redirect が語種不一致の記事を真の404にしている。
+        # ところがこの不変式は一度も検査されていなかった ——
+        # そして語言切替器の不具合（三語で slug が異なる記事に対して
+        # 前缀を差し替えただけの URL を出し、404を量産していた）は、
+        # まさにこの境界で起きた。
+        #
+        # sitemap の先頭1本で足りる。壊れるときは実装ごと壊れるので、
+        # 全本数を叩いて同じことを40回確かめる価値は無い。
+        ART_FIRST=$(printf '%s\n' "$ART_URLS" | grep . | head -1)
+        if [ -n "$ART_FIRST" ]; then
+            ART_REST=${ART_FIRST#${SITE_URL}/}
+            case "$ART_REST" in
+                zh/*) ART_OWN="zh" ; ART_TAIL=${ART_REST#zh/} ;;
+                en/*) ART_OWN="en" ; ART_TAIL=${ART_REST#en/} ;;
+                *)    ART_OWN="ja" ; ART_TAIL=$ART_REST ;;
+            esac
+
+            ART_ISO_BAD=0
+            for OTHER in ja zh en; do
+                [ "$OTHER" = "$ART_OWN" ] && continue
+                case "$OTHER" in
+                    ja) OTHER_URL="${SITE_URL}/${ART_TAIL}" ;;
+                    *)  OTHER_URL="${SITE_URL}/${OTHER}/${ART_TAIL}" ;;
+                esac
+                OC=$(status_of "$OTHER_URL")
+                if [ "$OC" != "404" ]; then
+                    bad "语种隔离失效：${OTHER_URL} → ${OC}（应为 404，否则同一篇在多个语种 URL 上重复）"
+                    ART_ISO_BAD=$((ART_ISO_BAD+1))
+                fi
+            done
+            [ "$ART_ISO_BAD" = "0" ] && ok "语种隔离正常（${ART_OWN} 的 slug 在另两个语种下均 404）"
+        fi
 
         ART_BAD_HL=0
         for HL in $(sort -u "${TMP}/art-hreflang.txt" 2>/dev/null); do
