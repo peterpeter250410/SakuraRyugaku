@@ -718,20 +718,6 @@ add_filter(
 		$lines[] = 'Disallow: /*?s=';
 		$lines[] = 'Disallow: /*?replytocom=';
 
-		/*
-		 * 缓存目录。
-		 *
-		 * Search Console 把 /cache/ 与 /en/cache/ 都报成了已发现的 URL。
-		 * 这里面没有给人读的内容，被抓到只会消耗抓取预算，
-		 * 而且目录列表会把服务器上的文件结构暴露出去。
-		 *
-		 * 这一条用 Disallow 而不是 noindex：没有 HTML 可以承载 noindex，
-		 * 而且这里要阻止的是抓取本身，不只是索引。
-		 * 需要注意的是，robots.txt 只是请求 —— 真正的拦截要在 nginx 侧做，
-		 * 见 docs/ops-cache-dir.md。
-		 */
-		$lines[] = 'Disallow: /cache/';
-		$lines[] = 'Disallow: /*/cache/';
 		// 静态资源必须放行，否则 Google 无法渲染页面、Core Web Vitals 评分受损。
 		$lines[] = 'Allow: /wp-content/uploads/';
 		$lines[] = 'Allow: /wp-content/themes/';
